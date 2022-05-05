@@ -1,1 +1,1 @@
-# federated-learning
+# Neursafe FL
