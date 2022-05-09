@@ -1,0 +1,40 @@
+# federated learning CI workflow
+
+name: FL-CI
+
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  tox_ci_test:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python Env
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.7'
+
+      - name: Install bazel build tool
+        run: |
+           curl -fSsL -O https://github.com/bazelbuild/bazel/releases/download/3.5.0/bazel-3.5.0-installer-linux-x86_64.sh && chmod +x bazel-*.sh && sudo ./bazel-3.5.0-installer-linux-x86_64.sh
+
+      - name: Install ci dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 pytest tox
+
+      - name: Check dependencies install success
+        run: |
+          python -V
+          bazel --version
+          tox --version
+
+      - name: Run tox
+        run: tox

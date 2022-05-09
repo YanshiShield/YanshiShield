@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+import "neursafe_fl/proto/message.proto";
+
+
+service TrainReplyService {
+	rpc TrainReply(stream neursafe_fl.v1.TaskResult) returns (neursafe_fl.v1.Response);
+}
+
+service EvaluateReplyService {
+	rpc EvaluateReply(stream neursafe_fl.v1.TaskResult) returns (neursafe_fl.v1.Response);
+}

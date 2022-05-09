@@ -1,0 +1,144 @@
+syntax = "proto3";
+
+package neursafe_fl.v1;
+
+import "google/protobuf/struct.proto";
+
+
+message Task {
+    Metadata metadata = 1;
+    TaskSpec spec = 2;
+    FilePackage files = 3;
+}
+
+message Metadata {
+    string job_name = 1;
+    int32 round = 2;
+}
+
+message TaskSpec {
+    oneof entry {
+        string entry_name = 1;
+        Scripts scripts = 7;
+    }
+    string runtime = 2;
+    Resource resource = 3;
+    google.protobuf.Struct params = 4;
+    google.protobuf.Struct custom_params = 5;
+    google.protobuf.Struct secure_algorithm = 6;
+    Optimizer optimizer = 9;
+    string datasets = 8;
+}
+
+message Optimizer {
+    string name = 1;
+    google.protobuf.Struct params = 2;
+}
+
+message Scripts {
+    string path  = 1;
+    string config_file = 2;
+}
+
+message Resource {
+    float cpu = 1;
+    int32 memory = 2;
+    int32 gpu = 3;
+    int32 worker_num = 4;
+}
+
+message FilePackage {
+    File file_info = 1;
+    bytes chunk = 2;
+}
+
+message File {
+    string name = 1;
+    int64 size = 2;
+    string md5 = 3;
+    bool compress = 4;
+}
+
+
+message Response {
+    // state is in success and failed
+    string state = 1;
+    string reason = 2;
+    string session_id =3;
+}
+
+
+message TaskResult {
+    Metadata metadata = 1;
+    string client_id = 2;
+    Status status = 3;
+    ResultSpec spec = 4;
+    FilePackage files = 5;
+}
+
+message ResultSpec {
+    google.protobuf.Struct metrics = 1;
+    google.protobuf.Struct custom_params = 2;
+}
+
+enum Status {
+    default = 0;
+    running = 1;
+    success = 2;
+    failed = 3;
+}
+
+
+// selector message definition
+
+message Client {
+    string id = 1;
+    string type = 2;
+}
+
+message ClientRegister {
+    string client_id = 1;
+    string username = 2;
+    string password = 3;
+    bytes certificate = 4;
+    string public_key = 5;
+}
+
+enum ClientState {
+    idle = 0;
+    full = 1;
+    available = 2;
+    error = 3;
+}
+
+message ClientInfo {
+    Client client = 1;
+    string address = 2;
+    string os = 3;
+    string runtime = 4;
+    string client_label = 5;
+    int32 max_task_parallelism = 6;
+    int32 cur_task_parallelism = 7;
+    ClientState state = 8;
+    map<string, string> client_resource = 9;
+    map<string, string> client_status = 10;
+    map<string, int32> client_data = 11;
+    string tasks = 12;
+}
+
+message ClientList {
+    string state = 1;
+    string reason = 2;
+    int32 num = 3;
+    repeated ClientInfo client_list = 4;
+}
+
+message ClientRequirement {
+    Metadata task = 1;
+    int32 number = 2;
+    float redundancy = 3;
+    bool random_client = 4;
+    bool untrained_first = 5;
+    map<string, string> conditions = 6;
+    string clients = 7;
+}
