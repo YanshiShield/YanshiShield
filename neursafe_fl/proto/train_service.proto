@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+import "neursafe_fl/proto/message.proto";
+
+service TrainService{
+    rpc Train (stream neursafe_fl.v1.Task) returns (neursafe_fl.v1.Response);
+    rpc Stop (neursafe_fl.v1.Metadata) returns (neursafe_fl.v1.Response);
+}

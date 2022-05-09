@@ -1,0 +1,18 @@
+{
+	"job_name": "",
+	"description": "example for federate learning",
+	"host": "0.0.0.0",
+	"port": "None",
+	"clients": "",
+	"model_path": "",
+	"runtime": "",
+	"task_entry": "",
+	"output": "",
+	"hyper_parameters": {
+		"max_round_num": 0,
+		"client_num": 0,
+        "threshold_client_num": 0,
+		"evaluate_interval": 0,
+		"save_interval": 0
+	}
+}

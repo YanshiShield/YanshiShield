@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+import "neursafe_fl/proto/message.proto";
+
+service SelectService {
+    rpc Select (neursafe_fl.v1.ClientRequirement) returns (neursafe_fl.v1.ClientList);
+    rpc Release (neursafe_fl.v1.Metadata) returns (neursafe_fl.v1.Response);
+    rpc CheckClientsResource(neursafe_fl.v1.ClientRequirement) returns (neursafe_fl.v1.Response);
+    rpc GetClients(neursafe_fl.v1.ClientRequirement) returns (neursafe_fl.v1.ClientList);
+}

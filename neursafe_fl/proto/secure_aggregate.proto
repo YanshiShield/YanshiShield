@@ -1,0 +1,55 @@
+syntax = "proto3";
+package neursafe_fl.v1;
+
+import "neursafe_fl/proto/message.proto";
+
+
+message PublicKeys {
+    repeated PublicKey public_key = 1;
+}
+
+message PublicKey {
+    string client_id = 1;
+    string s_pk = 2; //a very long int, int64 out index.
+    string c_pk = 3;
+}
+
+message EncryptedShares {
+    string client_id = 1;
+    repeated EncryptedShare encrypted_share = 2;
+}
+
+message EncryptedShare {
+    string client_id = 1;
+    bytes data = 2;
+}
+
+message SecretShare {
+    string client_id = 1;
+    string data = 2;
+}
+
+message Clients {
+    repeated string client_id = 1;
+}
+
+message SecretShares {
+    repeated SecretShare b_share = 1; // alive clients' b shares
+    repeated SecretShare s_sk_share = 2; // dropout clients' s_sk shares
+}
+
+message SSAMessage {
+    string handle = 1;   //job_name+round
+    oneof spec {
+        PublicKey public_key_rpt = 2;  //client report
+        PublicKeys public_keys_bcst = 3;  //server broadcast
+        EncryptedShares encrypted_shares_rpt = 4;  //client report s_sk and b's share, which encrypted
+        EncryptedShares encrypted_shares_bcst = 5; //server restruct and broadcast
+        Clients alive_clients_bcst = 6;   //server broadcast the alive client
+        SecretShares secret_shares_rpt = 7;  //client report s_sk or b's share
+    }
+}
+
+service SSAService {
+    rpc call(SSAMessage) returns (Response);
+}
