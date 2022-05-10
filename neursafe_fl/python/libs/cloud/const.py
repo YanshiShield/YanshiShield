@@ -9,7 +9,7 @@ import os
 
 
 CLOUD_OS = os.getenv('CLOUD_OS', 'k8s')
-K8S_ADDR = os.getenv('K8S_ADDRESS', '10.67.134.15:8080')
+K8S_ADDR = os.getenv('K8S_ADDRESS', "0.0.0.0")
 K8S_API_PROTOCOL = os.getenv('K8S_API_PROTOCOL', 'http')
 K8S_API_TOKEN = os.getenv('K8S_API_TOKEN', '')
 

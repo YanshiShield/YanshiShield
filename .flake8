@@ -1,0 +1,15 @@
+[flake8]
+max-line-length=80
+
+per-file-ignores =
+    # E501: line too long
+    *_test.py:E501
+    test_*.py:E501
+   
+ignore = F401, W503
+exclude =
+    .git,
+    __pycache__
+    fl/proto
+format = pylint
+max-complexity = 15

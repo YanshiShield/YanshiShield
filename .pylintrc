@@ -1,0 +1,22 @@
+[MASTER]
+jobs = 0
+ignore = proto
+
+[MESSAGES CONTROL]
+
+disable=empty-docstring,fixme,no-self-use,duplicate-code
+
+[FORMAT]
+
+max-line-length=120
+
+[SIMILARITIES]
+
+ignore-imports=yes
+min-similarity-lines=6
+
+[BASIC]
+
+function-rgx=(([a-z][a-z0-9_]{2,80})|(_[a-z0-9_]*))$
+method-rgx=(([a-z][a-z0-9_]{2,80})|(_[a-z0-9_]*))$
+
