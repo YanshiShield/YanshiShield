@@ -173,18 +173,18 @@ docker run -v /tmp/neursafe:/tmp/neursafe --net=host nsfl-coordinator /tmp/nsfl/
 
 ### 1. 客户端1
 
-![client1](images\example-mnist-client1-process.png)
+![client1](images/example-mnist-client1-process.png)
 
 
 
 ### 2. 客户端2
 
-![client2](images\example-mnist-client2-process.png)
+![client2](images/example-mnist-client2-process.png)
 
 
 
 ### 3. Coordinator
 
-![coordinator](images\example-mnist-coordinator-process.png)
+![coordinator](images/example-mnist-coordinator-process.png)
 
 

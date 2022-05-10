@@ -173,18 +173,18 @@ After executing the above command, we can see the cooperation process of federat
 
 ### 1. Client 1
 
-![client1](images\example-mnist-client1-process.png)
+![client1](images/example-mnist-client1-process.png)
 
 
 
 ### 2. Client 2
 
-![client2](images\example-mnist-client2-process.png)
+![client2](images/example-mnist-client2-process.png)
 
 
 
 ### 3. Coordinator
 
-![coordinator](images\example-mnist-coordinator-process.png)
+![coordinator](images/example-mnist-coordinator-process.png)
 
 

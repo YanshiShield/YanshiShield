@@ -293,13 +293,14 @@ class TestJob(unittest.TestCase):
 
     @patch.object(Proxy, "add")
     @patch.object(Coordinator, "create")
+    @patch.object(Job, "_Job__do_delete_coordinator")
     @patch.object(Coordinator, "status")
     @patch("neursafe_fl.python.job_scheduler.test_job.fake_db_callback")
     @patch("neursafe_fl.python.job_scheduler.test_job.fake_finish_callback")
     @patch.object(Job, "_Job__check_clients_resource")
     def test_handle_heartbeat_successfully_if_status_is_finished(
             self, mock_check, mock_finish_callback, mock_db_callback,
-            fake_status, fake_create, fake_add_route):
+            fake_status, fake_delete, fake_create, fake_add_route):
         callbacks = {"db_callback": fake_db_callback,
                      "delete_callback": fake_delete_callback,
                      "finish_callback": fake_finish_callback}
@@ -316,6 +317,10 @@ class TestJob(unittest.TestCase):
             pass
 
         @gen.coroutine
+        def _delete(*args, **kwargs):
+            pass
+
+        @gen.coroutine
         def _status(*args, **kwargs):
             raise gen.Return({"state": State.RUNNING})
 
@@ -326,6 +331,7 @@ class TestJob(unittest.TestCase):
         mock_check.side_effect = __check
         fake_status.side_effect = _status
         fake_create.side_effect = _create
+        fake_delete.side_effect = _delete
         fake_add_route.side_effect = _create
 
         @gen.coroutine
@@ -362,13 +368,14 @@ class TestJob(unittest.TestCase):
 
     @patch.object(Proxy, "add")
     @patch.object(Coordinator, "create")
+    @patch.object(Coordinator, "delete")
     @patch.object(Coordinator, "status")
     @patch("neursafe_fl.python.job_scheduler.test_job.fake_db_callback")
     @patch("neursafe_fl.python.job_scheduler.test_job.fake_finish_callback")
     @patch.object(Job, "_Job__check_clients_resource")
     def test_handle_heartbeat_successfully_if_status_is_running(
             self, mock_check, mock_finish_callback, mock_db_callback,
-            fake_status, fake_create, fake_add_route):
+            fake_status, fake_delete, fake_create, fake_add_route):
         callbacks = {"db_callback": fake_db_callback,
                      "delete_callback": fake_delete_callback,
                      "finish_callback": fake_finish_callback}
@@ -385,6 +392,10 @@ class TestJob(unittest.TestCase):
             pass
 
         @gen.coroutine
+        def _delete(*args, **kwargs):
+            pass
+
+        @gen.coroutine
         def _status(*args, **kwargs):
             raise gen.Return({"state": State.RUNNING})
 
@@ -395,6 +406,7 @@ class TestJob(unittest.TestCase):
         mock_check.side_effect = __check
         fake_status.side_effect = _status
         fake_create.side_effect = _create
+        fake_delete.side_effect = _delete
         fake_add_route.side_effect = _add
 
         def receive_heartbeat():
@@ -429,13 +441,14 @@ class TestJob(unittest.TestCase):
 
     @patch.object(Proxy, "add")
     @patch.object(Coordinator, "create")
+    @patch.object(Job, "_Job__do_delete_coordinator")
     @patch.object(Coordinator, "status")
     @patch("neursafe_fl.python.job_scheduler.test_job.fake_db_callback")
     @patch("neursafe_fl.python.job_scheduler.test_job.fake_finish_callback")
     @patch.object(Job, "_Job__check_clients_resource")
     def test_handle_heartbeat_successfully_if_status_is_failed(
             self, mock_check, mock_finish_callback, mock_db_callback,
-            fake_status, fake_create, fake_add_route):
+            fake_status, fake_delete, fake_create, fake_add_route):
         callbacks = {"db_callback": fake_db_callback,
                      "delete_callback": fake_delete_callback,
                      "finish_callback": fake_finish_callback}
@@ -445,6 +458,10 @@ class TestJob(unittest.TestCase):
 
         @gen.coroutine
         def _create(*args, **kwargs):
+            pass
+
+        @gen.coroutine
+        def _delete(*args, **kwargs):
             pass
 
         @gen.coroutine
@@ -462,6 +479,7 @@ class TestJob(unittest.TestCase):
         mock_check.side_effect = __check
         fake_status.side_effect = _status
         fake_create.side_effect = _create
+        fake_delete.side_effect = _delete
         fake_add_route.side_effect = _add
 
         @gen.coroutine

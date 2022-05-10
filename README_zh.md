@@ -1,6 +1,6 @@
 # Neursafe FL
 
-[英文](README.md)
+[English](README.md)
 
 **Neursafe**为关注AI安全解决方案的开源社区，其中**Neursafe FL**作为Neursafe的子项目提供联邦学习的解决方案，联邦学习为一种隐私安全的机器学习方法，利用大量驻留在客户设备上的去中心化数据协作完成机器学习模型的训练。Neursafe FL的目标是在隐私安全前提下打造可靠、高效、易用的联邦学习和联邦计算平台。Neursafe FL的特点如下：
 
