@@ -128,19 +128,19 @@ nsfl.commit_metrics(metrics)
 #### 1. 运行第一个客户端
 
 ```shell
-docker run -v /tmp/nsfl:/tmp/nsfl --net=host nsfl-client-cpu --config_file /tmp/nsfl/client_0/tf_mnist.json
+./deploy/scripts/run_client.sh /tmp/nsfl/client_0/tf_mnist.json
 ```
 
 #### 2. 运行第二个客户端
 
 ```
- docker run -v /tmp/nsfl:/tmp/nsfl --net=host nsfl-client-cpu --config_file /tmp/nsfl/client_1/tf_mnist.json
+ ./deploy/scripts/run_client.sh /tmp/nsfl/client_1/tf_mnist.json
 ```
 
 #### 3. 运行Coordinator
 
 ```
-docker run -v /tmp/nsfl:/tmp/nsfl --net=host nsfl-coordinator --config_file /tmp/nsfl/coordinator/tf_mnist.json
+./deploy/scripts/run_coordinator.sh /tmp/nsfl/coordinator/tf_mnist.json
 ```
 
 
