@@ -229,7 +229,7 @@ class TestStorageManager(unittest.TestCase):  # pylint:disable=missing-class-doc
         Raises:
             TimeoutError: Waiting timeout.
         """
-        interval = 0.01
+        interval = 0.1
         max_wait_times = 10
         wait_times = 0
         while True:
@@ -273,7 +273,7 @@ class TestStorageManager(unittest.TestCase):  # pylint:disable=missing-class-doc
             captrued_empty_times = 0
             return False
 
-        interval = 0.01
+        interval = 0.1
         max_wait_times = 10
         wait_times = 0
         while True:
