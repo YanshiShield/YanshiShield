@@ -47,7 +47,7 @@ python3 example/scripts/gen_mnist_config.py --job_name=tf_mnist \
 --client_ports=9091,9092 \
 --runtime=tensorflow \
 --platform=linux \
---rounds=5 \
+--rounds=20 \
 --dataset=/tmp/nsfl/data/mnist/tf/mnist.npz
 ```
 
@@ -188,3 +188,11 @@ After executing the above command, we can see the cooperation process of federat
 ![coordinator](images/example-mnist-coordinator-process.png)
 
 
+
+### 4. Result
+
+This example demonstrates that two clients participate in Federated training. After training, the final model and metrics will be saved in directory /tmp/nsfl/coordinator/tf_mnist/fl_tf-mnist_output_V0:
+
+![result](images/example-mnist-result.png)
+
+Among them, checkpoint_ 20.h5 is the final model weight after 20 rounds of federated training, metrics.json  records the accuracy, loss and other information of the model.

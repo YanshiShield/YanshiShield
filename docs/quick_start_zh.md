@@ -47,7 +47,7 @@ python3 example/scripts/gen_mnist_config.py --job_name=tf_mnist \
 --client_ports=9091,9092 \
 --runtime=tensorflow \
 --platform=linux \
---rounds=5 \
+--rounds=20 \
 --dataset=/tmp/nsfl/data/mnist/tf/mnist.npz
 ```
 
@@ -188,3 +188,11 @@ docker run -v /tmp/neursafe:/tmp/neursafe --net=host nsfl-coordinator /tmp/nsfl/
 ![coordinator](images/example-mnist-coordinator-process.png)
 
 
+
+### 4. 结果
+
+本example演示了两个客户端参与联邦训练，训练完成后，最终的模型和指标信息会保存在/tmp/nsfl/coordinator/tf_mnist/fl_tf-mnist_output_V0目录下：
+
+ ![result](images/example-mnist-result.png)
+
+其中，checkpoint_20.h5是20轮联邦训练后最终的模型权重，metrics.json记录了模型的accuracy、loss等信息。
