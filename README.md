@@ -1,5 +1,7 @@
 # Neursafe FL
 
+[![license](https://img.shields.io/github/license/ChengMingZhang-ZTE/federated-learning)](https://opensource.org/licenses/Apache-2.0)[![Neursafe_FL_C](https://github.com/neursafe/federated-learning/actions/workflows/ci.yml/badge.svg)](https://github.com/neursafe/federated-learning/actions/workflows/ci.yml)
+
 [中文](README_zh.md)
 
 **Neursafe** is an open source community that focuses on AI Security and Safety, among which **Neursafe FL** as a sub project of Neursafe, provides federated learning solutions. Federated learning is a privacy preserving machine learning method that utilizes a large number of decentralized data remaining on client devices collaborates to complete the training of machine learning models. The goal of Neursafe FL is to create a reliable, efficient, easy-to-use federated learning and federated computing platform under the premise of privacy and security. Neursafe-FL features the following:
