@@ -38,8 +38,8 @@ Neursafe FL支持两种安装模式，单机的最小化安装模式和基于Kub
 - [架构](./docs/architecture_zh.md)
 
 ### 接口
+- [开发指南](./docs/develop.md)
 
-完善中
 
 
 
