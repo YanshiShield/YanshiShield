@@ -311,8 +311,11 @@ def create_sub_tree(base_path):
         os.makedirs(path)
 
     def create_file(path):
-        with open(path, 'w') as file:
-            file.write('test')
+        try:
+            with open(path, 'w') as file:
+                file.write('test')
+        except FileNotFoundError as err:
+            logging.exception(str(err))
 
     create_dir(join(base_path, 'dir1/dir2'))
     create_file(join(base_path, 'file1'))
