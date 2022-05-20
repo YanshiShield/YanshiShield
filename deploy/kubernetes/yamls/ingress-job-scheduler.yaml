@@ -1,0 +1,28 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: nsfl-job-scheduler-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /api/v1/namespaces/(.*)/jobs
+        backend:
+          serviceName: nsfl-job-scheduler
+          servicePort: 8088
+      - path: /api/v1/namespaces/(.*)/jobs/(.*)
+        backend:
+          serviceName: nsfl-job-scheduler
+          servicePort: 8088
+      - path: /api/v1/heartbeat
+        backend:
+          serviceName: nsfl-job-scheduler
+          servicePort: 8088
+      - path: /api/v1/health
+        backend:
+          serviceName: nsfl-job-scheduler
+          servicePort: 8088
+

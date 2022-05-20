@@ -1,0 +1,93 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: nsfl-job-scheduler
+  name: nsfl-job-scheduler
+  namespace: default
+spec:
+  ports:
+  - port: 8088
+    targetPort: 8088
+  selector:
+    app: nsfl-job-scheduler
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: nsfl-job-scheduler
+  name: nsfl-job-scheduler
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nsfl-job-scheduler
+  template:
+    metadata:
+      labels:
+        app: nsfl-job-scheduler
+    spec:
+      restartPolicy: Always
+      containers:
+      - env:
+        - name: DB_ADDRESS
+          value: 10.67.134.32:12202
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: pgsecret
+              key: username
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pgsecret
+              key: password
+        - name: DB_TYPE
+          value: postgreSQL
+        - name: DB_NAME
+          value: neursafe_fl
+        - name: COLLECTION_NAME
+          value: jobs
+        - name: HTTP_PORT
+          value: "8088"
+        - name: SELECTOR_ADDRESS
+          value: nsfl-selector:50055
+        - name: K8S_ADDRESS
+          value: 10.67.134.15:8080
+        - name: PROXY_ADDRESS
+          value: nsfl-proxy:9002
+        - name: CLOUD_OS
+          value: k8s
+        - name: COORDINATOR_IMAGE
+          value: 10.67.134.35:5000/nsfl-coordinator:new
+        - name: JOB_SCHEDULER_ADDRESS
+          value: nsfl-job-scheduler:8088
+        - name: COORDINATOR_WORKSPACE_PATH
+          value: /fl
+        - name: JS_NAMESPACE
+          value: default
+        - name: STORAGE_PATH
+          value: /storage
+        - name: HOST_STORAGE_PATH
+          value: /mnt/neursafe_fl
+        - name: LOG_LEVEL
+          value: DEBUG
+        - name: MAX_RETRY_TIMES
+          value: "1"
+        - name: COORDINATOR_HEARTBEAT_TIMEOUT
+          value: "100"
+        image: 10.67.134.35:5000/nsfl-job-scheduler:latest
+        imagePullPolicy: Always
+        name: nsfl-job-scheduler
+        ports:
+        - containerPort: 8088
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /storage
+          name: storagepath
+      volumes:
+      - name: storagepath
+        hostPath:
+          path: /mnt/neursafe_fl/default

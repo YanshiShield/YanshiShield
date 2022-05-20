@@ -71,7 +71,7 @@ After the installation, please refer to the [quick start](quick_start.md) to exp
 
 ## Cluster Mode
 
-Coming soon
+Please refer to [Cluster Deployment Guide](cluster_deploy.md) to complete the deployment of Neursafe FL.
 
 
 

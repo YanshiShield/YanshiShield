@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: nsfl-task-manager
+  name: nsfl-task-manager
+  namespace: default
+spec:
+  externalIPs:
+  - 10.67.134.15
+  ports:
+  - port: 9090
+    targetPort: 9090
+  selector:
+    app: nsfl-task-manager
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: nsfl-task-manager
+  name: nsfl-task-manager
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nsfl-task-manager
+  template:
+    metadata:
+      labels:
+        app: nsfl-task-manager
+    spec:
+      containers:
+      - env:
+        - name: DB_ADDRESS
+          value: 10.67.134.32:12202
+        - name: DB_TYPE
+          value: postgreSQL
+        - name: DB_NAME
+          value: neursafe_fl
+        - name: COLLECTION_NAME
+          value: tasks
+        - name: K8S_ADDRESS
+          value: 10.67.134.15:8080
+        - name: CFG_FILE_PATH
+          value: /mnt/neursafe_fl/default/client/setup.json
+        - name: CONTAINER_EXECUTOR_IMAGE
+          value: 10.67.134.35:5000/nsfl-client-cpu:23
+        - name: WORKER_HTTP_PROXY
+          value: http://proxyhk.zte.com.cn:80/
+        - name: WORKER_HTTPS_PROXY
+          value: http://proxyhk.zte.com.cn:80/
+        image: 10.67.134.35:5000/nsfl-client-cpu:23
+        name: nsfl-task-manager
+        command:
+        - python3.7
+        - -m
+        - neursafe_fl.python.client.app
+        - --config_file
+        - /mnt/neursafe_fl/default/client/setup.json
+        ports:
+        - containerPort: 9090
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /mnt/neursafe_fl/default
+          name: workspace
+      volumes:
+      - name: workspace
+        hostPath:
+          path: /mnt/neursafe_fl/default

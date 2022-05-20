@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: nsfl-selector
+  name: nsfl-selector
+  namespace: default
+spec:
+  selector:
+    app: nsfl-selector
+  ports:
+  - name: nsfl-selector
+    port: 50055
+    targetPort: 50055
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: nsfl-selector
+  name: nsfl-selector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nsfl-selector
+  template:
+    metadata:
+      labels:
+        app: nsfl-selector
+    spec:
+      containers:
+      - command:
+        - python3.7
+        - -m
+        - neursafe_fl.python.selector.app
+        - --auth_client
+        - "false"
+        - --optimal_select
+        - "true"
+        - --log_level
+        - DEBUG
+        env:
+        - name: JOB_SCHEDULER_ADDRESS
+          value: "nsfl-job-scheduler:8088"
+        image: 10.67.134.35:5000/nsfl-selector:latest
+        imagePullPolicy: IfNotPresent
+        name: nsfl-selector
+        ports:
+        - containerPort: 50055
+          protocol: TCP
+        resources: {}
