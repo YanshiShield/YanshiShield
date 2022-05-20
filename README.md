@@ -41,7 +41,7 @@ See the [quick start](./docs/quick_start.md) documentation to learn how to use N
 
 ### Interface
 
-- [Developer guide](./doc/develop.md)
+- [Developer guide](./docs/develop.md)
 
 
 
