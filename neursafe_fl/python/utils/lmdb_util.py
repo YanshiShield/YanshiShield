@@ -15,7 +15,7 @@ class LMDBUtil:
         is saved under this path.
     """
     def __init__(self, path):
-        self.__env = lmdb.open(path)
+        self.__env = lmdb.open(path, lock=False)
 
     def write(self, key, value):
         """Write {key: value} to LMDB.
