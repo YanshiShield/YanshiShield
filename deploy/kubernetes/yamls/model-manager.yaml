@@ -1,0 +1,83 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: nsfl-model-manager
+  name: nsfl-model-manager
+  namespace: default
+spec:
+  selector:
+    app: nsfl-model-manager
+  ports:
+  - name: nsfl-model-manager
+    port: 50057
+    targetPort: 50057
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: nsfl-model-manager
+  name: nsfl-model-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nsfl-model-manager
+  template:
+    metadata:
+      labels:
+        app: nsfl-model-manager
+    spec:
+      containers:
+      - env:
+        - name: STORAGE_ENDPOINT
+          value: "http://10.67.134.15:9000"
+        - name: DB_COLLECTION_NAME
+          value: models
+        - name: ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: miniosecret
+              key: username
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: miniosecret
+              key: password
+        - name: DB_TYPE
+          value: postgreSQL
+        - name: DB_NAME
+          value: neursafe_fl
+        - name: DB_COLLECTION_NAME
+          value: models
+        - name: DB_ADDRESS
+          value: 10.67.134.32:12202
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: pgsecret
+              key: username
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pgsecret
+              key: password
+        - name: MOUNT_PATH
+          value: /mnt/neursafe_fl/models
+        image: 10.67.134.35:5000/nsfl-model-manager:latest
+        imagePullPolicy: IfNotPresent
+        name: nsfl-model-manager
+        ports:
+        - containerPort: 50057
+          protocol: TCP
+        resources: {}
+        volumeMounts:
+        - name: models
+          mountPath: /mnt/neursafe_fl/models
+      volumes:
+      - hostPath:
+          path: /mnt/neursafe_fl/models
+        name: models

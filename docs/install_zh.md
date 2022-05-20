@@ -70,7 +70,7 @@ cd federated-learning
 
 ## 集群模式部署
 
-即将发布
+请参考[集群部署指导](cluster_deploy_zh.md)完成Neursafe FL的部署。
 
 
 
