@@ -123,7 +123,7 @@ The server side adopts the cluster deployment mode by default, and deploys Job S
 
    Note: Please configure according to your K8S environment
 
-2.  Execute the following command to deploy Job Scheduler:
+2. Execute the following command to deploy Job Scheduler:
 
    ```shell
    kubectl create -f job-scheduler.yaml
@@ -131,7 +131,7 @@ The server side adopts the cluster deployment mode by default, and deploys Job S
 
    
 
-3.  To verify whether the deployment is successful, execute the following command to check whether the Pod of the Job Scheduler is in the Runnin state:
+3. To verify whether the deployment is successful, execute the following command to check whether the Pod of the Job Scheduler is in the Runnin state:
 
    ```shell
     kubectl get pod
@@ -147,7 +147,7 @@ The server side adopts the cluster deployment mode by default, and deploys Job S
 
    Note: Please configure according to your K8S environment
 
-2.  Execute the following command to deploy Model Manager:
+2. Execute the following command to deploy Model Manager:
 
    ```shell
    kubectl create -f model-manager.yaml
@@ -155,7 +155,7 @@ The server side adopts the cluster deployment mode by default, and deploys Job S
 
    
 
-3.  To verify whether the deployment is successful, execute the following command to check whether the Pod of the Model Manager is Running state:
+3. To verify whether the deployment is successful, execute the following command to check whether the Pod of the Model Manager is Running state
 
    ```shell
    kubectl get pod
