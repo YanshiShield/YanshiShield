@@ -139,7 +139,7 @@ The server side adopts the cluster deployment mode by default, and deploys Job S
 
     ![](images/cluster_deploy/job_scheduler_running.png)
 
-   
+
 
 ### Deploy Model Manager
 
@@ -161,9 +161,9 @@ The server side adopts the cluster deployment mode by default, and deploys Job S
    kubectl get pod
    ```
 
-    ![](images\cluster_deploy\model_manager_running.png)
+    ![](images/cluster_deploy/model_manager_running.png)
 
-   
+
 
 ### Deploy Client Selector
 
