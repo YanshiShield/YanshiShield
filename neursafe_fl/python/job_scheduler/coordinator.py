@@ -45,7 +45,7 @@ class Coordinator:
 
         volumes = self.__contruct_volumes(job_cfg, workspace, namespace)
         cmds = ['python3.7', '-m',
-                'fl.python.coordinator.app', '--config_file',
+                'neursafe_fl.python.coordinator.app', '--config_file',
                 job_cfg["config_file"]]
 
         name = self.__gen_name(namespace, job_cfg['id'])

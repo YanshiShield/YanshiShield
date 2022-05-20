@@ -10,5 +10,5 @@ cd ${PROJECT_DIR}
 
 # install cli
 python3 -m pip install $cli_whl \
-                         --disable-pip-version-check
+                         --disable-pip-version-check --force-reinstall
 echo "Install NeurSafe FL Command line interface successfully."

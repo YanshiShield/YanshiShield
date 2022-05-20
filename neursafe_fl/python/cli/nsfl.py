@@ -27,7 +27,7 @@ class ComplexCLI(click.MultiCommand):
     def get_command(self, _, cmd_name):
         """Get command for command name."""
         try:
-            mod = __import__('fl.python.cli.commands.cmd_' + cmd_name,
+            mod = __import__('neursafe_fl.python.cli.commands.cmd_' + cmd_name,
                              None, None, ['cli'])
         except ImportError:
             return None

@@ -177,7 +177,7 @@ class TestTask(unittest.TestCase):
 
 def get_task_cfg():
     return {'name': 'pytorch-mnist-job', 'namespace': 'fl',
-            'cmds': ['python3.7', '-m', 'fl.python.coordinator.app',
+            'cmds': ['python3.7', '-m', 'neursafe_fl.python.coordinator.app',
                      '/tmp/coordinator.json'], 'port': 50051,
             'envs': {'name1': 'value1', 'name2': 'value2'},
             'image': 'fl-coordinator:latest', 'volumes': [
@@ -226,7 +226,7 @@ def get_pod():
                     'name': 'scripts',
                     'mountPath': '/root/wl/fl/pytorch_mnist'
                 }],
-                'command': ['python3.7', '-m', 'fl.python.coordinator.app', '/tmp/coordinator.json']
+                'command': ['python3.7', '-m', 'neursafe_fl.python.coordinator.app', '/tmp/coordinator.json']
             }],
             'volumes': [{
                 'name': 'startup-cfg-file-path',

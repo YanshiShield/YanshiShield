@@ -42,8 +42,7 @@ class K8sExecutor(Executor):
         await self.__create_pod()
 
     async def __create_pod(self):
-        # node_id = self._resource_spec["node_id"]
-        node_id = "10.67.134.15"
+        node_id = self._resource_spec["node_id"]
         resource = self._resource_spec["resource"]
         cmds = self.__construct_cmd()
         volumes = [("workspace", self._workspace, self._workspace),
