@@ -38,7 +38,7 @@ We train on the [Flowers Recognition](https://www.kaggle.com/datasets/alxmamaev/
 
 | IID                            | non-IID                        |
 | ------------------------------ | ------------------------------ |
-| ![fedavg1](images\fedavg1.png) | ![fedavg2](images\fedavg2.png) |
+| ![fedavg1](./images/fedavg1.png) | ![fedavg2](./images/fedavg2.png) |
 
 
 
@@ -67,7 +67,7 @@ We train on the [Flowers Recognition](https://www.kaggle.com/datasets/alxmamaev/
 
 | IID                              | non-IID                          |
 | -------------------------------- | -------------------------------- |
-| ![fedprox1](images\fedprox1.png) | ![fedprox2](images\fedprox2.png) |
+| ![fedprox1](./images/fedprox1.png) | ![fedprox2](./images/fedprox2.png) |
 
 
 
@@ -96,7 +96,7 @@ We train on the [Flowers Recognition](https://www.kaggle.com/datasets/alxmamaev/
 
 | IID                                | non-IID                            |
 | ---------------------------------- | ---------------------------------- |
-| ![scaffold1](images\scaffold1.png) | ![scaffold2](images\scaffold2.png) |
+| ![scaffold1](./images/scaffold1.png) | ![scaffold2](./images/scaffold2.png) |
 
 
 
@@ -122,7 +122,7 @@ You can use the DP for security by adding a 'secure_algorithm' configuration to 
 }
 ```
 
-See here to learn more.
+See [here](./develop.md#securealgorithm) to learn more.
 
 #### Performances
 
@@ -130,7 +130,7 @@ We train on the [Flowers Recognition](https://www.kaggle.com/datasets/alxmamaev/
 
 | IID(FedAvg)          |
 | -------------------- |
-| ![dp](images\dp.png) |
+| ![dp](./images/dp.png) |
 
 
 
@@ -156,13 +156,13 @@ You can use the SSA for security by adding a 'secure_algorithm' configuration to
 }
 ```
 
-See here to learn more.
+See [here](./develop.md#securealgorithm) to learn more.
 
 #### Performances
 
 | onemask                  | doublemask               |
 | ------------------------ | ------------------------ |
-| ![ssa1](images\ssa1.png) | ![ssa2](images\ssa2.png) |
+| ![ssa1](./images/ssa1.png) | ![ssa2](./images/ssa2.png) |
 
 
 
