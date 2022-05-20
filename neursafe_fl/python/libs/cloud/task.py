@@ -111,7 +111,8 @@ class K8sTask(BaseTask):
             task: {
                 'name': 'pytorch-mnist-job',
                 'namespace': 'default',
-                'cmds': ['python3.7', '-m', 'neursafe_fl.python.coordinator.app'],
+                'cmds': ['python3.7', '-m',
+                         'neursafe_fl.python.coordinator.app'],
                 'port': 50051,
                 'image': 'fl-coordinator:latest',
                 'volumes': [('name', '/path/to/src','/path/to/desc'),],

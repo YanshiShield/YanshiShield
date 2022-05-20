@@ -62,7 +62,7 @@ class TestCoordinator(unittest.TestCase):
             name="fl-pytorch-mnist-job",
             namespace="default",
             cmds=["python3.7", "-m",
-                  "fl.python.coordinator.app", "--config_file",
+                  "neursafe_fl.python.coordinator.app", "--config_file",
                   "/tmp/job-id/coordinator.json"],
             port=50051, image="fl-coordinator:latest",
             volumes=get_volumes(),
