@@ -6,7 +6,7 @@ Deploying Neursafe FL in cluster mode can provide more comprehensive capabilitie
 
 **Server:** Adopt cluster deployment mode, deploy core components Job Manager, Model Manger, Client Selector, Proxy;
 
-**Client: **According to the specific scenario, choose standalone mode deployment or cluster mode deployment. For example, in the Cross silo scenario, multiple organizations or institutions need to break the data barriers for federated training. It is recommended that the client side also choose the cluster mode, so client can easily to manage different federation tasks.
+**Client:** According to the specific scenario, choose standalone mode deployment or cluster mode deployment. For example, in the Cross silo scenario, multiple organizations or institutions need to break the data barriers for federated training. It is recommended that the client side also choose the cluster mode, so client can easily to manage different federation tasks.
 
 Note： Please refer to the [Neursafe FL framework](architecture.md) for the functions of related core components .
 
@@ -137,7 +137,7 @@ The server side adopts the cluster deployment mode by default, and deploys Job S
     kubectl get pod
    ```
 
-    ![](D:/★近期工作/联邦开源工作/终稿/federated-learning/docs/images/cluster_deploy/job_scheduler_running.png)
+    ![](images/cluster_deploy/job_scheduler_running.png)
 
    
 
@@ -161,7 +161,7 @@ The server side adopts the cluster deployment mode by default, and deploys Job S
    kubectl get pod
    ```
 
-    ![](D:/★近期工作/联邦开源工作/终稿/federated-learning/docs/images/cluster_deploy/model_manager_running.png)
+    ![](images\cluster_deploy\model_manager_running.png)
 
    
 
@@ -185,7 +185,7 @@ The server side adopts the cluster deployment mode by default, and deploys Job S
    kubectl get pod
    ```
 
-    ![](D:/★近期工作/联邦开源工作/终稿/federated-learning/docs/images/cluster_deploy/client_selector_running.png)
+    ![](images/cluster_deploy/client_selector_running.png)
 
    
 
@@ -215,7 +215,7 @@ The server side adopts the cluster deployment mode by default, and deploys Job S
    kubectl get pod
    ```
 
-    ![](D:/★近期工作/联邦开源工作/终稿/federated-learning/docs/images/cluster_deploy/proxy_running.png)
+    ![](images/cluster_deploy/proxy_running.png)
 
 
 
@@ -259,7 +259,7 @@ Use K8S Ingress to realize the function of API Server
    kubectl get pod -n ingress-nginx
    ```
 
-   <img src="D:/★近期工作/联邦开源工作/终稿/federated-learning/docs/images/cluster_deploy/ingress_nginx_running.png" style="zoom:150%;" />
+   <img src="images/cluster_deploy/ingress_nginx_running.png" style="zoom:150%;" />
 
 
 
@@ -311,7 +311,7 @@ Different clients can choose different deployment modes: standalone mode and clu
    kubectl get pod
    ```
 
-    ![](D:/★近期工作/联邦开源工作/终稿/federated-learning/docs/images/cluster_deploy/task_manager_running.png)
+    ![](images/cluster_deploy/task_manager_running.png)
 
    
 
@@ -319,7 +319,7 @@ Different clients can choose different deployment modes: standalone mode and clu
 
 1. Prepare a training script, evaluation script, initial model, configuration of a federated job tf_mnist_fl according to the configuration instructions of the job in [Deployment Configuration Instructions](develop.md)
 
-    ![](D:/★近期工作/联邦开源工作/终稿/federated-learning/docs/images/cluster_deploy/mnist_dir.png)
+    ![](images/cluster_deploy/mnist_dir.png)
 
    
 
@@ -329,7 +329,7 @@ Different clients can choose different deployment modes: standalone mode and clu
    nsfl-ctl create job -w tf_mnist_fl/ default
    ```
 
-   ![](D:/★近期工作/联邦开源工作/终稿/federated-learning/docs/images/cluster_deploy/create_job.png)
+   ![](images/cluster_deploy/create_job.png)
 
    
 
@@ -339,4 +339,4 @@ Different clients can choose different deployment modes: standalone mode and clu
    nsfl-ctl get job -w tf_mnist_fl/ default
    ```
 
-    ![](D:/★近期工作/联邦开源工作/终稿/federated-learning/docs/images/cluster_deploy/get_job.png)
+    ![](images/cluster_deploy/get_job.png)

@@ -4,9 +4,9 @@
 
 集群模式部署Neursafe FL，可以提供更全面的能力，如作业调度和管理、客户端优选等。推荐Kubernetes作为底层基础设施管理Neursafe FL集群。Neursafe FL分为Server端和Client端，可以选择不同的部署模式，其中：
 
-**Server端：**采用集群部署模式，部署核心组件Job Manager、Model Manger、Client Selector、Proxy；
+**Server端:** 采用集群部署模式，部署核心组件Job Manager、Model Manger、Client Selector、Proxy；
 
-**Client端：**根据具体场景，选择单机模式部署或者集群模式部署，如在Cross silo场景下，多个组织或机构之间需要打破数据壁垒进行联邦训练，建议Client端也选择集群模式，便于管理不同的联邦作业。
+**Client端:** 根据具体场景，选择单机模式部署或者集群模式部署，如在Cross silo场景下，多个组织或机构之间需要打破数据壁垒进行联邦训练，建议Client端也选择集群模式，便于管理不同的联邦作业。
 
 注意：相关组件的功能请参考[Neursafe FL框架](architecture_zh.md)
 
