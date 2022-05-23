@@ -39,6 +39,12 @@ See the [quick start](./docs/quick_start.md) documentation to learn how to use N
 
 - [architecutrue](./docs/architecture.md)
 
+### Algorithms
+
+- [secure](./docs/algorithms/secure_algos.md)
+- [aggregation](./docs/algorithms/aggregation_algos.md)
+
+
 ### Interface
 
 - [Developer guide](./docs/develop.md)
