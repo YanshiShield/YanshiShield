@@ -46,7 +46,7 @@ class StorageManager:  # pylint:disable=too-many-instance-attributes
 
     # pylint:disable=too-many-arguments
     def __init__(self, monitor_path, cleanable_file_matcher,
-                 quota=1024, healthy_rate=0.7, alarm_rate=0.9):
+                 quota=10240, healthy_rate=0.7, alarm_rate=0.9):
         """
         Args:
             monitor_path: The directory for storage management.
@@ -359,7 +359,7 @@ def _get_size(path):
     try:
         file_size = getsize(path)
     except FileNotFoundError as err:
-        log.error(str(err))
+        log.debug(str(err))
         file_size = 0
 
     return file_size

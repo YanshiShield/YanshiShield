@@ -44,12 +44,14 @@ Note: FedProx mainly tackle data heterogeneity in federated learning. It has str
 
 #### How to use it
 
-You can use the FedProx aggregation algorithm by adding 'parameters' configuration to the job configuration file. For example:
+You can use the FedProx aggregation algorithm by adding 'optimizer' configuration to the job configuration file. For example:
 
 ```
-"parameters": {
-    "--optimizer": "fedprox",
-    "--mu": 0.6
+"optimizer": {
+    "name": "fedprox",
+    "params": {
+        "mu": 0.6
+    }
 }
 ```
 
