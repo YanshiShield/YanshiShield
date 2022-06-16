@@ -145,7 +145,7 @@ class LinuxExecutor(Executor):
         env_vars = {
             TASK_RUNTIME: self._executor_info.spec.runtime,
             TASK_WORKSPACE: self._workspace,
-            'PYTHONPATH': self.__gen_pythonpath(),
+            'PYTHONPATH': self._gen_pythonpath(),
             'OPTIMIZER_NAME': self._executor_info.spec.optimizer.name
         }
         if self._executor_info.spec.optimizer.params:
@@ -162,12 +162,6 @@ class LinuxExecutor(Executor):
 
         self.__set_visible_gpus(env_vars)
         os.environ.update(env_vars)
-
-    def __gen_pythonpath(self):
-        python_path = os.getenv('PYTHONPATH', '')
-        if self._cwd in python_path.split(':'):
-            return python_path
-        return '%s:%s' % (python_path, self._cwd)
 
     def __set_visible_gpus(self, env_vars):
         resource = self._resource_spec["resource"]

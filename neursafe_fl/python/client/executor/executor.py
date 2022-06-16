@@ -3,7 +3,7 @@
 
 """Task executor.
 """
-
+import os
 import abc
 
 DEFAULT_TASK_TIMEOUT = 180
@@ -48,6 +48,12 @@ class Executor:  # pylint:disable=too-many-instance-attributes
         self._distributed_env = kwargs['distributed_env']
 
         self._timer = None
+
+    def _gen_pythonpath(self):
+        python_path = os.getenv('PYTHONPATH', '')
+        if self._cwd in python_path.split(':'):
+            return python_path
+        return '%s:%s' % (python_path, self._cwd)
 
     @abc.abstractmethod
     async def execute(self):
