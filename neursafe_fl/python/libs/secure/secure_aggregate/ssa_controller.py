@@ -57,7 +57,8 @@ class SSAController:
         """Register SSA server or SSA partner in handlers.
 
         Args:
-            handle: Unique id for echo round in a job.
+            handle: Unique id for this time to use SSA. Used to distinguish
+                  different jobs, and different rounds for the same job in FL.
             party: the value is 'server' or partner id.
             handler: A object that implements SSABaseServer or SSABaseClient.
         """
@@ -68,7 +69,8 @@ class SSAController:
         Register SSA server or SSA partner in handlers
 
         Args:
-            handle: Unique id for echo round in a job.
+            handle: Unique id for this time to use SSA. Used to distinguish
+                  different jobs, and different rounds for the same job in FL.
             party: the value is 'server' or partner id.
         """
         try:
@@ -86,5 +88,5 @@ class SSAController:
         self.__handlers[(msg.handle, destination)].handle_msg(msg)
 
 
-# A singleton ssa controller, the code should use it.
+# A singleton ssa controller.
 ssa_controller = SSAController()
