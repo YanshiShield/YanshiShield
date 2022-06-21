@@ -43,7 +43,8 @@ def load_strategy(config):
 
 def _load_evaluator(evaluator_name, weight):
     try:
-        module_name = "fl.python.selector.evaluators.%s_eval" % evaluator_name
+        module_name = "neursafe_fl.python.selector.evaluators.%s_eval" % \
+                      evaluator_name
         module = importlib.import_module(module_name)
         evaluator_class = getattr(module,
                                   "%sEvaluator" % evaluator_name.capitalize())
