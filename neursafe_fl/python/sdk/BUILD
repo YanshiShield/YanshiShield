@@ -93,6 +93,7 @@ py_library(
     deps = [
         "//neursafe_fl/python/sdk:base",
         "//neursafe_fl/python/runtime:pytorch_runtime",
+        "//neursafe_fl/python/libs/optimizer:optimizer",
     ],
     visibility = ["//visibility:public"],
 )
@@ -104,6 +105,7 @@ py_package(
         "neursafe_fl.python.client.workspace",
         "neursafe_fl.python.runtime",
         "neursafe_fl",
+        "neursafe_fl.python.libs.optimizer",
         ],
     deps = [":fl_pytorch_sdk_lib"],
 )
