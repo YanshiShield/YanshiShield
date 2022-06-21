@@ -42,6 +42,7 @@ def _create_scaffold(params):
 
     model_name = "neursafe_fl.python.libs.optimizer.%s.%s" % (
         get_runtime().lower(), SCAFFOLD)
+
     model = __import__(model_name, fromlist=True)
     class_name = "Scaffold"
     return getattr(model, class_name)(model_params=model_params,
