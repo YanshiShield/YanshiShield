@@ -142,11 +142,10 @@ class LinuxExecutor(Executor):
         return self._run_config['command'], args
 
     def __set_env_vars(self):
-        python_path = os.getenv("PYTHONPATH", "")
         env_vars = {
             TASK_RUNTIME: self._executor_info.spec.runtime,
             TASK_WORKSPACE: self._workspace,
-            'PYTHONPATH': '%s:%s' % (python_path, self._cwd),
+            'PYTHONPATH': self._gen_pythonpath(),
             'OPTIMIZER_NAME': self._executor_info.spec.optimizer.name
         }
         if self._executor_info.spec.optimizer.params:
