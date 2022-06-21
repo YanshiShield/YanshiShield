@@ -21,8 +21,8 @@ def _create_fedprox(params):
     mu = float(params.get("mu", 0.6))
     origin_trainable_weights = params.get("origin_trainable_weights", None)
 
-    model_name = "fl.python.libs.optimizer.%s.%s" % (get_runtime().lower(),
-                                                     FEDPROX)
+    model_name = "neursafe_fl.python.libs.optimizer.%s.%s" % (
+        get_runtime().lower(), FEDPROX)
     model = __import__(model_name, fromlist=True)
     class_name = "PerturbedGradientDescent"
     return getattr(model, class_name)(
@@ -40,8 +40,8 @@ def _create_scaffold(params):
     batch_size = int(params.get("batch_size", 32))
     sample_num = int(params.get("sample_num", batch_size))
 
-    model_name = "fl.python.libs.optimizer.%s.%s" % (get_runtime().lower(),
-                                                     SCAFFOLD)
+    model_name = "neursafe_fl.python.libs.optimizer.%s.%s" % (
+        get_runtime().lower(), SCAFFOLD)
     model = __import__(model_name, fromlist=True)
     class_name = "Scaffold"
     return getattr(model, class_name)(model_params=model_params,
