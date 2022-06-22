@@ -57,8 +57,9 @@ class SSAController:
         """Register SSA server or SSA partner in handlers.
 
         Args:
-            handle: Unique id for this encryption and decryption.
-            party: the value is 'server' or partner id.
+            handle: A unique id for a round of aggregation, used to
+                    distinguish different rounds.
+            party: The value is 'server' or partner id.
             handler: A object that implements SSABaseServer or SSABaseClient.
         """
         self.__handlers[(handle, party)] = handler
@@ -68,8 +69,9 @@ class SSAController:
         Register SSA server or SSA partner in handlers
 
         Args:
-            handle: Unique id for this encryption and decryption.
-            party: the value is 'server' or partner id.
+            handle: A unique id for a round of aggregation, used to
+                    distinguish different rounds.
+            party: The value is 'server' or partner id.
         """
         try:
             del self.__handlers[(handle, party)]
@@ -80,7 +82,8 @@ class SSAController:
         """Message forwarding function.
 
         Args:
-            destination: the value is 'server' or partner id.
+            destination: The destination party to process this message.
+                         The value is 'server' or partner id.
             msg: messages reported by the partner, or send by the server.
         """
         self.__handlers[(msg.handle, destination)].handle_msg(msg)
