@@ -22,13 +22,13 @@ DB_COLLECTION_NAME = os.getenv("DB_COLLECTION_NAME", "jobs")
 # System environment
 SELECTOR_ADDRESS = os.getenv("SELECTOR_ADDRESS")
 HTTP_PORT = int(os.getenv("HTTP_PORT", "8080"))
-HOST_ROOT_PATH = os.getenv("HOST_ROOT_PATH", "/mnt/minio")
+SOURCE_MOUNT_PATH = os.getenv("SOURCE_MOUNT_PATH", "/mnt/minio")
 
-# Mount HOST_ROOT_PATH into JS WORKSPACE PATH in Pod
-JS_WORKSPACE_PATH = os.getenv("JS_WORKSPACE_PATH", "/workspace")
+# Mount SOURCE_MOUNT_PATH into DEST_MOUNT_PATH PATH in Pod
+DEST_MOUNT_PATH = os.getenv("DEST_MOUNT_PATH", "/workspace")
 
-# JS workspace dir name in host root path
-JS_DIR_NAME_IN_HOST = os.getenv("JS_DIR_NAME_IN_HOST", "tmp")
+# JS workspace dir name in DEST_MOUNT_PATH
+JS_WORKSPACE_DIR = os.getenv("JS_WORKSPACE_DIR", "tmp")
 
 # Coordinator config
 COORDINATOR_IMAGE = os.getenv("COORDINATOR_IMAGE", "fl-coordinator:latest")

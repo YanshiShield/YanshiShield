@@ -37,14 +37,7 @@ spec:
         - -m
         - neursafe_fl.python.selector.app
         - --auth_client
-        - "false"
-        - --optimal_select
-        - "true"
-        - --log_level
-        - DEBUG
-        env:
-        - name: JOB_SCHEDULER_ADDRESS
-          value: "nsfl-job-scheduler:8088"
+        - /nsfl/config/selector.json
         image: 10.67.134.35:5000/nsfl-selector:latest
         imagePullPolicy: IfNotPresent
         name: nsfl-selector
@@ -52,3 +45,10 @@ spec:
         - containerPort: 50055
           protocol: TCP
         resources: {}
+        volumeMounts:
+        - mountPath: /nsfl/config/
+          name: config_file
+      volumes:
+      - name: config_file
+        hostPath:
+          path: /mnt/neursafe_fl/selector/

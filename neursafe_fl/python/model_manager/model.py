@@ -12,8 +12,8 @@ from tornado.ioloop import IOLoop
 from tornado.web import gen
 
 from neursafe_fl.python.model_manager.utils.tools import current_time
-from neursafe_fl.python.model_manager.utils.const import MODEL_STORE, \
-    MOUNT_PATH, HEARTBEAT_TIMEOUT, RETRY_TIMES, RETRY_TIMEOUT
+from neursafe_fl.python.model_manager.utils.const import MODELS_DIR, \
+    WORKSPACE, HEARTBEAT_TIMEOUT, RETRY_TIMES, RETRY_TIMEOUT
 from neursafe_fl.python.model_manager.utils.errors import ModelStateError
 
 
@@ -80,7 +80,7 @@ class Model:
         elif self.__file_name:
             model_path = os.path.join(model_path, self.__file_name)
 
-        storage = (MODEL_STORE, model_path)
+        storage = (MODELS_DIR, model_path)
         return storage
 
     def __gen_model_id(self):
@@ -244,7 +244,7 @@ class Model:
             /mount_point/model_bucket/namespace/model/version
         """
         model_store, path = self.__storage_info[0], self.__storage_info[1]
-        absolute_path = os.path.join(MOUNT_PATH, "%s%s" % (model_store, path))
+        absolute_path = os.path.join(WORKSPACE, "%s%s" % (model_store, path))
         if os.path.exists(absolute_path):
             return True
         return False

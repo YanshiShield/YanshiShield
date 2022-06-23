@@ -37,20 +37,30 @@ spec:
           value: 10.67.134.32:12202
         - name: DB_TYPE
           value: postgreSQL
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: pgsecret
+              key: username
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pgsecret
+              key: password
         - name: DB_NAME
           value: neursafe_fl
-        - name: COLLECTION_NAME
+        - name: DB_COLLECTION_NAME
           value: tasks
         - name: K8S_ADDRESS
           value: 10.67.134.15:8080
         - name: CFG_FILE_PATH
-          value: /mnt/neursafe_fl/default/client/setup.json
+          value: /nsfl/workspace/setup.json
         - name: CONTAINER_EXECUTOR_IMAGE
           value: 10.67.134.35:5000/nsfl-client-cpu:23
         - name: WORKER_HTTP_PROXY
-          value: http://proxyhk.zte.com.cn:80/
+          value: http://proxy:80/
         - name: WORKER_HTTPS_PROXY
-          value: http://proxyhk.zte.com.cn:80/
+          value: https://proxy:80/
         image: 10.67.134.35:5000/nsfl-client-cpu:23
         name: nsfl-task-manager
         command:
@@ -58,12 +68,12 @@ spec:
         - -m
         - neursafe_fl.python.client.app
         - --config_file
-        - /mnt/neursafe_fl/default/client/setup.json
+        - /nsfl/workspace/setup.json
         ports:
         - containerPort: 9090
           protocol: TCP
         volumeMounts:
-        - mountPath: /mnt/neursafe_fl/default
+        - mountPath: /nsfl/workspace
           name: workspace
       volumes:
       - name: workspace
