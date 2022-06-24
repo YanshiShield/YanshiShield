@@ -52,7 +52,7 @@ class ResourceManager:
                                              db_name=const.DB_NAME,
                                              user=const.DB_USERNAME,
                                              pass_word=const.DB_PASSWORD).\
-                get_collection(const.COLLECTION_NAME)
+                get_collection(const.DB_COLLECTION_NAME)
 
     def start(self):
         """Start resource manager

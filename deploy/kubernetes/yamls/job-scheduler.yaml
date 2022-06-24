@@ -48,7 +48,7 @@ spec:
           value: postgreSQL
         - name: DB_NAME
           value: neursafe_fl
-        - name: COLLECTION_NAME
+        - name: DB_COLLECTION_NAME
           value: jobs
         - name: HTTP_PORT
           value: "8088"
@@ -66,11 +66,11 @@ spec:
           value: nsfl-job-scheduler:8088
         - name: COORDINATOR_WORKSPACE_PATH
           value: /fl
-        - name: JS_NAMESPACE
+        - name: JS_DIR_NAME_IN_HOST
           value: default
-        - name: STORAGE_PATH
-          value: /storage
-        - name: HOST_STORAGE_PATH
+        - name: JS_WORKSPACE_PATH
+          value: /workspace
+        - name: HOST_ROOT_PATH
           value: /mnt/neursafe_fl
         - name: LOG_LEVEL
           value: DEBUG
@@ -85,9 +85,9 @@ spec:
         - containerPort: 8088
           protocol: TCP
         volumeMounts:
-        - mountPath: /storage
+        - mountPath: /workspace
           name: storagepath
       volumes:
       - name: storagepath
         hostPath:
-          path: /mnt/neursafe_fl/default
+          path: /mnt/neursafe_fl

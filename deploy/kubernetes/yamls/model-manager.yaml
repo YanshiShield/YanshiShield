@@ -66,7 +66,7 @@ spec:
               name: pgsecret
               key: password
         - name: MOUNT_PATH
-          value: /mnt/neursafe_fl/models
+          value: /workspace
         image: 10.67.134.35:5000/nsfl-model-manager:latest
         imagePullPolicy: IfNotPresent
         name: nsfl-model-manager
@@ -75,9 +75,9 @@ spec:
           protocol: TCP
         resources: {}
         volumeMounts:
-        - name: models
-          mountPath: /mnt/neursafe_fl/models
+        - name: workspace
+          mountPath: /workspace
       volumes:
       - hostPath:
-          path: /mnt/neursafe_fl/models
-        name: models
+          path: /mnt/neursafe_fl/
+        name: workspace

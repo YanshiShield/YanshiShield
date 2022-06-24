@@ -6,25 +6,15 @@ const variable
 """
 
 import os
-import json
-
-CFG_FILE_PATH = os.getenv("CFG_FILE_PATH")
 
 DB_ADDRESS = os.getenv("DB_ADDRESS")
 DB_TYPE = os.getenv("DB_TYPE", "mongo")
-DB_USERNAME = None
-DB_PASSWORD = None
-PLATFORM = "linux"
-
-if CFG_FILE_PATH:
-    with open(CFG_FILE_PATH, "r") as file:
-        CONFIG_INFO = json.load(file)
-    DB_USERNAME = CONFIG_INFO.get("DB_USERNAME")
-    DB_PASSWORD = CONFIG_INFO.get("DB_PASSWORD")
-    PLATFORM = CONFIG_INFO.get("platform")
+DB_USERNAME = os.getenv("DB_USERNAME")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+PLATFORM = os.getenv("PLATFORM", "linux")
 
 DB_NAME = os.getenv("DB_NAME", "fl_tasks")
-COLLECTION_NAME = os.getenv("COLLECTION_NAME", "tasks")
+DB_COLLECTION_NAME = os.getenv("DB_COLLECTION_NAME", "tasks")
 
 MAX_RETRY_TIMES = int(os.getenv("MAX_RETRY_TIMES", "30"))
 RETRY_INTERVAL = int(

@@ -53,7 +53,8 @@ class Coordinator:
             yield self.__task.create(name=name,
                                      namespace="default",
                                      cmds=cmds,
-                                     port=50051,
+                                     port=job_cfg.get(
+                                         "port", int(const.COORDINATOR_PORT)),
                                      image=const.COORDINATOR_IMAGE,
                                      volumes=volumes,
                                      envs=prepare_env_cfg())
@@ -84,7 +85,7 @@ class Coordinator:
         def append_volume(name, path):
             if const.DEPLOYMENT_WAY == "cloud":
                 path = path.lstrip("/")
-                src = join(const.HOST_STORAGE_PATH, "%s/%s" % (namespace,
+                src = join(const.SOURCE_MOUNT_PATH, "%s/%s" % (namespace,
                                                                path))
                 dest = join(const.COORDINATOR_WORKSPACE_PATH, path)
             else:
@@ -96,7 +97,7 @@ class Coordinator:
         if job_cfg.get("model"):  # from model store
             model_namespace = job_cfg["model"]["model_namespace"]
             model_path = job_cfg["model"]["model_path"]
-            src = join(const.HOST_STORAGE_PATH, "%s/%s" % (
+            src = join(const.SOURCE_MOUNT_PATH, "%s/%s" % (
                 model_namespace, model_path.lstrip("/")))
             dest = join(const.COORDINATOR_WORKSPACE_PATH,
                         model_path.lstrip("/"))
@@ -129,7 +130,7 @@ class Coordinator:
         job_cfg["config_file"] = startup_cfg_file_path
         if const.DEPLOYMENT_WAY == "cloud":
             config_file = "%s/coordinator.json" % job_cfg["job-id"]
-            host_dir = join(const.HOST_STORAGE_PATH, const.JS_NAMESPACE)
+            host_dir = join(const.SOURCE_MOUNT_PATH, const.JS_WORKSPACE_DIR)
             host_path = join(host_dir, config_file)
             volumes.append(('entrypoint', host_path, startup_cfg_file_path))
 
