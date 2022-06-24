@@ -20,65 +20,90 @@ from neursafe_fl.python.cli.core.upload_helper import upload_model_path, \
     init_job_use_workspace
 
 
-@click.group("create", short_help="Used to create job or model.")
+@click.group("create", short_help="Create federated job or model.")
 def cli():
-    """Create job or model command."""
+    """
+     Create job or model. \n
+     Run 'nsfl-ctl create COMMAND --help' for more information on sub-commands.
+    """
 
 
 @cli.command("job", short_help="Create job.")
 @click.argument("namespace")
 @click.option("-f", "--job-config-path", required=False,
               type=click.Path(exists=True, readable=True),
-              help=("The config path for job, a json config."))
+              help=("Local path points to job config file, which used to"
+                    " configure how to train the fl model, and the format is"
+                    " json file."
+                    " Job config typically include job name, runtime,"
+                    " hyper parameters, etc. reference for details of each"
+                    " parameter explanation: "
+                    " https://github.com/neursafe/federated-learning/"
+                    "blob/main/docs/develop.md#job"))
 @click.option("-m", "--model-path", required=False, default=None,
               type=click.Path(exists=True, readable=True, resolve_path=True,
                               file_okay=True),
-              help=("The config for model_path. If it is set, the model will"
-                    "be upload to the server and then used as the initial "
-                    "model for training. If there is a model_path field in "
-                    "job_config, upload it to that path, otherwise upload it"
-                    " to the root path, with the same file name, and "
-                    "automatically fill in the model_path in job_config."))
+              help=("Local path <model_path> points to the initial fl model"
+                    " file for training. Current model support"
+                    " [Keras, Pytorch],"
+                    " correspond h5 and pth(pt) file respectively."
+                    " This model file will be uploaded to the data server and"
+                    " then used as the initial model for this federated job."))
 @click.option("-s", "--scripts-path", required=False, default=None,
               type=click.Path(exists=True, readable=True, resolve_path=True,
                               dir_okay=True),
-              help=("The scripts path, contain train/evalueate scripts and "
-                    "entry config. If it is set, all file "
-                    "in path will be upload to the server and then used "
-                    " to run train and evaluate. If there is a scripts.path "
-                    "field in job_config, upload it to that path, otherwise "
-                    "upload it to the root path, with the same directory name,"
-                    " and automatically fill in the scripts.path in "
-                    "job_config."))
-@click.option("-e", "--extender-script_path", required=False, default=None,
+              help=("Local path <scripts_path> points to the directory that"
+                    " contains train, evaluate scripts for the fl model,"
+                    " and entrypoint, which is a json file, configuring the"
+                    " path and execution of above scripts. Please refer to"
+                    " our examples to learn how to write the script: \n"
+                    " https://github.com/neursafe/federated-learning/tree/"
+                    "main/example."
+                    " The scripts in this path will be uploaded to the data"
+                    " server and then broadcast to clients to run train and"
+                    " evaluate process for fl model."))
+@click.option("-e", "--extender-script-path", required=False, default=None,
               type=click.Path(exists=True, readable=True, resolve_path=True,
                               file_okay=True),
-              help=("The extender's script_path for running user-defined "
-                    "train and aggregate. If it is set, the script file "
-                    "will be upload to the server and then used it to run"
-                    " user-defined federated learning. If there is a "
-                    "extender.script_path field in job_config, upload it to"
-                    " that path, otherwise upload it to the root path, "
-                    "with the same file name, and automatically fill in"
-                    " the extender.script_path in job_config."))
+              help=("Local path <extender_script_path> points to the directory"
+                    " that contains extender scripts, which defines the"
+                    " user-defined extend functions, such as broadcast,"
+                    " aggregate etc. Please refer to our examples to learn how"
+                    " to write the extender scripts: \n"
+                    " https://github.com/neursafe/federated-learning/tree/"
+                    "main/example."
+                    " The scripts in this path will be uploaded to the data"
+                    " server and then integrate extensions into the default"
+                    " federated learning process."))
 @click.option("-w", "--workspace", required=False, default=None,
               type=click.Path(exists=True, readable=True, resolve_path=True,
                               file_okay=True),
-              help=("Use workspace to init job, in workspace should have: "
-                    " file config.json and directory model/scripts/extender."
+              help=("Use workspace to init job, you can organize all your"
+                    " initial files with the following format in a workspace"
+                    " directory: \n"
+                    "\n  -config.json  file, refer to <job-config-path>\n"
+                    "\n  -model/  dir, refer to <model-path>\n"
+                    "\n  -scripts/  dir, refer to <scripts-path>\n"
+                    "\n  -extender/ dir, refer to <extender-script_path>"
                     ))
 @PASS_CONTEXT
 def create_job(ctx, extender_script_path, scripts_path,
                model_path, job_config_path, workspace, namespace):
-    """Create job.
+    """Create federated job.
 
     \b
-    We support use workspace(-w) to init job, in workspace should have:
+    Use config files to create your federated job. Typically including four
+    types of files:
+
+     \b
         config.json: required, the job config.
-        model: required, the init model or weights should in the path.
-        scripts: the script which wille be send to client.
-        extender: use to run user-defined train and aggregate.
-    other, we also support -f/-m/-s/-e to initialize job config separately.
+        model: required, the init model or weights.
+        scripts: optional, the script which will be send to client.
+        extender: optional, use to run user-defined train and aggregate.
+
+    \b
+    You can use <workspace(-w)> option to init job one-time, also, you can use
+     <-f/-m/-s/-e> options to initialize job separately.
     """
     try:
         data_client = DataClient(ctx.get_data_server(), ctx.get_user(),
@@ -116,31 +141,43 @@ def create_job(ctx, extender_script_path, scripts_path,
 @click.argument("name")
 @click.option("-t", "--runtime", required=True,
               type=click.Choice(['tf', 'torch'], case_sensitive=False),
-              help="The runtime of this model, this must be declared.")
-@click.option("-l", "--local_model", required=False,
+              help="The runtime of this model, this is required, we current"
+                   " support [tf, torch].")
+@click.option("-l", "--local-model", required=False,
               type=click.Path(exists=True, readable=True, resolve_path=True),
-              help="The path of model in local disk, should be a file.")
-@click.option("-r", "--remote_model", required=False,
+              help="The path of local model file, currently we support model"
+                   " file suffixed with [.pt, .pth, .h5].")
+@click.option("-r", "--remote-model", required=False,
               help="The remote path of model, the path in the data server. "
                    "the format of this args should write as"
                    " 'namespace:/path/model' .")
 @click.option("-v", "--version", required=False,
-              help="The version(tag) of model.")
+              help="The version(tag) of this model. If not specify the model"
+                   " version, the version will be generated by server with"
+                   " increased number, such as V1, V2.")
 @click.option("-d", "--description", required=False,
               help="Add some description of this model.")
 @PASS_CONTEXT
 def create_model(ctx, description, version, remote_model,
                  local_model, runtime, name, namespace):
-    """Create model.
+    """
+    \b
+    Create federated model, which actually means publish your model to model
+     store component for federated learning. You can create with your local
+     model file or the remote model file(already in the store).
 
     \b
-    Create model, also namely publish model to model store for federate
-    learning. You can use your local model file or the remote model file to
-    create. The local model will be uploaded, and the remote model will be copy
-    to model store. \b
-    If not specify the model version, the version will be generated.
-    After created, each model has a unique id, you can use the id in the fl job
-    config for training.
+    If you use your local model file, then it will be uploaded to the model
+     store.
+    If you use the remote model file, it will be copied to corresponding path in
+     the model store.
+
+    For example, create a tf model with local file to the default namespace
+     with name mnist: \n
+        nsfl-ctl create model default mnist -r tf -l /root/init.h5
+
+    After created, each model will have a unique id, you can use the id in the
+     fl job config to reference it for training.
     """
     try:
         config = {

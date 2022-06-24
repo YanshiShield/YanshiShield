@@ -20,28 +20,50 @@ from neursafe_fl.python.cli.core.model import Model
 METRICS_FILE = "/metrics.json"
 
 
-@click.group("get", short_help="Get job, model or config.")
+@click.group("get", short_help="Get federated jobs, models or"
+                               " federated server config info.")
 def cli():
-    """Get job, model command, or get config."""
+    """
+     Get federated job, model, config details info. \n
+     Run 'nsfl-ctl get COMMAND --help' for more information on sub-commands.
+    """
 
 
-@cli.command("jobs", short_help="Get jobs.")
+@cli.command("jobs", short_help="Get jobs info.")
 @click.argument("namespace")
 @click.argument("job_id", required=False, default=None)
 @click.option("-f", "--job-config", required=False, default=None,
               type=click.Path(exists=True, readable=True),
-              help=("The config path for job, a json config."))
+              help=("Local path <job-config> points to the configuration file "
+                    " that used to create the federated job, which is json"
+                    " format."))
 @click.option("-w", "--workspace", required=False, default=None,
               type=click.Path(exists=True, readable=True),
-              help=("The workspace for job, "
-                    "there must config.json in workspace."))
+              help=("Local path <workspace> points to the workspace/ directory"
+                    " that used to create this federated job."))
 @click.option("-o", "--output", default=None,
               type=click.Choice(['yaml', 'json'], case_sensitive=False),
-              help="Show all item in yaml or json config.")
+              help="Show all items in yaml or json format.")
 @PASS_CONTEXT
 def get_jobs(ctx, namespace, output, job_id=None, job_config=None,
              workspace=None):
-    """Get jobs.
+    """(Noting: This command is same as 'get job')
+
+    \b
+    Get info of the federated jobs, you can get brief information of
+     the jobs under one namespace in the form of a table.
+    For example: \n
+        nsfl-ctl get jobs default
+
+    You can also get the details information of a given job, which you can
+     specify by its job_id, or the config file when created the job.
+    For example: \n
+        nsfl-ctl get jobs default job_1 \n
+
+        nsfl-ctl get jobs default -f /path/to/job_config.json  \n
+
+        nsfl-ctl get jobs default -w /path/to/workspace \n
+
     """
     try:
         _id = parse_job_id(job_id, job_config, workspace)
@@ -56,23 +78,36 @@ def get_jobs(ctx, namespace, output, job_id=None, job_config=None,
         sys.exit(1)
 
 
-@cli.command("job", short_help="Get job.")
+@cli.command("job", short_help="Get jobs info, same as 'get jobs'.")
 @click.argument("namespace")
 @click.argument("job_id", required=False, default=None)
 @click.option("-f", "--job-config", required=False, default=None,
               type=click.Path(exists=True, readable=True),
-              help=("The config path for job, a json config."))
+              help=("Local path <job-config> points to the configuration file "
+                    " that used to create the federated job, which is json"
+                    " format."))
 @click.option("-w", "--workspace", required=False, default=None,
               type=click.Path(exists=True, readable=True),
-              help=("The workspace for job, "
-                    "there must config.json in workspace."))
+              help=("Local path <workspace> points to the workspace/ directory"
+                    " that used to create this federated job."))
 @click.option("-o", "--output", default=None,
               type=click.Choice(['yaml', 'json'], case_sensitive=False),
-              help="Show all item in yaml or json config.")
+              help="Show all item in yaml or json format.")
 @PASS_CONTEXT
 def get_job(ctx, namespace, output, job_id=None, job_config=None,
             workspace=None):
-    """Get job.
+    """(Noting: This command is same as 'get jobs')
+
+    Get info of the federated jobs, you can get brief information of all jobs
+    under one namespace in the form of a table. For example: \n
+        nsfl-ctl get job default
+
+    You can also get the details information of a given job, which you can
+     specify by its job_id, or the config file when created the job.
+    For example: \n
+        nsfl-ctl get job default job_1 \n
+        nsfl-ctl get job default -f /path/to/job_config.json  \n
+        nsfl-ctl get job default -w /path/to/workspace \n
     """
     try:
         _id = parse_job_id(job_id, job_config, workspace)
@@ -87,10 +122,10 @@ def get_job(ctx, namespace, output, job_id=None, job_config=None,
         sys.exit(1)
 
 
-@cli.command("namespace", short_help="Get user's namespace.")
+@cli.command("namespace", short_help="Get user's namespaces.")
 @PASS_CONTEXT
 def get_namespace(ctx):
-    """List namespaces.
+    """List namespaces that user has the permissions.
     """
     try:
         data_client = DataClient(ctx.get_data_server(), ctx.get_user(),
@@ -105,10 +140,10 @@ def get_namespace(ctx):
         sys.exit(1)
 
 
-@cli.command("config", short_help="Get config and show.")
+@cli.command("config", short_help="Get federated server config.")
 @PASS_CONTEXT
 def get_config(ctx):
-    """Get job.
+    """Get the configuration of the remote federated server.
     """
     try:
         cmd_config = ctx.get_config()
@@ -248,19 +283,36 @@ def __load_metrics(data_client, namespace, obj):
     return json.load(_file)
 
 
-@cli.command("models", short_help="Get models.")
+@cli.command("models", short_help="Get models info.")
 @click.argument("namespace")
 @click.argument("name", required=False, default=None)
 @click.argument("version", required=False, default=None)
-@click.option("-id", "--model_id", default=None, required=False,
-              help="The unique id of model.")
+@click.option("-id", "--model-id", default=None, required=False,
+              help="The unique id of the model, you can get model's id"
+                   " through get command.")
 @click.option("-o", "--output", default=None,
               type=click.Choice(['yaml', 'json'], case_sensitive=False),
-              help="Show all item in yaml or json config.")
+              help="Show all items in yaml or json format.")
 @PASS_CONTEXT
 def get_models(ctx, namespace, output, name=None, version=None,
                model_id=None):
-    """Get models.
+    """(Noting: This command is same as 'get model')
+
+    Get the models info in the model store.
+
+    For examples: \n
+    Get all the models in one namespace. \n
+        nsfl-ctl get models default
+
+    Get brief information of all the versions of one model. \n
+        nsfl-ctl get models default mnist
+
+    Get the details of specified version of one model. \n
+        nsfl-ctl get models default mnist V1
+
+        nsfl-ctl get models -id model_1
+
+        nsfl-ctl get models -id model_2 -o json
     """
     try:
         fl_model = Model(ctx.get_api_server())
@@ -368,19 +420,36 @@ def _show_model_detail(model_info, output):
         click.echo(obj_json)
 
 
-@cli.command("model", short_help="Get models, same as 'get models'.")
+@cli.command("model", short_help="Get models info, same as 'get models'.")
 @click.argument("namespace")
 @click.argument("name", required=False, default=None)
 @click.argument("version", required=False, default=None)
-@click.option("-id", "--model_id", default=None, required=False,
-              help="The unique id of model.")
+@click.option("-id", "--model-id", default=None, required=False,
+              help="The unique id of the model, you can get model's id"
+                   " through get command.")
 @click.option("-o", "--output", default=None,
               type=click.Choice(['yaml', 'json'], case_sensitive=False),
-              help="Show all item in yaml or json config.")
+              help="Show all items in yaml or json format.")
 @PASS_CONTEXT
 def get_model(ctx, namespace, output, name=None, version=None,
               model_id=None):
-    """Get model.
+    """(Noting: This command is same as 'get models')
+
+    Get the models info in the model store.
+
+    For examples: \n
+    Get all the models in one namespace. \n
+        nsfl-ctl get model default
+
+    Get brief information of all the versions of one model. \n
+        nsfl-ctl get model default mnist
+
+    Get the details of specified version of one model. \n
+        nsfl-ctl get model default mnist V1
+
+        nsfl-ctl get model -id model_1
+
+        nsfl-ctl get model -id model_2 -o json
     """
     try:
         fl_model = Model(ctx.get_api_server())
