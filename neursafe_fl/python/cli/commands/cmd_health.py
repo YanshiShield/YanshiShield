@@ -15,11 +15,16 @@ from neursafe_fl.python.cli.core.data_client import DataClient
 from neursafe_fl.python.cli.core.job import Job
 
 
-@click.command("health", short_help=("Health check for api "
-                                     "server and datas erver."))
+@click.command("health", short_help="Health check for api-server and"
+                                    " data-server components of federated"
+                                    " server.")
 @PASS_CONTEXT
 def cli(ctx):
-    """Health check."""
+    """Health check
+
+    This command will send a message to federated server to check if
+     the services are online.
+    """
     try:
         cmd_config = ctx.get_config()
         fl_job = Job(cmd_config["api_server"])

@@ -11,8 +11,13 @@ import click
 from neursafe_fl.python.cli.core.context import PASS_CONTEXT, set_log
 
 
+VERSION = "0.1.0"
+
+
 class ComplexCLI(click.MultiCommand):
-    """Subcommands of nsfl"""
+    """List sub-commands of nsfl
+    """
+
     def list_commands(self, ctx):
         """List all commands."""
         subcmds = []
@@ -34,16 +39,40 @@ class ComplexCLI(click.MultiCommand):
         return mod.cli
 
 
+def print_version(ctx, param, value):
+    """Print version of cli tool.
+    """
+    del param
+    if not value or ctx.resilient_parsing:
+        return
+    click.echo('Version %s' % VERSION)
+    ctx.exit()
+
+
 @click.command(cls=ComplexCLI)
-@click.option('-d', '--debug', is_flag=True, help='Set nsfl in debug model.')
+@click.option('-d', '--debug', is_flag=True, help='Set nsfl-ctl command in'
+                                                  ' debug mode, which means'
+                                                  ' output log level is DEBUG.')
+@click.option('-v', '--version', is_flag=True, callback=print_version,
+              expose_value=False, is_eager=True, help='Show version '
+                                                      'information and quit')
 @PASS_CONTEXT
 def nsfl(_, debug):
     """
-    nsfl is CLI client for Federate Learning Platform. You should use
-    'nsfl set config -s ip:port -d data_server -u user -p' to set the address
-    of aip server and other config. Next, you could use 'nsfl health' to check
-    server runing ok. Then you can use nsfl other subcommand to run job for
-    federated learning.
+    nsfl-ctl is the command line tool for Neursafe-FL, which is an open
+    federated learning platform. Github address: \n
+      https://github.com/neursafe/federated-learning \n
+    Firstly, you should use 'set' sub-command to configure address of your
+    federated environment before using other commands. For example: \n
+
+      'nsfl-ctl set config -s ip:port -d ip:port -u user -p' \n
+
+    Secondly, you can use 'nsfl-ctl health' to check if the connection is OK.
+
+    Finally, if connection is OK, then you can use other sub-commands to manage
+    your federated learning jobs or models.
+
+    Run 'nsfl-ctl COMMAND --help' for more information.
     """
     set_log(debug)
 
