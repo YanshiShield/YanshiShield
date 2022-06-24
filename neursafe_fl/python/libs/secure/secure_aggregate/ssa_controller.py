@@ -57,9 +57,10 @@ class SSAController:
         """Register SSA server or SSA partner in handlers.
 
         Args:
-            handle: Unique id for SSA server or SSA partner.
-            party: the type in [server, partner]
-            handler: a SSA server or SSA partner.
+            handle: A unique id for a round of aggregation, used to
+                    distinguish different rounds.
+            party: The value is 'server' or partner id.
+            handler: A object that implements SSABaseServer or SSABaseClient.
         """
         self.__handlers[(handle, party)] = handler
 
@@ -68,8 +69,9 @@ class SSAController:
         Register SSA server or SSA partner in handlers
 
         Args:
-            handle: Unique id for SSA server or SSA partner.
-            party_id: the type in [server, partner].
+            handle: A unique id for a round of aggregation, used to
+                    distinguish different rounds.
+            party: The value is 'server' or partner id.
         """
         try:
             del self.__handlers[(handle, party)]
@@ -80,11 +82,12 @@ class SSAController:
         """Message forwarding function.
 
         Args:
-            party_id: the type in [server, partner].
+            destination: The destination party to process this message.
+                         The value is 'server' or partner id.
             msg: messages reported by the partner, or send by the server.
         """
         self.__handlers[(msg.handle, destination)].handle_msg(msg)
 
 
-# A singleton ssa controller, the code should use it.
+# A singleton ssa controller.
 ssa_controller = SSAController()
