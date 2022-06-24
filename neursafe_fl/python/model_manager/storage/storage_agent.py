@@ -32,7 +32,7 @@ def create_storage_agent():
                                   secret_key=const.STORAGE_SECRET_KEY,
                                   endpoint=const.STORAGE_ENDPOINT)
     elif const.STORAGE_TYPE == StorageType.POSIX:
-        storage_client = PosixClient(root_path=const.MOUNT_PATH)
+        storage_client = PosixClient(root_path=const.WORKSPACE)
     else:
         raise TypeError("Not support storage %s" % const.STORAGE_TYPE)
 

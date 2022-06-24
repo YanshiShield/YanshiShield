@@ -47,3 +47,10 @@ spec:
         - containerPort: 9001
         - containerPort: 9002
         - containerPort: 9003
+        volumeMounts:
+        - mountPath: /nginx/conf/
+          name: config_file
+      volumes:
+      - name: config_file
+        hostPath:
+          path: /mnt/neursafe_fl/proxy/
