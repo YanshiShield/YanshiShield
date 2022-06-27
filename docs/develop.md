@@ -1106,7 +1106,7 @@ Note: we highly recommand to use the configuration file.
 | server            | string | yes      | The address of server, format is ip:port, where to report the the train or evaluate result.<br>For example: 192.0.0.1:9000 |
 | lmdb_path         | string | yes      | LMDB path, an local path to used to save task metadata and status. Note: the path must be exist, could be an empty directory |
 | workspace         | string | yes      | Client's workspace path, where used to save some temporary files. These temporary files are generated during the task running, such as checkpoints, task result, etc. |
-| platform          | string | no       | Client's platform, support [kubernetes, linux], default is linux |
+| platform          | string | no       | Client's platform, support [k8s, linux], default is linux |
 | task_config_entry | string | yes      | This is a path to store task_config.json. The task_config.json indicate the path of the entrypoint scripts that the task need to run |
 | storage_quota     | int    | no       | The storage quota of client (unit is MB), which limit the size of workspace. When storage_quota is exceeded, the long-standing temporary files in workspace will be deleted |
 | log_level         | string | no       | Log level, support [DEBUG, INFO, WARNING, ERROR]<br>default is INFO |
