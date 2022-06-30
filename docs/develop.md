@@ -8,7 +8,7 @@ This document is mainly developer documentation, describing the interface, confi
 - Component launch configuration: Configuration settings at startup for some components of federated framework.
 
 
-##Reference
+## Reference
 
 - [API of federated learning](./apis.md)
 
