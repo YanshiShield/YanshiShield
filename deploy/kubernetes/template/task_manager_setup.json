@@ -1,0 +1,13 @@
+{
+  "lmdb_path": "",
+  "workspace": "",
+  "server": "",
+  "port": 8080,
+  "runtime": "",
+  "datasets": "",
+  "log_level": "",
+  "platform": "",
+  "task_config_entry": "",
+  "registration": "",
+  "storage_quota":1024
+}

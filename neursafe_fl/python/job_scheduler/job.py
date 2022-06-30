@@ -189,8 +189,8 @@ class Job:
                 # TODO: workspace related to data object store
                 yield self.__coordinator.create(
                     self.__gen_coordinator_cfg(),
-                    workspace=os.path.join(const.DEST_MOUNT_PATH,
-                                           const.JS_WORKSPACE_DIR),
+                    workspace=os.path.join(const.WORKSPACE,
+                                           const.TEMP_DIR),
                     namespace=self.__namespace)
                 logging.info("Request create namespace: %s, jod id: %s "
                              "coordinator successfully.", self.__namespace,
@@ -522,7 +522,7 @@ class Job:
         Raises:
             ModelNotExist: raise if the model not existing.
         """
-        model_absolute_path = os.path.join(const.DEST_MOUNT_PATH,
+        model_absolute_path = os.path.join(const.WORKSPACE,
                                            self.__namespace,
                                            model_path.lstrip("/"))
         if not os.path.exists(model_absolute_path):
@@ -547,7 +547,7 @@ class Job:
 
         ckpt_relative_path = \
             self.__checkpoints[checkpoint_id]["path"]
-        ckpt_absolute_path = os.path.join(const.DEST_MOUNT_PATH,
+        ckpt_absolute_path = os.path.join(const.WORKSPACE,
                                           self.__namespace,
                                           ckpt_relative_path.lstrip("/"))
 
@@ -754,7 +754,7 @@ class Job:
         logging.warning("Delete checkpoint failed.")
 
     def __do_delete_ckpts(self):
-        ouput_root = os.path.join(const.DEST_MOUNT_PATH,
+        ouput_root = os.path.join(const.WORKSPACE,
                                   self.__namespace,
                                   self.__job_config["output"].lstrip("/"))
         if not os.path.exists(ouput_root):
@@ -766,7 +766,7 @@ class Job:
         for dir_name in dirs:
             if re.search(job_dir_pattern, dir_name):
                 shutil.rmtree(os.path.join(
-                    const.DEST_MOUNT_PATH, self.__namespace,
+                    const.WORKSPACE, self.__namespace,
                     self.__job_config["output"].lstrip("/"),
                     dir_name))
 

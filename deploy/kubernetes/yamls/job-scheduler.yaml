@@ -12,7 +12,7 @@ spec:
   selector:
     app: nsfl-job-scheduler
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
@@ -61,7 +61,7 @@ spec:
         - name: CLOUD_OS
           value: k8s
         - name: COORDINATOR_IMAGE
-          value: 10.67.134.35:5000/nsfl-coordinator:new
+          value: 10.67.134.35:5000/nsfl-coordinator:latest
         - name: JOB_SCHEDULER_ADDRESS
           value: nsfl-job-scheduler:8088
         - name: COORDINATOR_WORKSPACE_PATH
@@ -86,8 +86,8 @@ spec:
           protocol: TCP
         volumeMounts:
         - mountPath: /workspace
-          name: storagepath
+          name: workspace
       volumes:
-      - name: storagepath
+      - name: workspace
         hostPath:
           path: /mnt/neursafe_fl

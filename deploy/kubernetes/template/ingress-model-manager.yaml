@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: nsfl-model-manager-ingress
+  name: MODEL_MANAGER
   annotations:
     kubernetes.io/ingress.class: "nginx"
     nginx.ingress.kubernetes.io/use-regex: "true"
@@ -11,14 +11,14 @@ spec:
       paths:
       - path: /api/v1/namespaces/(.*)/models
         backend:
-          serviceName: nsfl-model-manager
-          servicePort: 50057
+          serviceName: MODEL_MANAGER
+          servicePort: PORT
       - path: /api/v1/namespaces/(.*)/models/(.*)
         backend:
-          serviceName: nsfl-model-manager
-          servicePort: 50057
+          serviceName: MODEL_MANAGER
+          servicePort: PORT
       - path: /api/v1/models*
         backend:
-          serviceName: nsfl-model-manager
-          servicePort: 50057
+          serviceName: MODEL_MANAGER
+          servicePort: PORT
 

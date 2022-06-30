@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ""
+  name: ""
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ""
+  template:
+    metadata:
+      labels:
+        app: ""
+    spec:
+      restartPolicy: Always
+      containers:
+      - image: ""
+        imagePullPolicy: Always
+        name: ""
+        ports:
+        - containerPort: 80
+          protocol: TCP

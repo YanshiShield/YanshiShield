@@ -1,0 +1,55 @@
+{
+  "task_manager": {
+    "service_name": "nsfl-task-manager",
+    "port": 9090,
+    "external_ips": ["10.67.134.15"],
+    "db_collection_name": "tasks",
+    "image": "10.67.134.35:5000/nsfl-client-cpu:latest",
+    "server_address": "10.67.134.15.9001",
+    "runtime": "tensorflow,pytorch",
+    "storage_quota": "1024",
+    "registration": "True",
+    "platform": "k8s",
+    "volumes": {
+      "lmdb": {
+        "source": "/mnt/neursafe_fl/task_manager/fl_lmdb"
+      },
+      "workspace": {
+        "source": "/mnt/neursafe_fl/task_manager/workspace"
+      },
+      "datasets": {
+        "source": "/mnt/neursafe_fl/task_manager/datasets",
+        "dest": "/workspace/datasets"
+      },
+      "task_configs": {
+        "source": "/mnt/neursafe_fl/task_manager/task_configs"
+      },
+      "config": {
+        "source": "/mnt/neursafe_fl/task_manager/"
+      }
+    },
+    "options": {}
+  },
+  "executor": {
+    "image": "10.67.134.35:5000/nsfl-client-cpu:latest",
+    "port": 8050,
+    "http_proxy": "",
+    "https_proxy": ""
+  },
+  "k8s": {
+    "K8S_ADDR": "10.67.134.15:8080",
+    "GPU_RS_KEY": "nvidia.com/gpu"
+  },
+  "db": {
+    "type": "postgreSQL",
+    "address": "10.67.134.32:12202",
+    "name": "neursafe_fl",
+    "secret_key_ref": {
+      "name": "pgsecret",
+      "user_key": "username",
+      "passwd_key": "password"
+    }},
+  "others": {
+    "log_level": "info"
+  }
+}

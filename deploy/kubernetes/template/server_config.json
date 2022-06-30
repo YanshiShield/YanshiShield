@@ -1,0 +1,86 @@
+{
+  "job_scheduler": {
+    "service_name": "nsfl-job-scheduler",
+    "port": 8088,
+    "db_collection_name": "jobs",
+    "coordinator_configs_dir": "default",
+    "image": "10.67.134.35:5000/nsfl-job-scheduler:latest",
+    "volumes": {
+      "workspace": {
+        "source": "/mnt/neursafe_fl"
+      }
+    },
+    "options": {}
+  },
+  "client_selector": {
+    "service_name": "nsfl-client-selector",
+    "port": 50055,
+    "image": "10.67.134.35:5000/nsfl-selector:latest",
+    "volumes": {
+      "config": {
+        "source": "/mnt/neursafe_fl/selector/"
+      }
+    },
+    "options": {}
+  },
+  "model_manager": {
+    "service_name": "nsfl-model-manager",
+    "port": 50057,
+    "db_collection_name": "models",
+    "image": "10.67.134.35:5000/nsfl-model-manager:latest",
+    "models_dir": "models",
+    "volumes": {
+      "workspace": {
+        "source": "/mnt/neursafe_fl/"
+      }
+    },
+    "options": {}
+  },
+  "proxy": {
+    "service_name": "nsfl-proxy",
+    "grpc_port": 9001,
+    "http_port": 9002,
+    "external_ips": ["10.67.134.15"],
+    "image": "10.67.134.35:5000/nsfl-proxy:latest",
+    "volumes": {
+      "config": {
+        "source": "/mnt/neursafe_fl/proxy/"
+      }
+    }
+  },
+  "api_server": {
+    "http_port": 8083,
+    "https_port": 8084,
+    "external_ips": ["10.67.134.15"]
+  },
+  "coordinator": {
+    "image": "10.67.134.35:5000/nsfl-coordinator:latest",
+    "port": 50051,
+    "workspace": "/fl"
+  },
+  "k8s": {
+    "address": "10.67.134.15:8080",
+    "GPU_RS_KEY": "nvidia.com/gpu"
+  },
+  "storage": {
+    "type": "s3",
+    "address": "http://10.67.134.15:9000",
+    "secret_key_ref": {
+      "name": "miniosecret",
+      "user_key": "username",
+      "passwd_key": "password"
+    }
+},
+  "db": {
+    "type": "postgreSQL",
+    "address": "10.67.134.32:12202",
+    "name": "neursafe_fl",
+    "secret_key_ref": {
+      "name": "pgsecret",
+      "user_key": "username",
+      "passwd_key": "password"
+    }},
+  "others": {
+    "log_level": "info"
+  }
+}

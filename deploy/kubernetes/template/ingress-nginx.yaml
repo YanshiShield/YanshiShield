@@ -288,15 +288,15 @@ metadata:
 spec:
   ports:
     - name: http
-      port: 8083
+      port: HTTP_PORT
       protocol: TCP
       targetPort: http
     - name: https
-      port: 8084
+      port: HTTPS_PORT
       protocol: TCP
       targetPort: https
   externalIPs:
-  - 10.67.134.15
+  - ""
   selector:
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
@@ -344,8 +344,8 @@ spec:
             - /nginx-ingress-controller
             - --election-id=ingress-controller-leader
             - --ingress-class=nginx
-            - --http-port=8083
-            - --https-port=8084
+            - --http-port=HTTP_PORT
+            - --https-port=HTTPS_PORT
             - --configmap=ingress-nginx/ingress-nginx-controller
             - --validating-webhook=:8443
             - --validating-webhook-certificate=/usr/local/certificates/cert
@@ -368,9 +368,9 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: NGINX_HTTP_PORT_NUMBER
-              value: "8083"
+              value: "HTTP_PORT"
             - name: NGINX_HTTPS_PORT_NUMBER
-              value: "8084"
+              value: "HTTPS_PORT"
           livenessProbe:
             httpGet:
               path: /healthz
@@ -393,10 +393,10 @@ spec:
             failureThreshold: 3
           ports:
             - name: http
-              containerPort: 8083
+              containerPort: HTTP_PORT
               protocol: TCP
             - name: https
-              containerPort: 8084
+              containerPort: HTTPS_PORT
               protocol: TCP
             - name: webhook
               containerPort: 8443
