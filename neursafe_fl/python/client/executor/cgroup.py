@@ -13,11 +13,10 @@ _MB_2_BYTES = 1024 * 1024
 
 
 class Cgroup():
-    """Cgroup used to limit the use of cpu and memory.
+    """Cgroup used to limit the use of cpu and memory in linux platform.
 
-    We use cgroup to controll cpu/memory for user's train processor.
     Args:
-        name: The name for this cgroup task, here is task id.
+        name: The name for this cgroup config, here is task id.
     """
 
     def __init__(self, name):

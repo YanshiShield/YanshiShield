@@ -3,7 +3,7 @@
 
 # pylint:disable=too-many-instance-attributes, too-many-arguments, broad-except
 # pylint:disable=no-member
-"""Task in client. used process train and evaluate.
+"""Task in client. used to process training and evaluation.
 """
 import abc
 import enum
@@ -47,7 +47,7 @@ class TaskType(enum.Enum):
 
 
 def create_task(**kwargs):
-    """Create train or evaluate task.
+    """Create training or evaluation task.
     """
     return _TASK_MAP[kwargs['task_type']](**kwargs)
 
@@ -73,16 +73,20 @@ class Task:
 
     Args:
         task_id: The unique task id.
-        task_type: Train or Evaluate task.
-        workspace: Task's workspace. for save delta weights, custom parameters
+        task_type: Training or Evaluation task.
+        workspace: The working path of the client, which saves some
+            temporary files, including init weights, custom parameters
             and files, and so on.
-        grpc_metadata: the metadata in grpc hearder which coordinator broadcast,
-                such model-id, client_id.
-        client_config: The config from client started.
+        client_config: Client startup config.
         task_info: The task info from server.
-        task_config: The task config read from local task config.
-        lmdb: The LMDB util to save task db config.
-        handle_finish: When task finished, call the function.
+        files_from_server: files sent from the server.
+        resource: This describes the allocated resources of each executor
+            and used to set the resource limit of the executor when it runs.
+        kwargs:
+            grpc_metadata: The metadata in the grpc header, sent from the
+                coordinator, contains model-id, client_id.
+            lmdb: An implementation of LMDBUtil for saving task information.
+            handle_finish: When task finished, call this function.
     """
     def __init__(self, task_id, task_type, workspace, client_config,
                  task_info, files_from_server, resource,
@@ -111,20 +115,19 @@ class Task:
 
     @abc.abstractmethod
     async def _report(self):
-        """Report the task result to server. Subclass has different implement.
-        So should implement in train and evaluate class.
+        """Report the task result to server.
         """
 
     @abc.abstractmethod
     async def _report_failed_to_server(self):
-        """Report the task failed to server. Should implement in subclass.
+        """Report the task failed to server. This should implement in subclass.
         """
 
     async def _save_files_to_workspace(self):
         _decompress_files_in_workspace(self.workspace,
                                        self._files_from_server)
         # must put TaskConfigParser after decompress_files,
-        # because maybe script and config send by server,
+        # because script and config maybe send by server,
         # they should save in workspace first.
         self._task_config = TaskConfigParser(
             self._task_info.spec, self.workspace,
@@ -365,7 +368,7 @@ class Task:
         }
 
     def persist(self):
-        """Insert to db task config.
+        """Insert task config to db.
         """
         task_dict = self._to_dict()
         self.__lmdb.write(self.task_id, json.dumps(task_dict))
@@ -413,8 +416,8 @@ class TrainTask(Task):
 
     async def _report(self):
         """Implement the report method. Return the training result to server.
-        The content include model delta weight, metrics and custom self-defined
-        result.
+        The content contains model delta weight, metrics and custom
+        self-defined result.
         """
         task_result, file_in_memory = await self.__prepare_report()
 

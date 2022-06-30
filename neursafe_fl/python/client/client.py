@@ -55,7 +55,7 @@ class TrainRpcService(TrainServiceBase):
             await stream.cancel()
 
     async def Stop(self, stream: Stream[Metadata, Response]):
-        """Stop training"""
+        """Stop training."""
         try:
             task_metadata = await stream.recv_message()
             logging.info('required stop train task request: %s', task_metadata)
@@ -99,7 +99,7 @@ class EvaluateRpcService(EvaluateServiceBase):
             await stream.cancel()
 
     async def Stop(self, stream: Stream[Metadata, Response]):
-        """Stop training"""
+        """Stop evaluating."""
         try:
             task_metadata = await stream.recv_message()
             logging.info('required stop evaluate task request: %s',

@@ -19,49 +19,53 @@ from neursafe_fl.python.utils.log import set_log
 DEFAULT_HOST = '0.0.0.0'
 DEFAULT_PORT = 22000
 
-flags.DEFINE_string('host', DEFAULT_HOST, 'Client listen host.')
-flags.DEFINE_integer('port', DEFAULT_PORT, 'Client listen port.')
+flags.DEFINE_string('host', DEFAULT_HOST,
+                    'The host the client listens on, which is an IP address..')
+flags.DEFINE_integer('port', DEFAULT_PORT,
+                     'The port the client is listening on.')
 flags.DEFINE_string('server', None,
-                    'The address of server, like ip:port where report the'
-                    ' the train or evaluate result.')
+                    'The address of the server, where the training and '
+                    'evaluation results are reported, the format is ip:port.')
 flags.DEFINE_string('lmdb_path', None,
-                    'LMDB path, an exist path, used save task metadata '
-                    'and status.')
+                    'LMDB path, which is an exist path, is used to save'
+                    ' task metadata and status.')
 flags.DEFINE_string('workspace', None,
-                    "Client's workspace path, where will be saved some"
-                    ' temporary files. These temporary files are generated '
-                    'when the task is running, such as weights、task result, '
-                    'etc.')
+                    "Client's workspace path. The working path of the task "
+                    'will save the temporary files generated during training'
+                    ' or evaluation, such as initial weights, weights after '
+                    'training, etc.')
 flags.DEFINE_string('platform', "linux",
-                    'Client run on some platform, support %s.'
+                    'The running platform of the client, support %s.'
                     % SUPPORT_PLATFORM)
 flags.DEFINE_string('task_config_entry', None,
-                    'This is a path of task config entry. in this path, some '
-                    'task_config.json must be exist. The task_config.json '
-                    'indicate the path of the script that the task runs、 '
-                    ' the task command, etc.')
-flags.DEFINE_integer('storage_quota', 1024,
-                     'The storage quota of client (MB), which specified the '
-                     'limit of Workspace, where will be generated '
-                     'temporary files in task running. When storage_quota is '
-                     'exceeded, the long-standing temporary files in Workspace'
-                     ' will be deleted.')
+                    'The path where the entry file of the task is stored. The '
+                    'entry files are some *.json files. These files describe '
+                    'the working path and startup command of the task.')
+flags.DEFINE_integer('storage_quota', 10240,
+                     'The storage quota (MB) of the workspace for storing '
+                     'temporary files. This is to ensure that the storage of '
+                     'the workspace does not exceed the quota. When the quota'
+                     ' is exceeded, the client will clean up the workspace.')
 flags.DEFINE_string('log_level', 'INFO',
                     'Log level, support [DEBUG, INFO, WARNING, ERROR].')
 flags.DEFINE_string('ssl', None,
-                    'If used GRPCS must set this, else not. This is a path '
-                    'where should have 3 files:\n'
-                    'cert.pem: saved certificate\n'
-                    'private.key: saved private key\n'
-                    'trusted.pem: saved trusted certificate, which will be '
-                    "coordinator's certificate in")
+                    'If grpcs is used, ssl must be set, else not. It sets a '
+                    'path and three files under the path:\n'
+                    "cert.pem: This file saves client's certificate\n"
+                    "private.key: This file saves client's private key\n"
+                    'trusted.pem: This file saves the trusted certificate, '
+                    '   which needs to include the certificate of the '
+                    '   coordinator or proxy')
 flags.DEFINE_string('datasets', None,
-                    'A JSON file path, the file describes the mapping '
-                    'relationship between dataset name and dataset path.')
+                    'A json formatted file that saves the configuration of '
+                    'the dataset. The file saves the key-value pair of the '
+                    'dataset name and the path where the dataset is located.')
 flags.DEFINE_string('config_file', None,
-                    'Config file used when start client agent. (If used, '
-                    'all other args are ignored. All needed args should '
-                    'be configured in config file.)')
+                    'The configuration file in json format started by the '
+                    'client. In this configuration file, you can configure '
+                    'key-value pairs for other parameters. If this '
+                    'configuration file is used, the client will preferentially'
+                    ' use the parameters in the configuration file.')
 
 FLAGS = flags.FLAGS
 

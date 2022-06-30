@@ -3,7 +3,7 @@
 
 # pylint:disable=too-few-public-methods
 """
-Kubernetes executor, task will execute in kubernetes cluster.
+Kubernetes executor, task will execute on kubernetes cluster.
 """
 import asyncio
 from absl import logging

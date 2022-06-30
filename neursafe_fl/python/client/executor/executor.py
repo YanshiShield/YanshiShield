@@ -13,7 +13,7 @@ def create_executor(platform, **kwargs):
     """Create a platform's executor.
 
     Args:
-        platform: Which the executor run on.
+        platform: The platform the executor runs on, its value is linux or k8s.
         kwargs: The parameters to create executor.
 
     Return:
@@ -33,8 +33,10 @@ class Executor:  # pylint:disable=too-many-instance-attributes
         task_id: Task ID.
         task_info: Task info from server.
         run_config: Contain task run command, parameters and others.
-        cwd_path: The Path where the executor's current work directory.
-        workspace: Task's workspace.
+        cwd_path: The Path where is the executor's current work directory.
+        workspace: The working path of the task will save the temporary
+            information generated during training or evaluation, such as
+            the initial weight and the weight after training, etc.
     """
 
     def __init__(self, **kwargs):
@@ -70,5 +72,5 @@ class Executor:  # pylint:disable=too-many-instance-attributes
 
     @abc.abstractmethod
     async def status(self):
-        """return executor status
+        """return executor status.
         """
