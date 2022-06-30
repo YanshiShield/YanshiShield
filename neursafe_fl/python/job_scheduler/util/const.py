@@ -24,11 +24,11 @@ SELECTOR_ADDRESS = os.getenv("SELECTOR_ADDRESS")
 HTTP_PORT = int(os.getenv("HTTP_PORT", "8080"))
 SOURCE_MOUNT_PATH = os.getenv("SOURCE_MOUNT_PATH", "/mnt/minio")
 
-# Mount SOURCE_MOUNT_PATH into DEST_MOUNT_PATH PATH in Pod
-DEST_MOUNT_PATH = os.getenv("DEST_MOUNT_PATH", "/workspace")
+# Mount SOURCE_MOUNT_PATH into WORKSPACE PATH in Pod
+WORKSPACE = os.getenv("WORKSPACE", "/workspace")
 
-# JS workspace dir name in DEST_MOUNT_PATH
-JS_WORKSPACE_DIR = os.getenv("JS_WORKSPACE_DIR", "tmp")
+# Temporary dir name in WORKSPACE
+TEMP_DIR = os.getenv("TEMP_DIR", "tmp")
 
 # Coordinator config
 COORDINATOR_IMAGE = os.getenv("COORDINATOR_IMAGE", "fl-coordinator:latest")

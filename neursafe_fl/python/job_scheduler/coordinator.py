@@ -130,7 +130,7 @@ class Coordinator:
         job_cfg["config_file"] = startup_cfg_file_path
         if const.DEPLOYMENT_WAY == "cloud":
             config_file = "%s/coordinator.json" % job_cfg["job-id"]
-            host_dir = join(const.SOURCE_MOUNT_PATH, const.JS_WORKSPACE_DIR)
+            host_dir = join(const.SOURCE_MOUNT_PATH, const.TEMP_DIR)
             host_path = join(host_dir, config_file)
             volumes.append(('entrypoint', host_path, startup_cfg_file_path))
 

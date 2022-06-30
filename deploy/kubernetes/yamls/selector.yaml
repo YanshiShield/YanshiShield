@@ -36,7 +36,7 @@ spec:
         - python3.7
         - -m
         - neursafe_fl.python.selector.app
-        - --auth_client
+        - --configure_file
         - /nsfl/config/selector.json
         image: 10.67.134.35:5000/nsfl-selector:latest
         imagePullPolicy: IfNotPresent

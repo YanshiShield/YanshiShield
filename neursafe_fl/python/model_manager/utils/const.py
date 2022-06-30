@@ -27,7 +27,7 @@ DB_COLLECTION_NAME = os.getenv("DB_COLLECTION_NAME", "models")
 WORKSPACE = os.getenv("WORKSPACE", "/workspace")
 MODELS_DIR = os.getenv("MODELS_DIR", "models")
 
-STORAGE_TYPE = os.getenv("STORAGE_TYPE", "s3")
+STORAGE_TYPE = os.getenv("STORAGE_TYPE", "posix")
 STORAGE_ENDPOINT = os.getenv("STORAGE_ENDPOINT")
 STORAGE_ACCESS_KEY = os.getenv("ACCESS_KEY")
 STORAGE_SECRET_KEY = os.getenv("SECRET_KEY")
