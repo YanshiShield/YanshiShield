@@ -9,7 +9,6 @@
     "runtime": "tensorflow,pytorch",
     "storage_quota": "1024",
     "registration": "True",
-    "platform": "k8s",
     "volumes": {
       "lmdb": {
         "source": "/mnt/neursafe_fl/task_manager/fl_lmdb"
@@ -18,8 +17,7 @@
         "source": "/mnt/neursafe_fl/task_manager/workspace"
       },
       "datasets": {
-        "source": "/mnt/neursafe_fl/task_manager/datasets",
-        "dest": "/workspace/datasets"
+        "source": "/mnt/neursafe_fl/task_manager/datasets"
       },
       "task_configs": {
         "source": "/mnt/neursafe_fl/task_manager/task_configs"
@@ -37,8 +35,8 @@
     "https_proxy": ""
   },
   "k8s": {
-    "K8S_ADDR": "10.67.134.15:8080",
-    "GPU_RS_KEY": "nvidia.com/gpu"
+    "address": "10.67.134.15:8080",
+    "gpu_rs_key": "nvidia.com/gpu"
   },
   "db": {
     "type": "postgreSQL",

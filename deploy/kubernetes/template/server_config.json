@@ -55,12 +55,11 @@
   },
   "coordinator": {
     "image": "10.67.134.35:5000/nsfl-coordinator:latest",
-    "port": 50051,
-    "workspace": "/fl"
+    "port": 50051
   },
   "k8s": {
     "address": "10.67.134.15:8080",
-    "GPU_RS_KEY": "nvidia.com/gpu"
+    "gpu_rs_key": "nvidia.com/gpu"
   },
   "storage": {
     "type": "s3",
