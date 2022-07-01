@@ -125,11 +125,11 @@ https_proxy, http_proxy, no_proxy: 如果你的环境需要通过代理访问互
 
 在共享根目录下，创建上图所示的相关文件夹，文件夹名可以自己定义，只需要和配置文件中的相关配置项匹配即可：
 
-- **models dir：**Model manager会用来保存模型相关的文件
-- **client selector dir：**用于存储Client selecor需要的配置等文件
-- **proxy dir：**用于存储Proxy需要的配置等文件
-- **coordinator configs dir：**Job scheduler会用来保存动态生成的Coordinator启动的配置文件，Coordinator启动时从中找到对应的启动配置文件
-- **namespace dir：**创建联邦作业时需要指定namespace，在对应的namespace文件夹内会保存相关作业的信息，如脚本、模型等，所有在创建作业前需要先创建namespace文件夹
+- **models dir：** Model manager会用来保存模型相关的文件
+- **client selector dir：** 用于存储Client selecor需要的配置等文件
+- **proxy dir：** 用于存储Proxy需要的配置等文件
+- **coordinator configs dir：** Job scheduler会用来保存动态生成的Coordinator启动的配置文件，Coordinator启动时从中找到对应的启动配置文件
+- **namespace dir：** 创建联邦作业时需要指定namespace，在对应的namespace文件夹内会保存相关作业的信息，如脚本、模型等，所有在创建作业前需要先创建namespace文件夹
 
 
 
@@ -139,10 +139,10 @@ https_proxy, http_proxy, no_proxy: 如果你的环境需要通过代理访问互
 
 在共享目录下，创建上图所示的相关文件夹，文件夹名可以自定义，只需要和配置文件中的相关配置项匹配即可：
 
-- **lmdb dir：**Task manager会保存作业相关的元信息
-- **workspace dir：**Task manager会保存相关作业的中间数据，如：服务器下发的模型等
-- **datasets dir：**保存数据集、数据集配置文件，在该目录下必须有个datasets.json的配置文件，用于指定不同数据集与其对应的目录关系，同时，用户需要把数据集存在这个目录中，如何配置请[参考]()
-- **task configs dir：**保存作业相关的配置、训练脚本、评估脚本，联邦作业的训练脚本可以不从server端下发，所以需要用户提前准备好作业相关的配置、训练和评估脚本，如何配置请[参考]()
+- **lmdb dir：** Task manager会保存作业相关的元信息
+- **workspace dir：** Task manager会保存相关作业的中间数据，如：服务器下发的模型等
+- **datasets dir：** 保存数据集、数据集配置文件，在该目录下必须有个datasets.json的配置文件，用于指定不同数据集与其对应的目录关系，同时，用户需要把数据集存在这个目录中，如何配置请[参考]()
+- **task configs dir：** 保存作业相关的配置、训练脚本、评估脚本，联邦作业的训练脚本可以不从server端下发，所以需要用户提前准备好作业相关的配置、训练和评估脚本，如何配置请[参考]()
 - **config dir：** 用于存储Task manager启动需要的配置文件
 
 
@@ -184,7 +184,7 @@ python3 ./deploy/kubernetes/gen_yamls.py --type server --config_file ./deploy/ku
            "source": "/mnt/neursafe_fl" # server端共享根目录的绝对路径，需要挂载到容器内
          }
        },
-       "options": {} # 其他可选的环境变量，key为环境变量名，value为环境变量对应的值，如{"REPORT_PERIOD": 10}
+       "options": {} # 其他可选的环境变量，key为环境变量名，value为环境变量对应的值
      },
      "client_selector": {
        "service_name": "nsfl-client-selector",  # 服务名，方便其他组件访问
@@ -259,7 +259,7 @@ python3 ./deploy/kubernetes/gen_yamls.py --type server --config_file ./deploy/ku
    }
    ```
 
-   配置文件指定了必须要配置的配置项，各个组件其他可选的配置项可配置到对应组件名称内的options下，所有组件的可选配置项可[参考]()
+   配置文件指定了必须要配置的配置项，各个组件其他可选的配置项可配置到对应组件名称内的options下，如"options": {"REPORT_PERIOD": 10}，所有组件的可选配置项可[参考]()
 
 2. 执行脚本，生成所有的部署文件和配置文件
 
@@ -351,7 +351,7 @@ Server端默认采用集群部署模式，在Kubernetes上部署Job Scheduler，
 
 ### 部署Job Scheduler
 
-2. 进入到上一章节指定的部署文件输出目录内，执行如下命令部署Job Scheduler
+1. 进入到上一章节指定的部署文件输出目录内，执行如下命令部署Job Scheduler
 
    ```shell
    kubectl create -f job-scheduler.yaml
@@ -359,7 +359,7 @@ Server端默认采用集群部署模式，在Kubernetes上部署Job Scheduler，
 
    
 
-3. 验证部署是否成功，执行如下命令查看Job Scheduler的Pod是否为Runnin状态
+2. 验证部署是否成功，执行如下命令查看Job Scheduler的Pod是否为Runnin状态
 
    ```shell
     kubectl get pod
@@ -371,7 +371,7 @@ Server端默认采用集群部署模式，在Kubernetes上部署Job Scheduler，
 
 ### 部署Model Manager
 
-2. 进入到上一章节指定的部署文件输出目录内，执行如下命令部署Model Manager
+1. 进入到上一章节指定的部署文件输出目录内，执行如下命令部署Model Manager
 
    ```shell
    kubectl create -f model-manager.yaml
@@ -379,7 +379,7 @@ Server端默认采用集群部署模式，在Kubernetes上部署Job Scheduler，
 
    
 
-3. 验证部署是否成功，执行如下命令查看Model Manager的Pod是否Running状态
+2. 验证部署是否成功，执行如下命令查看Model Manager的Pod是否Running状态
 
    ```shell
    kubectl get pod
@@ -391,7 +391,7 @@ Server端默认采用集群部署模式，在Kubernetes上部署Job Scheduler，
 
 ### 部署Client Selector
 
-2. 进入到上一章节指定的部署文件输出目录内，执行如下命令部署Client Selector
+1. 进入到上一章节指定的部署文件输出目录内，执行如下命令部署Client Selector
 
    ```shell
    kubectl create -f selector.yaml
@@ -399,7 +399,7 @@ Server端默认采用集群部署模式，在Kubernetes上部署Job Scheduler，
 
    
 
-3. 验证部署是否成功，执行如下命令查看Client Selctor的Pod是否Running状态
+2. 验证部署是否成功，执行如下命令查看Client Selctor的Pod是否Running状态
 
    ```shell
    kubectl get pod
@@ -411,7 +411,7 @@ Server端默认采用集群部署模式，在Kubernetes上部署Job Scheduler，
 
 ### 部署Proxy
 
-3. 进入到上一章节指定的部署文件输出目录内，执行如下命令部署Proxy
+1. 进入到上一章节指定的部署文件输出目录内，执行如下命令部署Proxy
 
    ```shell
    kubectl create -f proxy.yaml
@@ -419,7 +419,7 @@ Server端默认采用集群部署模式，在Kubernetes上部署Job Scheduler，
 
    
 
-4. 验证部署是否成功，执行如下命令查看Proxy的Pod是否Running状态
+2. 验证部署是否成功，执行如下命令查看Proxy的Pod是否Running状态
 
    ```shell
    kubectl get pod
@@ -487,7 +487,7 @@ kubectl create -f  ingress-model-manager.yaml
 
 ### 集群模式
 
-3. 进入到上一章节指定的部署文件输出目录内，执行如下命令部署Task Manager
+1. 进入到上一章节指定的部署文件输出目录内，执行如下命令部署Task Manager
 
    ```shell
    kubectl create -f task-manager.yaml
@@ -495,7 +495,7 @@ kubectl create -f  ingress-model-manager.yaml
 
    
 
-4. 验证部署是否成功，执行如下命令查看Task Manager的Pod是否Running状态
+2. 验证部署是否成功，执行如下命令查看Task Manager的Pod是否Running状态
 
    ```shell
    kubectl get pod
