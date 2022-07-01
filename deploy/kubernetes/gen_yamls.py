@@ -27,7 +27,7 @@ flags.DEFINE_string("output", None,
 FLAGS = flags.FLAGS
 FORMAT = ("[%(asctime)s] %(filename)s"
           "[line:%(lineno)d] %(levelname)s: %(message)s")
-TEMPLATE_PATH = "./template"
+TEMPLATE_PATH = "./deploy/kubernetes/template"
 
 
 def _set_log():
@@ -228,6 +228,8 @@ def _gen_job_scheduler_deployment_files(configs, output):
              configs["client_selector"]["port"])},
         {"name": "K8S_ADDRESS",
          "value": configs["k8s"]["address"]},
+        {"name": "GPU_RS_KEY",
+         "value": configs["k8s"]["gpu_rs_key"]},
         {"name": "PROXY_ADDRESS",
          "value": "%s:%s" % (
              configs["proxy"]["service_name"],
@@ -239,7 +241,7 @@ def _gen_job_scheduler_deployment_files(configs, output):
         {"name": "JOB_SCHEDULER_ADDRESS",
          "value": "%s:%s" % (name, configs["job_scheduler"]["port"])},
         {"name": "COORDINATOR_WORKSPACE_PATH",
-         "value": configs["coordinator"]["workspace"]},
+         "value": "/fl"},
         {"name": "TEMP_DIR",
          "value": configs["job_scheduler"]["coordinator_configs_dir"]},
         {"name": "WORKSPACE",
@@ -418,6 +420,8 @@ def _gen_task_manager_deployment_files(configs, output):
          "value": configs["task_manager"]["port"]},
         {"name": "K8S_ADDRESS",
          "value": configs["k8s"]["address"]},
+        {"name": "GPU_RS_KEY",
+         "value": configs["k8s"]["gpu_rs_key"]},
         {"name": "CONTAINER_EXECUTOR_IMAGE",
          "value": configs["executor"]["image"]},
         {"name": "WORKER_PORT",
@@ -428,28 +432,18 @@ def _gen_task_manager_deployment_files(configs, output):
          "value": configs["executor"]["https_proxy"]}]
     envs.extend(_gen_optional_envs(configs["task_manager"].get("options", {})))
 
-    pod_mount_paths = {"lmdb": "/nsfl/lmdb",
-                       "workspace": "/nsfl/workspace",
-                       "datasets": "/nsfl/dataset",
-                       "task_configs": "/nsfl/task_configs",
-                       "config": "/nsfl/setup"}
     volumes = []
 
-    for name, volume in configs["task_manager"]["volumes"]:
-        if name == "datasets":
-            volumes.append({"name": name,
-                            "pod": volume["dest"],
-                            "host": volume["source"]
-                            })
-        else:
-            volumes.append({"name": name,
-                            "pod": pod_mount_paths[name],
-                            "host": volume["source"]
-                            })
+    for name, volume in configs["task_manager"]["volumes"].items():
+        volumes.append({"name": name,
+                        "pod": volume["source"],
+                        "host": volume["source"]
+                        })
 
     cmds = ["python3.7", "-m", "neursafe_fl.python.client.app",
-            "--config_file", os.path.join(pod_mount_paths["config"],
-                                          "task_manager_setup.json")]
+            "--config_file", os.path.join(
+            configs["task_manager"]["volumes"]["config"]["source"],
+            "task_manager_setup.json")]
 
     service = _gen_service_yaml(name, ports, external_ips)
     deployment = _gen_deployment_yaml(name, ports, image, envs, volumes, cmds)
@@ -458,18 +452,21 @@ def _gen_task_manager_deployment_files(configs, output):
     def _gen_task_manager_setup_file():
         with open(os.path.join(TEMPLATE_PATH, "task_manager_setup.json")) as f:
             config = json.load(f)
-            config["lmdb_path"] = pod_mount_paths["lmdb"]
-            config["workspace"] = pod_mount_paths["workspace"]
+            config["lmdb_path"] = configs["task_manager"][
+                "volumes"]["lmdb"]["source"]
+            config["workspace"] = configs["task_manager"][
+                "volumes"]["workspace"]["source"]
             config["server"] = configs["task_manager"]["server_address"]
 
             config["port"] = configs["task_manager"]["port"]
             config["runtime"] = configs["task_manager"]["runtime"]
             config["datasets"] = os.path.join(
-                configs["task_manager"]["volumes"]["datasets"]["dest"],
+                configs["task_manager"]["volumes"]["datasets"]["source"],
                 "datasets.json")
             config["log_level"] = configs["others"]["log_level"]
-            config["platform"] = configs["task_manager"]["platform"]
-            config["task_config_entry"] = pod_mount_paths["task_configs"]
+            config["platform"] = "k8s"
+            config["task_config_entry"] = configs["task_manager"][
+                "volumes"]["task_configs"]["source"]
             config["registration"] = configs["task_manager"]["registration"]
             config["storage_quota"] = configs["task_manager"]["storage_quota"]
 
