@@ -58,7 +58,7 @@ def commit_weights(model, optimizer=None):
 def commit_metrics(metrics):
     """Commit metrics to server.
 
-    Training or evaluating metrics would be committed to framework, and the
+    Training or evaluation metrics will be committed to framework, and the
     framework will send it to server.
 
     Args:
@@ -70,7 +70,7 @@ def commit_metrics(metrics):
                 accuracy float,
                 precision float,
                 recall_rate float,
-                all is optional.
+            all is optional.
     """
     if __is_chief_worker():
         task_workspace = get_task_workspace()
@@ -81,7 +81,6 @@ def get_dataset_path(name):
     """Get the path of the dataset by the dataset key.
 
     Args:
-        name: A index name of the dataset you want to obtain in the dataset
-            mapping configuration file.
+        name: Get the path of a dataset based on this name.
     """
     return read_json_file(get_datasets())[name]

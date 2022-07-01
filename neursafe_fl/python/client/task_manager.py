@@ -45,14 +45,14 @@ class TaskManager:
         self.__resource_manager.start()
 
     def create(self, task_type, task_info, files, grpc_metadata):
-        """Create train task and execute it.
+        """Create training or evaluation task and execute them.
 
         Args:
-            task_type: train or evaluate task.
+            task_type: training or evaluation task.
             task_info: The task information from server.
-            files: Files transfer from server.
-            grpc_metadata: the metadata in grpc hearder which
-                coordinator broadcast, such model-id, client_id.
+            files: Files sent from server.
+            grpc_metadata: The metadata in the grpc header, sent from the
+                coordinator, contains model-id, client_id.
         """
         self.__assert_task_not_exist(task_type, task_info)
         self.__merge_resource_setting(task_info.spec.resource)
@@ -63,7 +63,7 @@ class TaskManager:
         """Stop task.
 
         Args:
-            task_type: train or evaluate task.
+            task_type: training or evaluation task.
             task_metadata: The task metadata.
         """
         index_key = (task_metadata.job_name, task_metadata.round,
@@ -86,7 +86,7 @@ class TaskManager:
 
     def __merge_resource_setting(self, remote):
         """Merge the local and remote resource setting for task.
-        If local resource setting invalid, local is priority.
+        If the local resource setting is set, use the local one first.
         """
         local = self.__client_config.get('resource', None)
         if not local:
@@ -147,7 +147,7 @@ class TaskManager:
         self.__tasks[index_key] = task
 
     def __do_finish(self, task):
-        """When task finished, remove it from running task.
+        """When task finished, remove it from running tasks.
         """
         self.__resource_manager.release(task.task_id)
         _modify_task_workspace_to_finished(task)

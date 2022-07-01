@@ -11,8 +11,7 @@ class LMDBUtil:
     """LMDB util.
 
     Args:
-        path: LMDB configuration path, the data will be wrote to LMDB
-        is saved under this path.
+        path: Path where LMDB saves data.
     """
     def __init__(self, path):
         self.__env = lmdb.open(path, lock=False)

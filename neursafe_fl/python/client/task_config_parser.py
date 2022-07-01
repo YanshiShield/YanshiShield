@@ -54,15 +54,18 @@ def assert_task_config(config_file, config, task_type):
 
 
 class TaskConfigParser:
-    """According configure file name, read response file and validate
-    the configures are legal.
+    """It is used to parse the entry config of a task,
+    and check whether the config is valid.
     """
 
     def __init__(self, task_spec, workspace, task_config_entry):
         """
         Args:
-            entry_name: Task entry name.
-            workspace: Training job workspace.
+            task_spec: Task specification from the server.
+            workspace: The working path of the client, saves some
+                temporary files, including task specification from the server.
+            task_config_entry: A path local to the client that saves the entry
+                configuration of a series of tasks.
         """
         if task_spec.entry_name:
             self.__root = task_config_entry
@@ -77,8 +80,7 @@ class TaskConfigParser:
         """Get config based on config file name, and assert config valid.
 
         Args:
-            task_type: Train or evaluate task.
-            workspace: Training job workspace.
+            task_type: Training or evaluation task.
         """
         config = self.__read_config(self.__entry_file)
         assert_task_config(self.__entry_file, config, task_type)
