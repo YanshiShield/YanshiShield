@@ -32,7 +32,7 @@ def aggregate_control_variates(data, previous):
     for file in os.listdir(data["custom_files"]):
         if file == "delta_control_variates.pt":
             file_path = os.path.join(data["custom_files"], file)
-            local_c = torch.load(file_path)
+            local_c = torch.load(file_path, map_location=torch.device("cpu"))
 
             if control_variates == 0:
                 control_variates = []
@@ -78,7 +78,8 @@ def save_control_variates(params):
         # load last round server control variates
         old_server_c = [torch.zeros_like(p.data) for p in aggregated_c]
         if os.path.exists(AGGREGATE_GLOBAL_C_PATH):
-            old_server_c = torch.load(AGGREGATE_GLOBAL_C_PATH)
+            old_server_c = torch.load(AGGREGATE_GLOBAL_C_PATH,
+                                      map_location=torch.device("cpu"))
 
         # update the server control variates
         new_server_c = []

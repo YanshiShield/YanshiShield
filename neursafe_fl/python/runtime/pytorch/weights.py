@@ -23,7 +23,7 @@ class PytorchWeightsCalculator(WeightsCalculator):
         """
         for name, y_item in y_weights.items():
             # w1[name1] = w2[name1] + t1
-            x_weights[name] = np.add(x_weights[name], y_item)
+            x_weights[name] = np.add(x_weights[name].cpu(), y_item.cpu())
         return x_weights
 
     def subtract(self, x_weights, y_weights):
@@ -33,7 +33,7 @@ class PytorchWeightsCalculator(WeightsCalculator):
         """
         for name, y_item in y_weights.items():
             # w1[name1] = w2[name1] + t1
-            x_weights[name] = np.subtract(x_weights[name], y_item)
+            x_weights[name] = np.subtract(x_weights[name].cpu(), y_item.cpu())
 
         return x_weights
 
@@ -50,7 +50,7 @@ class PytorchWeightsCalculator(WeightsCalculator):
         """
         result = OrderedDict()
         for name, delta_w in x_weights.items():
-            result[name] = np.true_divide(delta_w, y)
+            result[name] = np.true_divide(delta_w.cpu(), y.cpu())
         return result
 
     def equal(self, x_weights, y_weights):
