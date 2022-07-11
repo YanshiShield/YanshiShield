@@ -18,6 +18,8 @@ from neursafe_fl.python.sdk.core import load_weights
 local_control_variates_path = os.getenv("CONTROL_VARIATES",
                                         "/tmp/local_variates.pt")
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 
 def get_init_variates(model_params):
     """Get the init variates for scaffold.
@@ -49,18 +51,25 @@ def update_local_variates(trained_params, zero_params, server_params,
     new_local_controls = []
     delta_controls = []
     for p in zero_params:
-        delta_model.append(torch.zeros_like(p.data))
-        new_local_controls.append(torch.zeros_like(p.data))
-        delta_controls.append(torch.zeros_like(p.data))
+        delta_model.append(torch.zeros_like(p.data, device=device))
+        new_local_controls.append(torch.zeros_like(p.data, device=device))
+        delta_controls.append(torch.zeros_like(p.data, device=device))
 
     # get model difference (delta model)
     for local, server, delta in zip(trained_params, server_params,
                                     delta_model):
+        local = local.to(device)
+        server = server.to(device)
+        delta = delta.to(device)
         delta.data = local.data.detach() - server.data.detach()
 
     # get client new control variates
     for server_control, local_control, delta, new_control in zip(
             server_controls, local_controls, delta_model, new_local_controls):
+        server_control = server_control.to(device)
+        local_control = local_control.to(device)
+        delta = delta.to(device)
+        new_control = new_control.to(device)
         a = 1 / (math.ceil(sample_num / batch_size) * lr)
         new_control.data = local_control.data - server_control.\
             data - delta.data * a
@@ -69,6 +78,9 @@ def update_local_variates(trained_params, zero_params, server_params,
     for old_control, new_control, delta in zip(local_controls,
                                                new_local_controls,
                                                delta_controls):
+        old_control = old_control.to(device)
+        new_control = new_control.to(device)
+        delta = delta.to(device)
         delta.data = new_control.data - old_control.data
         old_control.data = new_control.data
 
@@ -107,6 +119,9 @@ class Scaffold(Optimizer):
         for group in self.param_groups:
             for p, c, ci in zip(group['params'], self.server_controls,
                                 self.local_controls):
+                p = p.to(device)
+                c = c.to(device)
+                ci = ci.to(device)
                 if p.grad is None:
                     continue
 
@@ -118,6 +133,11 @@ class Scaffold(Optimizer):
     def update(self, model):
         """Update the control variates of scaffold
         """
+        if isinstance(model, (torch.nn.DataParallel,
+                              torch.nn.parallel.DistributedDataParallel)):
+            logging.info("transfer model from data parallel to local.")
+            model = model.module.to(device)
+
         zero_params = [torch.zeros_like(p.data) for p in model.parameters()
                        if p.requires_grad]
         trained_params = [torch.zeros_like(p.data) for p in model.parameters()

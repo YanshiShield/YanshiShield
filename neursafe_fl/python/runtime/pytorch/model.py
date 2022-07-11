@@ -25,7 +25,11 @@ class PytorchModel(Model):
             path: The file where to save weights.
         """
         if isinstance(obj, nn.Module):
-            torch.save(obj.state_dict(), path)
+            if isinstance(obj, (torch.nn.DataParallel,
+                                torch.nn.parallel.DistributedDataParallel)):
+                torch.save(obj.module.to("cpu").state_dict(), path)
+            else:
+                torch.save(obj.state_dict(), path)
         else:
             torch.save(obj, path)
 
