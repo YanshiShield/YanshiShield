@@ -1,7 +1,7 @@
 #  Copyright 2022 The Neursafe FL Authors. All Rights Reserved.
 #  SPDX-License-Identifier: Apache-2.0
 
-# pylint:disable=missing-function-docstring, no-member
+# pylint:disable=missing-function-docstring, no-member, not-callable
 """UnitTest of Pytroch weights calculator.
 """
 import unittest
