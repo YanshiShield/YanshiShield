@@ -34,7 +34,7 @@ class PerturbedGradientDescent(Optimizer):
                 "If nesterov is true, momentum should be >= 0 or dampening "
                 "not zero.")
 
-        default_params = dict(learning_rate=learning_rate, momentum=momentum,
+        default_params = dict(lr=learning_rate, momentum=momentum,
                               weight_decay=weight_decay, mu=mu,
                               dampening=dampening, nesterov=nesterov)
         super().__init__(origin_trainable_weights, default_params)
