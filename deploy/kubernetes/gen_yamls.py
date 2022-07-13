@@ -27,7 +27,7 @@ flags.DEFINE_string("output", None,
 FLAGS = flags.FLAGS
 FORMAT = ("[%(asctime)s] %(filename)s"
           "[line:%(lineno)d] %(levelname)s: %(message)s")
-TEMPLATE_PATH = "./template"
+TEMPLATE_PATH = "./deploy/kubernetes/template"
 
 
 def _set_log():
@@ -75,7 +75,7 @@ def _save_yaml(config, output, file_name):
         yaml.safe_dump_all(config, f)
 
 
-def _gen_service_yaml(name, ports, external_ips=None):
+def _gen_service_yaml(name, ports, external=False):
     service = _load_service_template()
     ports_ = []
 
@@ -83,12 +83,21 @@ def _gen_service_yaml(name, ports, external_ips=None):
     service["metadata"]["name"] = name
     service["spec"]["selector"]["app"] = name
 
-    for port in ports:
-        ports_.append({"port": port, "targetPort": port})
-    service["spec"]["ports"] = ports_
+    if external:
+        service["spec"]["type"] = "NodePort"
 
-    if external_ips:
-        service["spec"]["externalIPs"] = external_ips
+    for i, port in enumerate(ports):
+        if external:
+            ports_.append({"name": "port-%s" % i,
+                           "port": port,
+                           "targetPort": port,
+                           "nodePort": port})
+        else:
+            ports_.append({"name": "port-%s" % i,
+                           "port": port,
+                           "targetPort": port})
+
+    service["spec"]["ports"] = ports_
 
     return service
 
@@ -178,7 +187,7 @@ def _gen_model_manager_deployment_files(configs, output):
         {"name": "DB_COLLECTION_NAME",
          "value": configs["model_manager"]["db_collection_name"]},
         {"name": "PORT",
-         "value": configs["model_manager"]["port"]},
+         "value": str(configs["model_manager"]["port"])},
         {"name": "LOG_LEVEL",
          "value": configs["others"]["log_level"]}]
 
@@ -221,7 +230,7 @@ def _gen_job_scheduler_deployment_files(configs, output):
         {"name": "DB_COLLECTION_NAME",
          "value": configs["job_scheduler"]["db_collection_name"]},
         {"name": "HTTP_PORT",
-         "value": configs["job_scheduler"]["port"]},
+         "value": str(configs["job_scheduler"]["port"])},
         {"name": "SELECTOR_ADDRESS",
          "value": "%s:%s" % (
              configs["client_selector"]["service_name"],
@@ -238,8 +247,6 @@ def _gen_job_scheduler_deployment_files(configs, output):
          "value": configs["coordinator"]["image"]},
         {"name": "JOB_SCHEDULER_ADDRESS",
          "value": "%s:%s" % (name, configs["job_scheduler"]["port"])},
-        {"name": "COORDINATOR_WORKSPACE_PATH",
-         "value": configs["coordinator"]["workspace"]},
         {"name": "TEMP_DIR",
          "value": configs["job_scheduler"]["coordinator_configs_dir"]},
         {"name": "WORKSPACE",
@@ -272,13 +279,13 @@ def _gen_client_selector_deployment_files(configs, output):
     envs.extend(_gen_optional_envs(
         configs["client_selector"].get("options", {})))
 
-    volumes = [{"name": "config_file",
+    volumes = [{"name": "config-file",
                 "pod": "/nsfl/config/",
                 "host": configs[
                     "client_selector"]["volumes"]["config"]["source"]}]
 
     cmds = ["python3.7", "-m", "neursafe_fl.python.selector.app",
-            "--configure_file", "/nsfl/config/client_selector_setup.json"]
+            "--config_file", "/nsfl/config/client_selector_setup.json"]
 
     service = _gen_service_yaml(name, ports)
     deployment = _gen_deployment_yaml(name, ports, image, envs, volumes, cmds)
@@ -305,18 +312,18 @@ def _gen_proxy_deployment_files(configs, output):
     grpc_port = configs["proxy"]["grpc_port"]
     ports = [grpc_port, http_port]
     image = configs["proxy"]["image"]
-    external_ips = configs["proxy"]["external_ips"]
+    external = configs["proxy"]["external"]
     envs = []
 
-    volumes = [{"name": "config_file",
+    volumes = [{"name": "config-file",
                 "pod": "/nginx/conf/",
                 "host": configs[
                     "proxy"]["volumes"]["config"]["source"]}]
 
-    service = _gen_service_yaml(name, ports, external_ips)
+    service = _gen_service_yaml(name, ports, external)
     deployment = _gen_deployment_yaml(name, ports, image, envs, volumes)
 
-    _save_yaml([service, deployment], output, "client-selector.yaml")
+    _save_yaml([service, deployment], output, "proxy.yaml")
 
     def _gen_nginx_conf():
         with open(os.path.join(TEMPLATE_PATH, "nginx.conf")) as f:
@@ -341,7 +348,7 @@ def _gen_api_server_deployment_files(configs, output):
             config = f.read()
             config = config.replace("JOB_SCHEDULER",
                                     configs["job_scheduler"]["service_name"])
-            config = config.replace("JOB_SCHEDULER",
+            config = config.replace("PORT",
                                     str(configs["job_scheduler"]["port"]))
 
         with open(os.path.join(output, "ingress-job-scheduler.yaml"), "w") as f:
@@ -353,7 +360,7 @@ def _gen_api_server_deployment_files(configs, output):
             config = f.read()
             config = config.replace("MODEL_MANAGER",
                                     configs["model_manager"]["service_name"])
-            config = config.replace("MODEL_MANAGER",
+            config = config.replace("PORT",
                                     str(configs["model_manager"]["port"]))
 
         with open(os.path.join(output, "ingress-model-manager.yaml"), "w") as f:
@@ -365,23 +372,11 @@ def _gen_api_server_deployment_files(configs, output):
             config = f.read()
             config = config.replace("HTTP_PORT",
                                     str(configs["api_server"]["http_port"]))
-            config = config.replace("HTTPs_PORT",
+            config = config.replace("HTTPS_PORT",
                                     str(configs["api_server"]["https_port"]))
 
         with open(os.path.join(output, "ingress-nginx.yaml"), "w") as f:
             f.write(config)
-
-        with open(os.path.join(TEMPLATE_PATH,
-                               "ingress-nginx.yaml")) as f:
-            contents = list(yaml.safe_load_all(f.read()))
-            for content in contents:
-                if (content["kind"] == 'Service') \
-                        and (content["metadata"]["name"]
-                             == "ingress-nginx-controller"):
-                    content["spec"]["externalIPs"] = configs["api_server"][
-                        "external_ips"]
-
-            _save_yaml(contents, output, "ingress-nginx.yaml")
 
     gen_job_scheduler_ingress()
     gen_model_manager_ingress()
@@ -392,7 +387,7 @@ def _gen_task_manager_deployment_files(configs, output):
     name = configs["task_manager"]["service_name"]
     ports = [configs["task_manager"]["port"]]
     image = configs["task_manager"]["image"]
-    external_ips = configs["task_manager"]["external_ips"]
+    external = configs["task_manager"]["external"]
 
     envs = [
         {"name": "DB_ADDRESS",
@@ -414,44 +409,39 @@ def _gen_task_manager_deployment_files(configs, output):
          "value": configs["db"]["name"]},
         {"name": "DB_COLLECTION_NAME",
          "value": configs["task_manager"]["db_collection_name"]},
-        {"name": "PORT",
-         "value": configs["task_manager"]["port"]},
         {"name": "K8S_ADDRESS",
          "value": configs["k8s"]["address"]},
         {"name": "CONTAINER_EXECUTOR_IMAGE",
          "value": configs["executor"]["image"]},
         {"name": "WORKER_PORT",
-         "value": configs["executor"]["port"]},
+         "value": str(configs["executor"]["port"])},
         {"name": "WORKER_HTTP_PROXY",
          "value": configs["executor"]["http_proxy"]},
         {"name": "WORKER_HTTPS_PROXY",
          "value": configs["executor"]["https_proxy"]}]
     envs.extend(_gen_optional_envs(configs["task_manager"].get("options", {})))
 
-    pod_mount_paths = {"lmdb": "/nsfl/lmdb",
-                       "workspace": "/nsfl/workspace",
-                       "datasets": "/nsfl/dataset",
-                       "task_configs": "/nsfl/task_configs",
-                       "config": "/nsfl/setup"}
+    pod_mount_paths = {
+        "lmdb": configs["task_manager"]["volumes"]["lmdb"]["source"],
+        "workspace": configs["task_manager"]["volumes"]["workspace"]["source"],
+        "datasets": configs["task_manager"]["volumes"]["datasets"]["source"],
+        "task-configs": configs["task_manager"]["volumes"][
+            "task-configs"]["source"],
+        "config": configs["task_manager"]["volumes"]["config"]["source"]}
+
     volumes = []
 
-    for name, volume in configs["task_manager"]["volumes"]:
-        if name == "datasets":
-            volumes.append({"name": name,
-                            "pod": volume["dest"],
-                            "host": volume["source"]
-                            })
-        else:
-            volumes.append({"name": name,
-                            "pod": pod_mount_paths[name],
-                            "host": volume["source"]
-                            })
+    for name_, volume in configs["task_manager"]["volumes"].items():
+        volumes.append({"name": name_,
+                        "pod": pod_mount_paths[name_],
+                        "host": volume["source"]
+                        })
 
     cmds = ["python3.7", "-m", "neursafe_fl.python.client.app",
             "--config_file", os.path.join(pod_mount_paths["config"],
                                           "task_manager_setup.json")]
 
-    service = _gen_service_yaml(name, ports, external_ips)
+    service = _gen_service_yaml(name, ports, external)
     deployment = _gen_deployment_yaml(name, ports, image, envs, volumes, cmds)
     _save_yaml([service, deployment], output, "task-manager.yaml")
 
@@ -464,12 +454,11 @@ def _gen_task_manager_deployment_files(configs, output):
 
             config["port"] = configs["task_manager"]["port"]
             config["runtime"] = configs["task_manager"]["runtime"]
-            config["datasets"] = os.path.join(
-                configs["task_manager"]["volumes"]["datasets"]["dest"],
-                "datasets.json")
+            config["datasets"] = os.path.join(pod_mount_paths["datasets"],
+                                              "datasets.json")
             config["log_level"] = configs["others"]["log_level"]
             config["platform"] = configs["task_manager"]["platform"]
-            config["task_config_entry"] = pod_mount_paths["task_configs"]
+            config["task_config_entry"] = pod_mount_paths["task-configs"]
             config["registration"] = configs["task_manager"]["registration"]
             config["storage_quota"] = configs["task_manager"]["storage_quota"]
 
