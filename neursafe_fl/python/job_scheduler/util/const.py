@@ -52,10 +52,12 @@ RETRY_INTERVAL = int(
     os.getenv("COORDINATOR_QUERY_INTERVAL", "1"))
 
 
-REQUIRED_ENV_VARIABLES = ["DB_ADDRESS", "DB_USERNAME", "DB_PASSWORD",
-                          "HOST_ROOT_PATH", "JS_DIR_NAME_IN_HOST", "K8S_ADDRESS"
-                          "COORDINATOR_IMAGE", "JOB_SCHEDULER_ADDRESS",
-                          "MODEL_MANAGER_ADDRESS", "PROXY_ADDRESS"]
+REQUIRED_ENV_VARIABLES = ["DB_ADDRESS", "DB_USERNAME", "DB_PASSWORD", "DB_TYPE",
+                          "DB_NAME", "DB_COLLECTION_NAME", "HTTP_PORT",
+                          "SELECTOR_ADDRESS", "JOB_SCHEDULER_ADDRESS",
+                          "MODEL_MANAGER_ADDRESS", "SOURCE_MOUNT_PATH",
+                          "TEMP_DIR", "COORDINATOR_IMAGE", "PROXY_ADDRESS",
+                          "K8S_ADDRESS"]
 
 # Proxy config(Refer to neursafe_fl/python/trans/proxy.py)
 # Infrastructure config(Refer to neursafe_fl/python/libs/cloud/const.py)

@@ -55,7 +55,7 @@ function build_and_push_images() {
 echo "Build NeurSafe FL all images."
 # String schema: {Dockerfile path},,{image}},,{docker registry}
 image_cfgs=(
-  deploy/docker-images/dockerfiles/base.Dockerfile,,nsfl-base:${opt_tag}
+  deploy/docker-images/dockerfiles/base.Dockerfile,,nsfl-base:latest
   deploy/docker-images/dockerfiles/cli.Dockerfile,,nsfl-cli:${opt_tag},,$opt_registry
   deploy/docker-images/dockerfiles/client-cpu.Dockerfile,,nsfl-client-cpu:${opt_tag},,$opt_registry
   deploy/docker-images/dockerfiles/coordinator.Dockerfile,,nsfl-coordinator:${opt_tag},,$opt_registry

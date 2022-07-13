@@ -1,43 +1,42 @@
 {
   "task_manager": {
     "service_name": "nsfl-task-manager",
-    "port": 9090,
-    "external_ips": ["10.67.134.15"],
+    "port": 30090,
+    "external": true,
     "db_collection_name": "tasks",
-    "image": "10.67.134.35:5000/nsfl-client-cpu:latest",
-    "server_address": "10.67.134.15.9001",
+    "image": "nsfl-client-cpu:latest",
+    "server_address": "10.67.134.15:30091",
     "runtime": "tensorflow,pytorch",
-    "storage_quota": "1024",
+    "storage_quota": 1024,
     "registration": "True",
     "platform": "k8s",
     "volumes": {
       "lmdb": {
-        "source": "/mnt/neursafe_fl/task_manager/fl_lmdb"
+        "source": "/mnt/nsfl/client/fl_lmdb"
       },
       "workspace": {
-        "source": "/mnt/neursafe_fl/task_manager/workspace"
+        "source": "/mnt/nsfl/client/workspace"
       },
       "datasets": {
-        "source": "/mnt/neursafe_fl/task_manager/datasets",
-        "dest": "/workspace/datasets"
+        "source": "/mnt/nsfl/client/datasets"
       },
-      "task_configs": {
-        "source": "/mnt/neursafe_fl/task_manager/task_configs"
+      "task-configs": {
+        "source": "/mnt/nsfl/client/task_configs"
       },
       "config": {
-        "source": "/mnt/neursafe_fl/task_manager/"
+        "source": "/mnt/nsfl/client/config"
       }
     },
     "options": {}
   },
   "executor": {
-    "image": "10.67.134.35:5000/nsfl-client-cpu:latest",
+    "image": "nsfl-client-cpu:latest",
     "port": 8050,
     "http_proxy": "",
     "https_proxy": ""
   },
   "k8s": {
-    "K8S_ADDR": "10.67.134.15:8080",
+    "address": "10.67.134.15:8080",
     "GPU_RS_KEY": "nvidia.com/gpu"
   },
   "db": {

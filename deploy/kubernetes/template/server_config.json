@@ -3,11 +3,11 @@
     "service_name": "nsfl-job-scheduler",
     "port": 8088,
     "db_collection_name": "jobs",
-    "coordinator_configs_dir": "default",
-    "image": "10.67.134.35:5000/nsfl-job-scheduler:latest",
+    "coordinator_configs_dir": "coordinator_configs",
+    "image": "nsfl-job-scheduler:latest",
     "volumes": {
       "workspace": {
-        "source": "/mnt/neursafe_fl"
+        "source": "/mnt/nsfl"
       }
     },
     "options": {}
@@ -15,10 +15,10 @@
   "client_selector": {
     "service_name": "nsfl-client-selector",
     "port": 50055,
-    "image": "10.67.134.35:5000/nsfl-selector:latest",
+    "image": "nsfl-selector:latest",
     "volumes": {
       "config": {
-        "source": "/mnt/neursafe_fl/selector/"
+        "source": "/mnt/nsfl/selector/"
       }
     },
     "options": {}
@@ -27,36 +27,34 @@
     "service_name": "nsfl-model-manager",
     "port": 50057,
     "db_collection_name": "models",
-    "image": "10.67.134.35:5000/nsfl-model-manager:latest",
+    "image": "nsfl-model-manager:latest",
     "models_dir": "models",
     "volumes": {
       "workspace": {
-        "source": "/mnt/neursafe_fl/"
+        "source": "/mnt/nsfl/"
       }
     },
     "options": {}
   },
   "proxy": {
     "service_name": "nsfl-proxy",
-    "grpc_port": 9001,
-    "http_port": 9002,
-    "external_ips": ["10.67.134.15"],
-    "image": "10.67.134.35:5000/nsfl-proxy:latest",
+    "grpc_port": 30091,
+    "http_port": 30092,
+    "external": true,
+    "image": "nsfl-proxy:latest",
     "volumes": {
       "config": {
-        "source": "/mnt/neursafe_fl/proxy/"
+        "source": "/mnt/nsfl/proxy/"
       }
     }
   },
   "api_server": {
-    "http_port": 8083,
-    "https_port": 8084,
-    "external_ips": ["10.67.134.15"]
+    "http_port": 30083,
+    "https_port": 30084
   },
   "coordinator": {
-    "image": "10.67.134.35:5000/nsfl-coordinator:latest",
-    "port": 50051,
-    "workspace": "/fl"
+    "image": "nsfl-coordinator:latest",
+    "port": 50051
   },
   "k8s": {
     "address": "10.67.134.15:8080",
