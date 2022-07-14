@@ -138,7 +138,7 @@ def __validate_resource(resource):
     _assert_resource_item('gpu', resource.gpu, min_value=0)
     _assert_resource_item('worker_num', resource.worker_num, min_value=1)
 
-    if resource.cpu and resource.memory and resource.gpu:
+    if not resource.cpu and not resource.memory and not resource.gpu:
         raise_exception("Cpu, gpu, memory all are 0, no resource request.")
 
 
