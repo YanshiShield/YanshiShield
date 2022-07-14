@@ -69,6 +69,43 @@ The generated configuration is in the form of json and stored in the location sp
 
 
 
+### Dataset configuration:
+
+The dataset configuration file is named datasets.json, which describes the relationship between dataset name and dataset path, such as:
+
+```json
+{
+    "mnist": "/datasets/mnist",
+    "cifar10": "/datasets/cifar10"
+}
+```
+
+### Job script configuration:
+
+Job script configuration, which describes the path of the training script executed by the client, the path of the evaluation script, and the corresponding script parameters, such as:
+
+```json
+{
+        "script_path": "/workspace/example/scripts/tf_mnist", # Storage paths for training scripts and evaluation scripts
+        "train": {
+                "timeout": 30,  # Waiting for the timeout time for script execution, if the timeout is still not over, it is considered that the operation failed
+                "command": "python3.7", # command executed by the script
+                "entry": "train.py", # entry point for script execution
+                "params": null # The parameters of script execution, describe the parameters in the form of a dictionary, such as {"--index_range": "0,5000"}
+        },
+        "evaluate": {
+                "timeout": 30,
+                "command": "python3.7",
+                "entry": "evaluate.py",
+                "params": null
+        }
+}
+```
+
+Note: The file name of the job configuration must be the same as the value specified by "task_entry" in the federated job (refer to [Job object description](apsi.md) for its meaning). If the value of "task_entry" in the job is "tf_mnist", then The file name of the job configuration is tf_mnist.json
+
+
+
 ## Prepare the federated learning script
 
 The Neursafe FL migrate machine learning to federated by adding some API calling in traning  script,  as follows:

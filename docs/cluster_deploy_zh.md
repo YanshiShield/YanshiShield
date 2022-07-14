@@ -141,8 +141,8 @@ https_proxy, http_proxy, no_proxy: 如果你的环境需要通过代理访问互
 
 - **lmdb dir：** Task manager会保存作业相关的元信息
 - **workspace dir：** Task manager会保存相关作业的中间数据，如：服务器下发的模型等
-- **datasets dir：** 保存数据集、数据集配置文件，在该目录下必须有个datasets.json的配置文件，用于指定不同数据集与其对应的目录关系，同时，用户需要把数据集存在这个目录中，如何配置请[参考]()
-- **task configs dir：** 保存作业相关的配置、训练脚本、评估脚本，联邦作业的训练脚本可以不从server端下发，所以需要用户提前准备好作业相关的配置、训练和评估脚本，如何配置请[参考]()
+- **datasets dir：** 保存数据集、数据集配置文件，在该目录下必须有个datasets.json的配置文件，用于指定不同数据集与其对应的目录关系，同时，用户需要把数据集存在这个目录中，如何配置请参考[快速使用文档中“准备配置文件”章节](quick_start_zh.md)
+- **task configs dir：** 保存作业相关的配置、训练脚本、评估脚本，联邦作业的训练脚本可以不从server端下发，所以需要用户提前准备好作业相关的配置、训练和评估脚本，如何配置请参考[快速使用文档中“准备配置文件”章节](quick_start_zh.md)
 - **config dir：** 用于存储Task manager启动需要的配置文件
 
 
@@ -212,9 +212,9 @@ python3 ./deploy/kubernetes/gen_yamls.py --type server --config_file ./deploy/ku
      },
      "proxy": {
        "service_name": "nsfl-proxy",  # 服务名，方便其他组件访问
-       "grpc_port": 9001,        # 对外服务的grpc端口，与service name组合就是服务地址
-       "http_port": 9002,        # 对外服务的http端口，与service name组合就是服务地址
-       "external_ips": ["10.67.134.15"], # 对外服务的ip地址，可以方便外部组件访问，如client端的task manager组件访问
+       "grpc_port": 30091,        # 对外服务的grpc端口，与service name组合就是服务地址,端口号范围30000-32767
+       "http_port": 30092,        # 对外服务的http端口，与service name组合就是服务地址,端口号范围30000-32767
+       "external": true, # 是否对外暴露服务，可以方便外部组件访问，如client端的task manager组件访问
        "image": "10.67.134.35:5000/nsfl-proxy:latest", # 使用的镜像
        "volumes": {
          "config": {
@@ -223,9 +223,9 @@ python3 ./deploy/kubernetes/gen_yamls.py --type server --config_file ./deploy/ku
        }
      },
      "api_server": {
-       "http_port": 8083,  # 对外服务的http端口
-       "https_port": 8084, # 对外服务的https端口
-       "external_ips": ["10.67.134.15"] # 对外服务的ip地址，方便用户访问
+       "http_port": 30083,  # 对外服务的http端口,端口号范围30000-32767
+       "https_port": 30084, # 对外服务的https端口,端口号范围30000-32767
+       "external": true, # 是否对外暴露服务，方便用户访问
      },
      "coordinator": {
        "image": "10.67.134.35:5000/nsfl-coordinator:latest", # 使用的镜像
@@ -237,7 +237,7 @@ python3 ./deploy/kubernetes/gen_yamls.py --type server --config_file ./deploy/ku
      },
      "storage": {
        "type": "s3",  # DFS存储所使用的访问类型
-       "address": "http://10.67.134.15:9000",  # DFS对外服务端口
+       "address": "http://10.67.134.15:9000",  # DFS对外服务地址
        "secret_key_ref": {
          "name": "miniosecret", # k8s secret对象的名称，用于存储DFS访问的账号，密码
          "user_key": "username", # 上述k8s secret对象中用户名对应的key值
@@ -259,7 +259,7 @@ python3 ./deploy/kubernetes/gen_yamls.py --type server --config_file ./deploy/ku
    }
    ```
 
-   配置文件指定了必须要配置的配置项，各个组件其他可选的配置项可配置到对应组件名称内的options下，如"options": {"REPORT_PERIOD": 10}，所有组件的可选配置项可[参考]()
+   配置文件指定了必须要配置的配置项，各个组件其他可选的配置项可配置到对应组件名称内的options下，如"options": {"REPORT_PERIOD": 10}，所有组件的可选配置项（环境变量）可[参考环境变量配置](develop.md)
 
 2. 执行脚本，生成所有的部署文件和配置文件
 
@@ -282,7 +282,7 @@ python3 ./deploy/kubernetes/gen_yamls.py --type server --config_file ./deploy/ku
      "task_manager": {
        "service_name": "nsfl-task-manager",    # 服务名，方便其他组件访问
        "port": 9090,                           # 对外服务端口，与service name组合就是服务地址
-       "external_ips": ["10.67.134.15"],  # 对外服务的ip地址，可以方便外部组件访问，如server端的组件访问
+       "external": true,  # 是否对外暴露服务，可以方便外部组件访问，如server端的组件访问
        "db_collection_name": "tasks",  # 将task信息存储到数据库中指定的collection内
        "image": "10.67.134.35:5000/nsfl-client-cpu:latest", # 使用的镜像
        "server_address": "10.67.134.15.9001", # server端proxy组件对外的grpc访问地址
@@ -444,13 +444,13 @@ Server端默认采用集群部署模式，在Kubernetes上部署Job Scheduler，
 2. 进入到上一章节指定的部署文件输出目录内，配置Job Scheduler的路由规则
 
    ```shell
-kubectl create -f ingress-job-scheduler.yaml
+   kubectl create -f ingress-job-scheduler.yaml
    ```
    
 3. 进入到上一章节指定的部署文件输出目录内，配置Model Manager的路由规则
 
    ```shell
-kubectl create -f  ingress-model-manager.yaml
+   kubectl create -f  ingress-model-manager.yaml
    ```
    
 4. 验证部署是否成功，执行如下命令查看Ingress-Nginx的Pod是否Running状态
@@ -513,7 +513,7 @@ kubectl create -f  ingress-model-manager.yaml
 
    
 
-2. 参考[部署配置说明](develop.md)中命令行客户端的使用说明，创建联邦作业，执行如下命令
+2. 创建联邦作业，执行如下命令，nsfl-ctl的安装使用参考[安装指导文档](install_zh.md)
 
    ```shell
    nsfl-ctl create job -w tf_mnist_fl/ default
