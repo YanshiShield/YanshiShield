@@ -236,7 +236,7 @@ class Job:
     def __do_create_proxy_route(self):
         if self.__status.state in State.STARTING:
             service_address = "%s-%s" % (self.__namespace, self.__id)
-            port = self.__job_config["port"]
+            port = self.__job_config.get("port", const.COORDINATOR_PORT)
             yield self.__route_register.add(self.__namespace,
                                             self.__id,
                                             "%s:%s" % (service_address, port))
@@ -394,6 +394,12 @@ class Job:
                           str(err))
             self.__update_status({"state": State.FAILED,
                                   "reason": str(err)})
+            self.__finish_callback(self.__namespace,
+                                   self.__id)
+        except Exception as error:
+            logging.exception(str(error))
+            self.__update_status({"state": State.FAILED,
+                                  "reason": "Server Internal Error."})
             self.__finish_callback(self.__namespace,
                                    self.__id)
 
