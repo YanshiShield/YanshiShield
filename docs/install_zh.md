@@ -35,6 +35,26 @@ cd federated-learning
 
 
 
+### 3. 安装nsfl-ctl
+
+nsfl-ctl为命令行客户端，用户可以使用该命令快速创建、删除、查询联邦作业，执行如下命令进行安装：
+
+```shell
+./deploy/scripts/install_cli.sh
+```
+
+验证nsfl-ctl是否安装成功，执行如下命令，能够出现如下图对该命令的注释表明已经成功安装
+
+```
+nsfl-ctl
+```
+
+ ![](./images/test_nsflctl.png)
+
+可以添加命令参数--help来查看命令的使用说明
+
+
+
 ## 单机模式部署
 
 对于单机模式，可以选择主机进程或容器方式运行。对于容器模式，无需安装，如何在单机模式下运行容器来启动联邦训练过程请参见[快速开始](quick_start_zh.md)。单机模式只需安装coordinator、client组件即可：

@@ -69,6 +69,43 @@ python3 example/scripts/gen_mnist_config.py --job_name=tf_mnist \
 
 
 
+### 数据集配置：
+
+数据集配置文件命名为datasets.json，描述了数据集名称和数据集路径的关系，如：
+
+```json
+{
+    "mnist": "/datasets/mnist",
+    "cifar10": "/datasets/cifar10"
+}
+```
+
+### 作业脚本配置：
+
+作业脚本配置，描述了客户端执行的训练脚本的路径、评估脚本的路径以及相应的脚本参数，如
+
+```json
+{
+        "script_path": "/workspace/example/scripts/tf_mnist", # 训练脚本、评估脚本的存储路径
+        "train": {
+                "timeout": 30,  # 等待脚本执行的超时时间，超时仍未执行结束，认为运行失败
+                "command": "python3.7", # 脚本执行的命令
+                "entry": "train.py", # 脚本执行的入口
+                "params": null # 脚本执行的参数，以字典形式描述参数，如 {"--index_range": "0,5000"}
+        },
+        "evaluate": {
+                "timeout": 30,
+                "command": "python3.7",
+                "entry": "evaluate.py",
+                "params": null
+        }
+}
+```
+
+注意：作业配置的文件名必须和联邦作业中 “ task_entry ”指定的值一样（其含义参考[Job对象的描述](apsi.md)），如job中“task_entry”的值为“tf_mnist"，则作业配置的文件名就是tf_mnist.json
+
+
+
 ## 准备联邦训练脚本
 
 Neursafe FL通过在原机器学习框架（Tensorflow或Pytorch）的训练脚本中，加入少量联邦学习API来完成模型训练的联邦迁移，如本例所示，具体修改点如下：

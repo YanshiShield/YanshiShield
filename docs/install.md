@@ -35,6 +35,26 @@ In the Python 3 environment, verify whether the SDK installation is successful.
 
 
 
+### 3. Install nsfl-ctl
+
+nsfl-ctl is a command line client. Users can use this command to quickly create, delete, and query federated jobs. Run the following commands to install:
+
+```shell
+./deploy/scripts/install_cli.sh
+```
+
+To verify whether nsfl-ctl is successfully installed, execute the following command, and the comment to the command as shown in the figure below shows that the installation has been successful.
+
+```
+nsfl-ctl
+```
+
+ ![](D:/★近期工作/联邦开源工作/docs/images/test_nsflctl.png)
+
+You can add the command parameter --help to view the instructions for using the command
+
+
+
 ## Standalone Mode
 
 For standalone mode, you can choose to run as host processes or containers. For container mode, no installation is required. See the [quick start](quick_start.md) document for container mode. In this mode, you only need to install the coordinator and client components:
