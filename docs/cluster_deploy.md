@@ -229,7 +229,8 @@ python3 ./deploy/kubernetes/gen_yamls.py --type server --config_file ./deploy/ku
      },
      "k8s": {
        "address": "10.67.134.15:8080", # k8s api server address
-       "gpu_rs_key": "nvidia.com/gpu" # The resource key value of GPU resources of k8s, used to specify the using amount of GPU resources when applying for resources
+       "gpu_rs_key": "nvidia.com/gpu", # The resource key value of GPU resources of k8s, used to specify the using amount of GPU resources when applying for resources
+       "namespace": "default" # Specify which namespace that system components are deployed in
      },
      "storage": {
        "type": "s3",  # Access type used by DFS storage
@@ -312,7 +313,8 @@ python3 ./deploy/kubernetes/gen_yamls.py --type server --config_file ./deploy/ku
      },
      "k8s": {
        "address": "10.67.134.15:8080", # k8s api server address
-       "gpu_res_key": "nvidia.com/gpu"   # The resource key value of GPU resources of k8s, used to specify the using amount of GPU resources when applying for resources
+       "gpu_rs_key": "nvidia.com/gpu",  # The resource key value of GPU resources of k8s, used to specify the using amount of GPU resources when applying for resources
+       "namespace": "default" # Specify which namespace that system components are deployed in
      },
      "db": {
        "type": "postgreSQL",          # database type

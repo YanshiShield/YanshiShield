@@ -16,6 +16,7 @@ import neursafe_fl.python.client.const as const
 from neursafe_fl.python.client.executor.errors import FLError
 from neursafe_fl.python.utils.file_io import read_json_file
 from neursafe_fl.python.client.worker import WorkerStatus
+from neursafe_fl.python.libs.cloud.const import K8S_NAMESPACE
 
 
 WAIT_INTERVAL = 1
@@ -52,7 +53,7 @@ class K8sExecutor(Executor):
 
         try:
             await self.__k8s_client.create(name=self._id,
-                                           namespace="default",
+                                           namespace=K8S_NAMESPACE,
                                            cmds=cmds,
                                            image=const.CONTAINER_EXECUTOR_IMAGE,
                                            volumes=volumes,
@@ -73,7 +74,7 @@ class K8sExecutor(Executor):
     async def __delete_pod(self):
         try:
             await self.__k8s_client.delete(name=self._id,
-                                           namespace="default")
+                                           namespace=K8S_NAMESPACE)
         except TaskNotExist:
             logging.info("Pod: %s not existing, no need to delete.",
                          self._id)
@@ -85,7 +86,7 @@ class K8sExecutor(Executor):
         while True:
             try:
                 task = await self.__k8s_client.get(self._id,
-                                                   namespace="default")
+                                                   namespace=K8S_NAMESPACE)
                 status = task['state'].upper()
                 logging.debug("Pod: %s status: %s",
                               self._id, status)
@@ -106,7 +107,7 @@ class K8sExecutor(Executor):
     async def status(self):
         try:
             task = await self.__k8s_client.get(self._id,
-                                               namespace="default")
+                                               namespace=K8S_NAMESPACE)
             status = task['state'].upper()
             logging.debug("Pod: %s status: %s",
                           self._id, status)

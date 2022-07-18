@@ -75,12 +75,13 @@ def _save_yaml(config, output, file_name):
         yaml.safe_dump_all(config, f)
 
 
-def _gen_service_yaml(name, ports, external=False):
+def _gen_service_yaml(name, ports, namespace, external=False):
     service = _load_service_template()
     ports_ = []
 
     service["metadata"]["labels"]["app"] = name
     service["metadata"]["name"] = name
+    service["metadata"]["namespace"] = namespace
     service["spec"]["selector"]["app"] = name
 
     if external:
@@ -102,7 +103,8 @@ def _gen_service_yaml(name, ports, external=False):
     return service
 
 
-def _gen_deployment_yaml(name, ports, image, envs, volumes, cmds=None):
+def _gen_deployment_yaml(name, ports, image, envs, volumes,
+                         namespace, cmds=None):
     deployment = _load_deployment_template()
     ports_ = []
     volumes_ = []
@@ -110,6 +112,7 @@ def _gen_deployment_yaml(name, ports, image, envs, volumes, cmds=None):
 
     deployment["metadata"]["labels"]["app"] = name
     deployment["metadata"]["name"] = name
+    deployment["metadata"]["namespace"] = namespace
     deployment["spec"]["selector"]["matchLabels"]["app"] = name
     deployment["spec"]["template"]["metadata"]["labels"]["app"] = name
 
@@ -150,6 +153,7 @@ def _gen_model_manager_deployment_files(configs, output):
     name = configs["model_manager"]["service_name"]
     ports = [configs["model_manager"]["port"]]
     image = configs["model_manager"]["image"]
+    namespace = configs["k8s"].get("namespace", "default")
 
     envs = [
         {"name": "STORAGE_ENDPOINT",
@@ -198,8 +202,9 @@ def _gen_model_manager_deployment_files(configs, output):
                 "host": configs["model_manager"][
                     "volumes"]["workspace"]["source"]}]
 
-    service = _gen_service_yaml(name, ports)
-    deployment = _gen_deployment_yaml(name, ports, image, envs, volumes)
+    service = _gen_service_yaml(name, ports, namespace)
+    deployment = _gen_deployment_yaml(name, ports, image,
+                                      envs, volumes, namespace)
 
     _save_yaml([service, deployment], output, "model-manager.yaml")
 
@@ -208,6 +213,7 @@ def _gen_job_scheduler_deployment_files(configs, output):
     name = configs["job_scheduler"]["service_name"]
     ports = [configs["job_scheduler"]["port"]]
     image = configs["job_scheduler"]["image"]
+    namespace = configs["k8s"].get("namespace", "default")
 
     envs = [
         {"name": "DB_ADDRESS",
@@ -254,6 +260,10 @@ def _gen_job_scheduler_deployment_files(configs, output):
         {"name": "SOURCE_MOUNT_PATH",
          "value": configs[
              "job_scheduler"]["volumes"]["workspace"]["source"]},
+        {"name": "GPU_RS_KEY",
+         "value": configs["k8s"].get("gpu_rs_key", "nvidia.com/gpu")},
+        {"name": "K8S_NAMESPACE",
+         "value": configs["k8s"].get("namespace", "default")},
         {"name": "LOG_LEVEL",
          "value": configs["others"]["log_level"]}]
 
@@ -264,8 +274,9 @@ def _gen_job_scheduler_deployment_files(configs, output):
                 "host": configs["job_scheduler"][
                     "volumes"]["workspace"]["source"]}]
 
-    service = _gen_service_yaml(name, ports)
-    deployment = _gen_deployment_yaml(name, ports, image, envs, volumes)
+    service = _gen_service_yaml(name, ports, namespace)
+    deployment = _gen_deployment_yaml(name, ports, image, envs,
+                                      volumes, namespace)
 
     _save_yaml([service, deployment], output, "job-scheduler.yaml")
 
@@ -274,6 +285,7 @@ def _gen_client_selector_deployment_files(configs, output):
     name = configs["client_selector"]["service_name"]
     ports = [configs["client_selector"]["port"]]
     image = configs["client_selector"]["image"]
+    namespace = configs["k8s"].get("namespace", "default")
 
     envs = []
     envs.extend(_gen_optional_envs(
@@ -287,8 +299,9 @@ def _gen_client_selector_deployment_files(configs, output):
     cmds = ["python3.7", "-m", "neursafe_fl.python.selector.app",
             "--config_file", "/nsfl/config/client_selector_setup.json"]
 
-    service = _gen_service_yaml(name, ports)
-    deployment = _gen_deployment_yaml(name, ports, image, envs, volumes, cmds)
+    service = _gen_service_yaml(name, ports, namespace)
+    deployment = _gen_deployment_yaml(name, ports, image, envs,
+                                      volumes, namespace, cmds)
 
     _save_yaml([service, deployment], output, "client-selector.yaml")
 
@@ -308,6 +321,7 @@ def _gen_client_selector_deployment_files(configs, output):
 
 def _gen_proxy_deployment_files(configs, output):
     name = configs["proxy"]["service_name"]
+    namespace = configs["k8s"].get("namespace", "default")
     http_port = configs["proxy"]["http_port"]
     grpc_port = configs["proxy"]["grpc_port"]
     ports = [grpc_port, http_port]
@@ -320,8 +334,9 @@ def _gen_proxy_deployment_files(configs, output):
                 "host": configs[
                     "proxy"]["volumes"]["config"]["source"]}]
 
-    service = _gen_service_yaml(name, ports, external)
-    deployment = _gen_deployment_yaml(name, ports, image, envs, volumes)
+    service = _gen_service_yaml(name, ports, namespace, external)
+    deployment = _gen_deployment_yaml(name, ports, image,
+                                      envs, volumes, namespace)
 
     _save_yaml([service, deployment], output, "proxy.yaml")
 
@@ -346,6 +361,8 @@ def _gen_api_server_deployment_files(configs, output):
         with open(os.path.join(TEMPLATE_PATH,
                                "ingress-job-scheduler.yaml")) as f:
             config = f.read()
+            config = config.replace("NAMESPACE",
+                                    configs["k8s"].get("namespace", "default"))
             config = config.replace("JOB_SCHEDULER",
                                     configs["job_scheduler"]["service_name"])
             config = config.replace("PORT",
@@ -358,6 +375,8 @@ def _gen_api_server_deployment_files(configs, output):
         with open(os.path.join(TEMPLATE_PATH,
                                "ingress-model-manager.yaml")) as f:
             config = f.read()
+            config = config.replace("NAMESPACE",
+                                    configs["k8s"].get("namespace", "default"))
             config = config.replace("MODEL_MANAGER",
                                     configs["model_manager"]["service_name"])
             config = config.replace("PORT",
@@ -388,6 +407,7 @@ def _gen_task_manager_deployment_files(configs, output):
     ports = [configs["task_manager"]["port"]]
     image = configs["task_manager"]["image"]
     external = configs["task_manager"]["external"]
+    namespace = configs["k8s"].get("namespace", "default")
 
     envs = [
         {"name": "DB_ADDRESS",
@@ -411,6 +431,10 @@ def _gen_task_manager_deployment_files(configs, output):
          "value": configs["task_manager"]["db_collection_name"]},
         {"name": "K8S_ADDRESS",
          "value": configs["k8s"]["address"]},
+        {"name": "GPU_RS_KEY",
+         "value": configs["k8s"].get("gpu_rs_key", "nvidia.com/gpu")},
+        {"name": "K8S_NAMESPACE",
+         "value": configs["k8s"].get("namespace", "default")},
         {"name": "CONTAINER_EXECUTOR_IMAGE",
          "value": configs["executor"]["image"]},
         {"name": "WORKER_PORT",
@@ -441,8 +465,9 @@ def _gen_task_manager_deployment_files(configs, output):
             "--config_file", os.path.join(pod_mount_paths["config"],
                                           "task_manager_setup.json")]
 
-    service = _gen_service_yaml(name, ports, external)
-    deployment = _gen_deployment_yaml(name, ports, image, envs, volumes, cmds)
+    service = _gen_service_yaml(name, ports, namespace, external)
+    deployment = _gen_deployment_yaml(name, ports, image, envs,
+                                      volumes, namespace, cmds)
     _save_yaml([service, deployment], output, "task-manager.yaml")
 
     def _gen_task_manager_setup_file():

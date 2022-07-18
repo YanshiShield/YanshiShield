@@ -233,7 +233,8 @@ python3 ./deploy/kubernetes/gen_yamls.py --type server --config_file ./deploy/ku
      },
      "k8s": {
        "address": "10.67.134.15:8080", # k8s的api server访问地址
-       "gpu_rs_key": "nvidia.com/gpu" # k8s的GPU资源的资源key值，用于申请资源时指定使用GPU资源
+       "gpu_rs_key": "nvidia.com/gpu", # k8s的GPU资源的资源key值，用于申请资源时指定使用GPU资源
+       "namespace": "default" # 指定系统组件部署在哪个命名空间
      },
      "storage": {
        "type": "s3",  # DFS存储所使用的访问类型
@@ -316,7 +317,8 @@ python3 ./deploy/kubernetes/gen_yamls.py --type server --config_file ./deploy/ku
      },
      "k8s": {
        "address": "10.67.134.15:8080", # k8s的api server访问地址
-       "gpu_res_key": "nvidia.com/gpu"   # k8s的GPU资源的资源key值，用于申请资源时指定使用GPU资源
+       "gpu_rs_key": "nvidia.com/gpu", # k8s的GPU资源的资源key值，用于申请资源时指定使用GPU资源
+       "namespace": "default" # 指定系统组件部署在哪个命名空间
      },
      "db": {
        "type": "postgreSQL",          # 数据库类型

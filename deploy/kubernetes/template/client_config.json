@@ -37,7 +37,8 @@
   },
   "k8s": {
     "address": "10.67.134.15:8080",
-    "GPU_RS_KEY": "nvidia.com/gpu"
+    "gpu_rs_key": "nvidia.com/gpu",
+    "namespace": "default"
   },
   "db": {
     "type": "postgreSQL",
