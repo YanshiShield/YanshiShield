@@ -2,7 +2,7 @@ local ngx = ngx
 
 local _M = {
     _VERSION = '0.1',
-    TOKEN = os.getenv("TOKEN") and os.getenv("TOKEN") or "Fl-ZTE"
+    TOKEN = os.getenv("TOKEN") and os.getenv("TOKEN") or "nsfl-proxy-token"
 }
 
 

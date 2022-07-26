@@ -11,7 +11,6 @@ DB_ADDRESS = os.getenv("DB_ADDRESS")
 DB_TYPE = os.getenv("DB_TYPE", "mongo")
 DB_USERNAME = os.getenv("DB_USERNAME")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
-PLATFORM = os.getenv("PLATFORM", "linux")
 
 DB_NAME = os.getenv("DB_NAME", "fl_tasks")
 DB_COLLECTION_NAME = os.getenv("DB_COLLECTION_NAME", "tasks")

@@ -413,7 +413,7 @@ class SSAServer(SSABaseServer):
                     s_total -= s_uv_prg.next_number()
 
             masks.append(s_total - b_total)
-        logging.info('masks %s', masks)
+        logging.debug('masks %s', masks)
         return masks
 
     def __handle_secret_shares(self, msg):
