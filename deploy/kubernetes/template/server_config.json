@@ -3,11 +3,11 @@
     "service_name": "nsfl-job-scheduler",
     "port": 8088,
     "db_collection_name": "jobs",
-    "coordinator_configs_dir": "coordinator_configs",
+    "coordinator_configs_dir": "nsfl/coordinator_configs",
     "image": "nsfl-job-scheduler:latest",
     "volumes": {
       "workspace": {
-        "source": "/mnt/nsfl"
+        "source": "/mnt"
       }
     },
     "options": {}
@@ -58,7 +58,10 @@
   },
   "k8s": {
     "address": "10.67.134.15:8080",
-    "GPU_RS_KEY": "nvidia.com/gpu"
+    "GPU_RS_KEY": "nvidia.com/gpu",
+    "api_protocol": "https",
+    "api_token": "token1",
+    "image_pull_secret": "registry-secret"
   },
   "storage": {
     "type": "s3",

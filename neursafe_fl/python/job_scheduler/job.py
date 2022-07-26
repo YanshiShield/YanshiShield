@@ -380,8 +380,8 @@ class Job:
             yield self.__do_create_coordinator()
 
             yield self.__wait_coordinator_running()
-        except (errors.CheckpointNotExist, errors.NoEnoughClientsResource) \
-                as err:
+        except (errors.CheckpointNotExist, errors.NoEnoughClientsResource,
+                ProxyError) as err:
             logging.error(str(err))
             self.__update_status({"state": State.FAILED,
                                   "reason": str(err)})

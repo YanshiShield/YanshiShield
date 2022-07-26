@@ -131,7 +131,7 @@ class SSABaseClient:
                 masks.append(b_prg.next_number() + s_total)
             else:
                 masks.append(s_total)
-        logging.info('masks %s', masks)
+        logging.debug('masks %s', masks)
         return masks
 
 

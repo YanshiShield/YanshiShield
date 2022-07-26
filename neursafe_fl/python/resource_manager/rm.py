@@ -29,7 +29,7 @@ class ResourceManager:
     """Resource Manager Class
     """
 
-    def __init__(self):
+    def __init__(self, platform_name):
         """
         nodes: {"node_id": Object(Node)...}
         tasks: {"task_id": List(resource_allocation_spec)}
@@ -41,12 +41,14 @@ class ResourceManager:
         self.__nodes = {}
         self.__tasks = {}
 
-        self.__platform = gen_platform({"add": self.__add_node,
+        self.__platform_name = platform_name
+        self.__platform = gen_platform(platform_name,
+                                       {"add": self.__add_node,
                                         "modify": self.__modify_node,
                                         "delete": self.__delete_node})
         self.__db_collection = None
 
-        if const.PLATFORM in [PlatFormType.K8S]:
+        if platform_name in [PlatFormType.K8S]:
             self.__db_collection = create_db(const.DB_TYPE,
                                              db_server=const.DB_ADDRESS,
                                              db_name=const.DB_NAME,
@@ -63,9 +65,9 @@ class ResourceManager:
         self.__restore_task()
 
     def __restore_task(self):
-        if const.PLATFORM == PlatFormType.STANDALONE:
+        if self.__platform_name == PlatFormType.STANDALONE:
             logging.info("Platform is %s, no need to restore task.",
-                         const.PLATFORM)
+                         self.__platform_name)
             return
 
         tasks = self.__db_collection.find_all()

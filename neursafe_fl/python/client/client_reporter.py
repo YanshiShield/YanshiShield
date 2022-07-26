@@ -149,6 +149,7 @@ class ClientReporter:
                             "not join the fl system.")
             return
 
+        self.__task_manager.set_client_id(self.id)
         self.__load_certificates()
         await self.__register()
 

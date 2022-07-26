@@ -1,13 +1,14 @@
 #  Copyright 2022 The Neursafe FL Authors. All Rights Reserved.
 #  SPDX-License-Identifier: Apache-2.0
-
 # pylint:disable=missing-function-docstring,protected-access,invalid-name
 """
 Test for Resource manager
 """
+
 import unittest
 
 from neursafe_fl.python.resource_manager.node import Node, NodeState
+from neursafe_fl.python.resource_manager.plat_form.platform import PlatFormType
 from neursafe_fl.python.resource_manager.rm import ResourceManager
 
 
@@ -15,7 +16,7 @@ class RMTest(unittest.TestCase):
     """test rm object"""
 
     def setUp(self) -> None:
-        self.__rm = ResourceManager()
+        self.__rm = ResourceManager(PlatFormType.STANDALONE)
 
     def test_allocate_rs_successfully(self):
         node = Node("xxx",
