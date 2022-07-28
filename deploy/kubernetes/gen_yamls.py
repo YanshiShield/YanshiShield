@@ -243,6 +243,12 @@ def _gen_job_scheduler_deployment_files(configs, output):
              configs["client_selector"]["port"])},
         {"name": "K8S_ADDRESS",
          "value": configs["k8s"]["address"]},
+        {"name": "K8S_API_PROTOCOL",
+         "value": configs["k8s"]["api_protocol"]},
+        {"name": "K8S_API_TOKEN",
+         "value": configs["k8s"]["api_token"]},
+        {"name": "K8S_IMAGE_PULL_SECRETS",
+         "value": configs["k8s"]["image_pull_secret"]},
         {"name": "PROXY_ADDRESS",
          "value": "%s:%s" % (
              configs["proxy"]["service_name"],
@@ -265,7 +271,11 @@ def _gen_job_scheduler_deployment_files(configs, output):
         {"name": "K8S_NAMESPACE",
          "value": configs["k8s"].get("namespace", "default")},
         {"name": "LOG_LEVEL",
-         "value": configs["others"]["log_level"]}]
+         "value": configs["others"]["log_level"]},
+        {"name": "MODEL_MANAGER_ADDRESS",
+         "value": "%s:%s" % (
+             configs["model_manager"]["service_name"],
+             configs["model_manager"]["port"])}]
 
     envs.extend(_gen_optional_envs(configs["job_scheduler"].get("options", {})))
 
@@ -431,6 +441,12 @@ def _gen_task_manager_deployment_files(configs, output):
          "value": configs["task_manager"]["db_collection_name"]},
         {"name": "K8S_ADDRESS",
          "value": configs["k8s"]["address"]},
+        {"name": "K8S_API_PROTOCOL",
+         "value": configs["k8s"]["api_protocol"]},
+        {"name": "K8S_API_TOKEN",
+         "value": configs["k8s"]["api_token"]},
+        {"name": "K8S_IMAGE_PULL_SECRETS",
+         "value": configs["k8s"]["image_pull_secret"]},
         {"name": "GPU_RS_KEY",
          "value": configs["k8s"].get("gpu_rs_key", "nvidia.com/gpu")},
         {"name": "K8S_NAMESPACE",
