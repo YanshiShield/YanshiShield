@@ -2,6 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: MODEL_MANAGER
+  namespace: NAMESPACE
   annotations:
     kubernetes.io/ingress.class: "nginx"
     nginx.ingress.kubernetes.io/use-regex: "true"
@@ -22,7 +23,7 @@ spec:
           service:
             name: MODEL_MANAGER
             port:
-              number: PORT
+              number: PORTe
       - path: /api/v1/models*
         pathType: Prefix
         backend:

@@ -14,6 +14,7 @@ from neursafe_fl.python.job_scheduler.util.errors import CoordinatorNotExist, \
     CoordinatorGetFailed, CoordinatorCreateFailed
 from neursafe_fl.python.libs.cloud.task import TASK, TaskExisted, \
     TaskCreateFailed, TaskNotExist, TaskDeleteFailed, TaskGetFailed
+from neursafe_fl.python.libs.cloud.const import K8S_NAMESPACE
 from neursafe_fl.python.utils.file_io import write_json_file
 import neursafe_fl.python.job_scheduler.util.const as const
 
@@ -51,7 +52,7 @@ class Coordinator:
         name = self.__gen_name(namespace, job_cfg['id'])
         try:
             yield self.__task.create(name=name,
-                                     namespace="default",
+                                     namespace=K8S_NAMESPACE,
                                      cmds=cmds,
                                      port=job_cfg.get(
                                          "port", int(const.COORDINATOR_PORT)),
@@ -150,7 +151,7 @@ class Coordinator:
         """
         name = self.__gen_name(namespace, job_id)
         try:
-            yield self.__task.delete(name=name, namespace="default")
+            yield self.__task.delete(name=name, namespace=K8S_NAMESPACE)
         except TaskNotExist as err:
             logging.exception(str(err))
             raise CoordinatorNotExist('Coordinator(%s:%s) unexist.' % (
@@ -174,7 +175,7 @@ class Coordinator:
         """
         name = self.__gen_name(namespace, job_id)
         try:
-            task = yield self.__task.get(name=name, namespace='default')
+            task = yield self.__task.get(name=name, namespace=K8S_NAMESPACE)
             raise gen.Return({'state': task['state'].upper()})
         except TaskNotExist as err:
             logging.error(str(err))

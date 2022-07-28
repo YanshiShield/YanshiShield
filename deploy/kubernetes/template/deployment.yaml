@@ -16,8 +16,6 @@ spec:
         app: ""
     spec:
       restartPolicy: Always
-      imagePullSecrets:
-      - name: registry-secret
       containers:
       - image: ""
         imagePullPolicy: Always
