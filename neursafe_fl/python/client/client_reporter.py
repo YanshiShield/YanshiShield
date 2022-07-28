@@ -5,7 +5,6 @@
 """Client Reporter Module.
 """
 import os
-import uuid
 import asyncio
 
 from absl import logging
