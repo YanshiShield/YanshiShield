@@ -120,6 +120,8 @@ class Client:
     """
     def __init__(self, config):
         self.__config = config
+        self.__config["client_id"] = self.__gen_client_id()
+
         self.__task_manager = TaskManager(config)
         self.__reporter = ClientReporter(config, self.__task_manager)
 
@@ -130,8 +132,7 @@ class Client:
 
     def __gen_client_id(self):
         client_uuid = str(uuid.uuid1())[10:]
-        self.__config["client_id"] = "%s-%s" % (self.__config["platform"],
-                                                client_uuid)
+        return "%s-%s" % (self.__config["platform"], client_uuid)
 
     async def start(self):
         """Start client, include storage manager and GRPC server.
