@@ -34,6 +34,7 @@ class TaskManager:
         client_config: config from client started.
     """
     def __init__(self, client_config):
+        self.client_id = None
         self.__client_config = client_config
 
         # Record the running tasks, index by (job_name, round, type)
@@ -155,14 +156,22 @@ class TaskManager:
         index_key = (task.job_name, task.round_num, task.task_type)
         del self.__tasks[index_key]
 
+    def set_client_id(self, client_id):
+        """Set client id.
+        """
+        self.client_id = client_id
+
     def __gen_task_id(self, task_type, task_info):
         """Generate task id
         """
         time_str = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
-        return '%s-%s-%s-%s-%s' % (task_type,
-                                   task_info.metadata.job_name,
-                                   self.__client_config["port"],
-                                   task_info.metadata.round, time_str)
+        # k8s pod name's max length is 63. the origin client id's length is 38.
+        # this is too long, so truncate the last 8 digits.
+        return '%s-%s-%s-%s-%s-%s' % (task_type,
+                                      task_info.metadata.job_name,
+                                      self.client_id[-8:],
+                                      self.__client_config["port"],
+                                      task_info.metadata.round, time_str)
 
     def get_tasks(self):
         """Get the current tasks.
