@@ -4,6 +4,7 @@
 # pylint:disable=too-few-public-methods, broad-except
 """Client main process.
 """
+import uuid
 from absl import logging
 from grpclib.server import Stream
 
@@ -126,6 +127,11 @@ class Client:
             monitor_path=config['workspace'],
             cleanable_file_matcher=is_finished_task_workspace_name,
             quota=config['storage_quota'])
+
+    def __gen_client_id(self):
+        client_uuid = str(uuid.uuid1())[10:]
+        self.__config["client_id"] = "%s-%s" % (self.__config["platform"],
+                                                client_uuid)
 
     async def start(self):
         """Start client, include storage manager and GRPC server.

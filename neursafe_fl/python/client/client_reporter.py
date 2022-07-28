@@ -45,7 +45,7 @@ class ClientReporter:
         # static attributes
         self.os = config["platform"]
         self.type = self.__get_platform_type(config["platform"])
-        self.id = self.__gen_client_id()
+        self.id = config["client_id"]
         self.address = config.get("external_address", "%s:%s" %
                                   (config["host"], config["port"]))
 
@@ -81,10 +81,6 @@ class ClientReporter:
         type_map = {PlatFormType.STANDALONE: "single",
                     PlatFormType.K8S: "cluster"}
         return type_map[platform]
-
-    def __gen_client_id(self):
-        client_uuid = str(uuid.uuid1())[10:]
-        return "%s-%s-%s" % (self.type, self.os, client_uuid)
 
     def __gen_client_info(self):
         self.__update_client()
@@ -149,7 +145,6 @@ class ClientReporter:
                             "not join the fl system.")
             return
 
-        self.__task_manager.set_client_id(self.id)
         self.__load_certificates()
         await self.__register()
 
