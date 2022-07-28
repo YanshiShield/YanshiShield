@@ -4,6 +4,7 @@
 # pylint: disable=too-many-arguments
 """postgreSQL
 """
+import time
 import json
 from absl import logging
 
@@ -13,12 +14,12 @@ from psycopg2 import errorcodes
 
 from neursafe_fl.python.libs.db.base_db import DataBaseInterface,\
     CollectionInterface
-from neursafe_fl.python.libs.db.postgre.errors import \
-    UndefinedTable, UniqueViolation, DuplicateTable
 import neursafe_fl.python.libs.db.errors as errors
 
 CONNECTION_TIMEOUT = 10
 DATA_COLUMN_NAME = "data"
+MAX_RETRY_TIMES = 3
+RETRY_INTERVAL = 1
 
 
 def _convert_para_to_int(parameter):
@@ -67,60 +68,65 @@ class PostgreClient:
         self.__user = user
         self.__pass_word = pass_word
 
-        self.__conn = None
-        self.__cursor = None
+        self.conn = None
+        self.cursor = None
 
-    def connect(self):
+    def connect(self, retry_num=0):
         """connect to postgresql database
         """
-        try:
-            self.__conn = psycopg2.connect(host=self.__db_host,
-                                           port=self.__db_port,
-                                           user=self.__user,
-                                           password=self.__pass_word,
-                                           database=self.__db_name,
-                                           connect_timeout=CONNECTION_TIMEOUT)
-            self.__cursor = self.__conn.cursor()
-        except psycopg2.Error as err:
-            err_msg = "PostgreSQL create failed, error code: %s, error info:" \
-                      " %s" % (err.pgcode, str(err))
-            logging.exception(err_msg)
-            raise errors.DataBaseError(err_msg)
+        if not self.conn:
+            try:
+                self.conn = psycopg2.connect(
+                    host=self.__db_host, port=self.__db_port,
+                    user=self.__user, password=self.__pass_word,
+                    database=self.__db_name,
+                    connect_timeout=CONNECTION_TIMEOUT)
+                self.cursor = self.conn.cursor()
+            except psycopg2.OperationalError as err:
+                logging.exception(str(err))
+                if retry_num >= MAX_RETRY_TIMES:
+                    raise errors.DataBaseError(str(err))
+                retry_num += 1
+                time.sleep(RETRY_INTERVAL)
+                self.connect(retry_num)
+            except psycopg2.Error as err:
+                logging.exception(str(err))
+                raise errors.DataBaseError(str(err))
 
-    def execute(self, sql, params=None, **kwargs):
+    def execute(self, sql, params=None, retry_num=0):
         """execute sql command
         """
         try:
-            if not self.__conn or not self.__cursor:
-                raise errors.DataBaseError("Please connect postsql first.")
-
-            self.__cursor.execute(sql, params)
-            if kwargs.get("commit", False):
-                self.__conn.commit()
-            if kwargs.get("fetchall", False):
-                return self.__cursor.fetchall()
-            if kwargs.get("fetchone", False):
-                return self.__cursor.fetchone()
-            if kwargs.get("rowcount", False):
-                return self.__cursor.rowcount
-            return None
+            self.cursor.execute(sql, params)
+        except (psycopg2.OperationalError, psycopg2.InterfaceError) as err:
+            logging.exception(str(err))
+            if retry_num >= MAX_RETRY_TIMES:
+                self.conn.rollback()
+                raise err
+            retry_num += 1
+            time.sleep(RETRY_INTERVAL)
+            self.reconnect()
+            self.execute(sql, retry_num)
         except psycopg2.Error as err:
-            err_msg = "PostgreSQL execute sql: %s, params: %s failed, error " \
-                      "code: %s, error info: %s" % (sql, params,
-                                                    err.pgcode, str(err))
-            logging.error(err_msg)
-            self.__conn.rollback()
+            logging.exception(str(err))
+            self.conn.rollback()
+            raise err
 
-            if err.pgcode == errorcodes.DUPLICATE_TABLE:
-                raise DuplicateTable() from err
+    def reconnect(self):
+        """Reconnect.
+        """
+        self.close()
+        self.connect()
 
-            if err.pgcode == errorcodes.UNDEFINED_TABLE:
-                raise UndefinedTable() from err
-
-            if err.pgcode == errorcodes.UNIQUE_VIOLATION:
-                raise UniqueViolation() from err
-
-            raise errors.DataBaseError(str(err))
+    def close(self):
+        """Close connection.
+        """
+        if self.conn:
+            if self.cursor:
+                self.cursor.close()
+            self.conn.close()
+        self.conn = None
+        self.cursor = None
 
 
 class PostgreSQL(DataBaseInterface):
@@ -163,16 +169,19 @@ class PostgreSQL(DataBaseInterface):
                 create_index_sql = "CREATE UNIQUE INDEX ON %s (%s);" \
                                    % (collection_name,
                                       _gen_indexes_key(indexes))
-                self.__client.execute(create_table_sql, commit=False)
-                self.__client.execute(create_index_sql, commit=True)
+                self.__client.execute(create_table_sql)
+                self.__client.execute(create_index_sql)
             else:
-                self.__client.execute(create_table_sql, commit=True)
+                self.__client.execute(create_table_sql)
 
+            self.__client.conn.commit()
             return Collection(collection_name, self.__client)
-        except DuplicateTable as err:
-            err_msg = "Collection %s already existing." % collection_name
-            logging.error(err_msg)
-            raise errors.CollectionAlreadyExisting(err_msg) from err
+        except psycopg2.Error as err:
+            logging.exception(str(err))
+            if err.pgcode == errorcodes.DUPLICATE_TABLE:
+                err_msg = "Collection %s already existing." % collection_name
+                raise errors.CollectionAlreadyExisting(err_msg) from err
+            raise errors.DataBaseError(str(err)) from err
 
     def get_collection(self, collection_name):
         """
@@ -190,7 +199,8 @@ class PostgreSQL(DataBaseInterface):
         """
         sql = "SELECT table_name FROM information_schema.TABLES WHERE " \
               "table_name ='%s';" % collection_name
-        result = self.__client.execute(sql, fetchone=True)
+        self.__client.execute(sql)
+        result = self.__client.cursor.fetchone()
         if result:
             return Collection(collection_name, self.__client)
 
@@ -209,9 +219,14 @@ class PostgreSQL(DataBaseInterface):
         """
         try:
             sql = "DROP TABLE %s;" % collection_name
-            self.__client.execute(sql, commit=True)
-        except UndefinedTable:
-            logging.warning("Collection: %s not existing.", collection_name)
+            self.__client.execute(sql)
+            self.__client.conn.commit()
+        except psycopg2.Error as err:
+            if err.pgcode == errorcodes.UNDEFINED_TABLE:
+                logging.warning("Collection: %s not existing.", collection_name)
+                return
+            logging.exception(str(err))
+            raise errors.DataBaseError(str(err)) from err
 
     def drop(self):
         """
@@ -250,10 +265,16 @@ class Collection(CollectionInterface):
                 psy_sql.Identifier(self.__name),
                 psy_sql.Identifier(DATA_COLUMN_NAME),
                 psy_sql.Literal(json.dumps(data)))
-            return self.__client.execute(sql, commit=True, rowcount=True)
-        except UniqueViolation as err:
-            raise errors.DataAlreadyExisting(
-                "Data already existing: %s" % data) from err
+            self.__client.execute(sql)
+            self.__client.conn.commit()
+            return self.__client.cursor.rowcount
+        except psycopg2.Error as err:
+            logging.exception(str(err))
+            if err.pgcode == errorcodes.UNIQUE_VIOLATION:
+                raise errors.DataAlreadyExisting(
+                    "Data already existing: %s" % data) from err
+
+            raise errors.DataBaseError(str(err)) from err
 
     def update(self, filters, data):
         """
@@ -267,18 +288,24 @@ class Collection(CollectionInterface):
             DataNotExisting: if data not existing.
             DataBaseError: if raise other data base exceptions.
         """
-        sql = psy_sql.SQL(
-            "UPDATE {0} SET {1} = {2} || {3} WHERE data @> {4};").format(
-            psy_sql.Identifier(self.__name),
-            psy_sql.Identifier(DATA_COLUMN_NAME),
-            psy_sql.Identifier(DATA_COLUMN_NAME),
-            psy_sql.Literal(json.dumps(data)),
-            psy_sql.Literal(json.dumps(filters)))
-        rowcount = self.__client.execute(sql, commit=True, rowcount=True)
-        if rowcount == 0:
-            err_msg = "Update failed, not matched data with filters: " \
-                      "%s" % filters
-            raise errors.DataNotExisting(err_msg)
+        try:
+            sql = psy_sql.SQL(
+                "UPDATE {0} SET {1} = {2} || {3} WHERE data @> {4};").format(
+                psy_sql.Identifier(self.__name),
+                psy_sql.Identifier(DATA_COLUMN_NAME),
+                psy_sql.Identifier(DATA_COLUMN_NAME),
+                psy_sql.Literal(json.dumps(data)),
+                psy_sql.Literal(json.dumps(filters)))
+            self.__client.execute(sql)
+            self.__client.conn.commit()
+            if self.__client.cursor.rowcount == 0:
+                err_msg = "Update failed, not matched data with filters: " \
+                          "%s" % filters
+                raise errors.DataNotExisting(err_msg)
+            return self.__client.cursor.rowcount
+        except psycopg2.Error as err:
+            logging.exception(str(err))
+            raise errors.DataBaseError(str(err)) from err
 
     def replace(self, filters, data):
         """
@@ -291,17 +318,23 @@ class Collection(CollectionInterface):
         Raises:
             DataBaseError: if raise other data base exceptions.
         """
-        sql = psy_sql.SQL(
-            "UPDATE {0} SET {1} = {2} WHERE data @> {3};").format(
-            psy_sql.Identifier(self.__name),
-            psy_sql.Identifier(DATA_COLUMN_NAME),
-            psy_sql.Literal(json.dumps(data)),
-            psy_sql.Literal(json.dumps(filters)))
-        rowcount = self.__client.execute(sql, commit=True, rowcount=True)
-        if rowcount == 0:
-            err_msg = "Update failed, not matched data with filters: " \
-                      "%s" % filters
-            raise errors.DataNotExisting(err_msg)
+        try:
+            sql = psy_sql.SQL(
+                "UPDATE {0} SET {1} = {2} WHERE data @> {3};").format(
+                psy_sql.Identifier(self.__name),
+                psy_sql.Identifier(DATA_COLUMN_NAME),
+                psy_sql.Literal(json.dumps(data)),
+                psy_sql.Literal(json.dumps(filters)))
+            self.__client.execute(sql)
+            self.__client.conn.commit()
+            if self.__client.cursor.rowcount == 0:
+                err_msg = "Update failed, not matched data with filters: " \
+                          "%s" % filters
+                raise errors.DataNotExisting(err_msg)
+            return self.__client.cursor.rowcount
+        except psycopg2.Error as err:
+            logging.exception(str(err))
+            raise errors.DataBaseError(str(err)) from err
 
     def delete(self, filters):
         """
@@ -313,11 +346,17 @@ class Collection(CollectionInterface):
         Raises:
             DataBaseError: if raise other data base exceptions.
         """
-        sql = psy_sql.SQL("DELETE FROM {0} WHERE {1} @> {2};").format(
-            psy_sql.Identifier(self.__name),
-            psy_sql.Identifier(DATA_COLUMN_NAME),
-            psy_sql.Literal(json.dumps(filters)))
-        return self.__client.execute(sql, commit=True, rowcount=True)
+        try:
+            sql = psy_sql.SQL("DELETE FROM {0} WHERE {1} @> {2};").format(
+                psy_sql.Identifier(self.__name),
+                psy_sql.Identifier(DATA_COLUMN_NAME),
+                psy_sql.Literal(json.dumps(filters)))
+            self.__client.execute(sql)
+            self.__client.conn.commit()
+            return self.__client.cursor.rowcount
+        except psycopg2.Error as err:
+            logging.exception(str(err))
+            raise errors.DataBaseError(str(err)) from err
 
     def find_one(self, filters):
         """
@@ -333,17 +372,22 @@ class Collection(CollectionInterface):
             DataNotExisting: if data not existing.
             DataBaseError: if raise other data base exceptions.
         """
-        sql = psy_sql.SQL("SELECT {0} FROM {1} WHERE {2} @> {3};").format(
-            psy_sql.Identifier(DATA_COLUMN_NAME),
-            psy_sql.Identifier(self.__name),
-            psy_sql.Identifier(DATA_COLUMN_NAME),
-            psy_sql.Literal(json.dumps(filters)))
-        result = self.__client.execute(sql, fetchone=True)
-        if result:
-            return result[0]
+        try:
+            sql = psy_sql.SQL("SELECT {0} FROM {1} WHERE {2} @> {3};").format(
+                psy_sql.Identifier(DATA_COLUMN_NAME),
+                psy_sql.Identifier(self.__name),
+                psy_sql.Identifier(DATA_COLUMN_NAME),
+                psy_sql.Literal(json.dumps(filters)))
+            self.__client.execute(sql)
+            result = self.__client.cursor.fetchone()
+            if result:
+                return result[0]
 
-        raise errors.DataNotExisting(
-            "Data not existing by filters: %s" % filters)
+            raise errors.DataNotExisting(
+                "Data not existing by filters: %s" % filters)
+        except psycopg2.Error as err:
+            logging.exception(str(err))
+            raise errors.DataBaseError(str(err)) from err
 
     def find(self, filters=None, sorts=None):
         """
@@ -366,30 +410,36 @@ class Collection(CollectionInterface):
             DataNotExisting: if data not existing.
             DataBaseError: if raise other data base exceptions.
         """
-        sort_keys_str = _gen_sorts_key(sorts)
+        try:
+            sort_keys_str = _gen_sorts_key(sorts)
 
-        if filters:
-            sql = psy_sql.SQL("SELECT {0} FROM {1} WHERE {2} @> {3}%s;"
-                              % sort_keys_str).format(
-                psy_sql.Identifier(DATA_COLUMN_NAME),
-                psy_sql.Identifier(self.__name),
-                psy_sql.Identifier(DATA_COLUMN_NAME),
-                psy_sql.Literal(json.dumps(filters)))
-        else:
-            sql = psy_sql.SQL("SELECT {0} FROM {1}%s;" % sort_keys_str).format(
-                psy_sql.Identifier(DATA_COLUMN_NAME),
-                psy_sql.Identifier(self.__name))
+            if filters:
+                sql = psy_sql.SQL("SELECT {0} FROM {1} WHERE {2} @> {3}%s;"
+                                  % sort_keys_str).format(
+                    psy_sql.Identifier(DATA_COLUMN_NAME),
+                    psy_sql.Identifier(self.__name),
+                    psy_sql.Identifier(DATA_COLUMN_NAME),
+                    psy_sql.Literal(json.dumps(filters)))
+            else:
+                sql = psy_sql.SQL("SELECT {0} FROM {1}%s;"
+                                  % sort_keys_str).format(
+                                      psy_sql.Identifier(DATA_COLUMN_NAME),
+                                      psy_sql.Identifier(self.__name))
 
-        result = self.__client.execute(sql, fetchall=True)
+            self.__client.execute(sql)
+            result = self.__client.cursor.fetchall()
 
-        if result:
-            datas = []
-            for data in result:
-                datas.append(data[0])
-            return iter(datas)
+            if result:
+                datas = []
+                for data in result:
+                    datas.append(data[0])
+                return iter(datas)
 
-        raise errors.DataNotExisting(
-            "Data not existing by filters: %s" % filters)
+            raise errors.DataNotExisting(
+                "Data not existing by filters: %s" % filters)
+        except psycopg2.Error as err:
+            logging.exception(str(err))
+            raise errors.DataBaseError(str(err)) from err
 
     def find_all(self, sorts=None):
         """
@@ -409,15 +459,20 @@ class Collection(CollectionInterface):
         Raises:
             DataBaseError: if raise other data base exceptions.
         """
-        sort_keys_str = _gen_sorts_key(sorts)
+        try:
+            sort_keys_str = _gen_sorts_key(sorts)
 
-        sql = psy_sql.SQL("SELECT {0} FROM {1}%s" % sort_keys_str).format(
-            psy_sql.Identifier(DATA_COLUMN_NAME),
-            psy_sql.Identifier(self.__name))
+            sql = psy_sql.SQL("SELECT {0} FROM {1}%s" % sort_keys_str).format(
+                psy_sql.Identifier(DATA_COLUMN_NAME),
+                psy_sql.Identifier(self.__name))
 
-        result = self.__client.execute(sql, fetchall=True)
+            self.__client.execute(sql)
+            result = self.__client.cursor.fetchall()
 
-        datas = []
-        for data in result:
-            datas.append(data[0])
-        return iter(datas)
+            datas = []
+            for data in result:
+                datas.append(data[0])
+            return iter(datas)
+        except psycopg2.Error as err:
+            logging.exception(str(err))
+            raise errors.DataBaseError(str(err)) from err
