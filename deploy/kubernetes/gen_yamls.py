@@ -265,7 +265,9 @@ def _gen_job_scheduler_deployment_files(configs, output):
         {"name": "K8S_NAMESPACE",
          "value": configs["k8s"].get("namespace", "default")},
         {"name": "LOG_LEVEL",
-         "value": configs["others"]["log_level"]}]
+         "value": configs["others"]["log_level"]},
+        {"name": "PERSIST_TASK_RESOURCE_USAGE",
+         "value": "true"}]
 
     envs.extend(_gen_optional_envs(configs["job_scheduler"].get("options", {})))
 

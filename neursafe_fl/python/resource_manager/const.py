@@ -15,6 +15,9 @@ DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_NAME = os.getenv("DB_NAME", "fl_tasks")
 DB_COLLECTION_NAME = os.getenv("DB_COLLECTION_NAME", "tasks")
 
+PERSIST_TASK_RESOURCE_USAGE = os.getenv("PERSIST_TASK_RESOURCE_USAGE",
+                                        "false").lower()
+
 MAX_RETRY_TIMES = int(os.getenv("MAX_RETRY_TIMES", "30"))
 RETRY_INTERVAL = int(
     os.getenv("COORDINATOR_QUERY_INTERVAL", "1"))
