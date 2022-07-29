@@ -13,8 +13,7 @@ import neursafe_fl.python.resource_manager.const as const
 import neursafe_fl.python.resource_manager.errors as errors
 
 from neursafe_fl.python.libs.db.db_factory import create_db
-from neursafe_fl.python.resource_manager.plat_form.platform import \
-    gen_platform, PlatFormType
+from neursafe_fl.python.resource_manager.plat_form.platform import gen_platform
 from neursafe_fl.python.libs.db.errors import DataAlreadyExisting
 from neursafe_fl.python.resource_manager.node import NodeState
 import neursafe_fl.python.resource_manager.util as util
