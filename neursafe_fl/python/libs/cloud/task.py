@@ -7,7 +7,8 @@ from os.path import join, dirname, abspath
 from tornado import gen
 from absl import logging
 
-from neursafe_fl.python.libs.cloud.const import K8S_ADDR, CLOUD_OS, GPU_RS_KEY
+from neursafe_fl.python.libs.cloud.const import K8S_ADDR, CLOUD_OS, GPU_RS_KEY,\
+    K8S_IMAGE_PULL_SECRETS
 from neursafe_fl.python.libs.cloud.k8s_resource_object import K8sPod, \
     K8sService, ServiceCreateFailed, PodExisted, \
     PodCreateFailed, ServiceDeleteFailed, PodDeleteFailed, \
@@ -226,6 +227,10 @@ class K8sTask(BaseTask):
         if node_id:
             pod_spec["spec"]["nodeSelector"] = {
                 "kubernetes.io/hostname": node_id}
+
+        if K8S_IMAGE_PULL_SECRETS:
+            pod_spec["spec"]["imagePullSecrets"] = [{
+                "name": K8S_IMAGE_PULL_SECRETS}]
 
         def add_volumes():
             def add_volume(name, src, dest):

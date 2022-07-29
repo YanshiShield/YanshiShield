@@ -36,9 +36,12 @@
     "https_proxy": ""
   },
   "k8s": {
-    "address": "10.67.134.15:8080",
+    "address": "10.67.134.15:6443",
     "gpu_rs_key": "nvidia.com/gpu",
-    "namespace": "default"
+    "namespace": "default",
+    "api_protocol": "https",
+    "api_token": "token1",
+    "image_pull_secret": "registry-secret"
   },
   "db": {
     "type": "postgreSQL",
