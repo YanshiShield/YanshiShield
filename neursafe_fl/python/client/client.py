@@ -1,30 +1,30 @@
 #  Copyright 2022 The Neursafe FL Authors. All Rights Reserved.
 #  SPDX-License-Identifier: Apache-2.0
-
 # pylint:disable=too-few-public-methods, broad-except
 """Client main process.
 """
+import re
+
 from absl import logging
 from grpclib.server import Stream
 
+from neursafe_fl.python.libs.secure.secure_aggregate.ssa_controller import \
+    ssa_controller
 from neursafe_fl.proto.evaluate_service_grpc import EvaluateServiceBase
 from neursafe_fl.proto.message_pb2 import Task, Response, Metadata
 from neursafe_fl.proto.train_service_grpc import TrainServiceBase
+from neursafe_fl.python.client.client_reporter import ClientReporter
 from neursafe_fl.python.client.storage_manager import StorageManager
 from neursafe_fl.python.client.task import TaskType
 from neursafe_fl.python.client.task_manager import TaskManager, \
     is_finished_task_workspace_name
 from neursafe_fl.python.client.validation import validate_task_info
-from neursafe_fl.python.libs.secure.secure_aggregate.ssa_controller import \
-    ssa_controller
 from neursafe_fl.python.trans.grpc import GRPCServer
-from neursafe_fl.python.trans.ssl_helper import SSLContext
 from neursafe_fl.python.trans.grpc_call import unpackage_stream, \
     extract_metadata
-from neursafe_fl.python.client.client_reporter import ClientReporter
+from neursafe_fl.python.trans.ssl_helper import SSLContext
 
 
-# TODO proto interface need review and ajustment.
 class TrainRpcService(TrainServiceBase):
     """The implement class of client grpc services. Receive grpc request from
     from server and run train task.
@@ -114,11 +114,25 @@ class EvaluateRpcService(EvaluateServiceBase):
             await stream.cancel()
 
 
+def _validate_client_id(client_id):
+    pattern = r"[a-z0-9]([-a-z0-9]{0,60}[a-z0-9])?$"
+    valid = re.compile(pattern)
+    result = valid.match(client_id)
+    if result is None:
+        raise ValueError("%s not satisfied with pattern: %s" %
+                         (client_id, pattern))
+
+
 class Client:
     """Client, the edge computing in federated learning.
     """
     def __init__(self, config):
         self.__config = config
+        if "client_id" not in self.__config:
+            self.__config["client_id"] = self.__gen_client_id()
+        else:
+            _validate_client_id(self.__config["client_id"])
+
         self.__task_manager = TaskManager(config)
         self.__reporter = ClientReporter(config, self.__task_manager)
 
@@ -126,6 +140,11 @@ class Client:
             monitor_path=config['workspace'],
             cleanable_file_matcher=is_finished_task_workspace_name,
             quota=config['storage_quota'])
+
+    def __gen_client_id(self):
+        return "%s-%s-%s" % (self.__config["platform"],
+                             self.__config["host"].replace(".", "-"),
+                             self.__config["port"])
 
     async def start(self):
         """Start client, include storage manager and GRPC server.
