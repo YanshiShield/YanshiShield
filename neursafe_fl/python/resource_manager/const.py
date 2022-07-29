@@ -7,6 +7,11 @@ const variable
 
 import os
 
+
+def _change_to_bool(some_str):
+    return some_str.lower() == "true"
+
+
 DB_ADDRESS = os.getenv("DB_ADDRESS")
 DB_TYPE = os.getenv("DB_TYPE", "mongo")
 DB_USERNAME = os.getenv("DB_USERNAME")
@@ -15,8 +20,8 @@ DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_NAME = os.getenv("DB_NAME", "fl_tasks")
 DB_COLLECTION_NAME = os.getenv("DB_COLLECTION_NAME", "tasks")
 
-PERSIST_TASK_RESOURCE_USAGE = os.getenv("PERSIST_TASK_RESOURCE_USAGE",
-                                        "false").lower()
+PERSIST_TASK_RESOURCE_USAGE = _change_to_bool(
+    os.getenv("PERSIST_TASK_RESOURCE_USAGE", "false"))
 
 MAX_RETRY_TIMES = int(os.getenv("MAX_RETRY_TIMES", "30"))
 RETRY_INTERVAL = int(

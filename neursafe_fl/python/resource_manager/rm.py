@@ -46,7 +46,7 @@ class ResourceManager:
                                         "delete": self.__delete_node})
         self.__db_collection = None
 
-        if const.PERSIST_TASK_RESOURCE_USAGE == "true":
+        if const.PERSIST_TASK_RESOURCE_USAGE:
             self.__db_collection = create_db(const.DB_TYPE,
                                              db_server=const.DB_ADDRESS,
                                              db_name=const.DB_NAME,
@@ -63,7 +63,7 @@ class ResourceManager:
         self.__restore_task()
 
     def __restore_task(self):
-        if const.PERSIST_TASK_RESOURCE_USAGE != "true":
+        if not const.PERSIST_TASK_RESOURCE_USAGE:
             logging.info("Env PERSIST_TASK_RESOURCE_USAGE set false, "
                          "no need to restore task.")
             return
