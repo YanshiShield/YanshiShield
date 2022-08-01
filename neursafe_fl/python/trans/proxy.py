@@ -10,7 +10,7 @@ import json
 from tornado.httpclient import AsyncHTTPClient, HTTPError
 
 PROXY_ADDRESS = os.getenv("PROXY_ADDRESS", "localhost:8080")
-TOKEN = os.getenv("TOKEN")
+TOKEN = os.getenv("TOKEN", "nsfl-proxy-token")
 
 
 class ProxyError(Exception):
