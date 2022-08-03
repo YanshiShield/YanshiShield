@@ -26,9 +26,6 @@ flags.DEFINE_integer('port', DEFAULT_PORT,
 flags.DEFINE_string('server', None,
                     'The address of the server, where the training and '
                     'evaluation results are reported, the format is ip:port.')
-flags.DEFINE_string('lmdb_path', None,
-                    'LMDB path, which is an exist path, is used to save'
-                    ' task metadata and status.')
 flags.DEFINE_string('workspace', None,
                     "Client's workspace path. The working path of the task "
                     'will save the temporary files generated during training'

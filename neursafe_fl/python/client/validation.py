@@ -17,7 +17,7 @@ class ParameterError(Exception):
     """
 
 
-REQUIRED_CONFIG_ITEM = ('server', 'lmdb_path', 'workspace',
+REQUIRED_CONFIG_ITEM = ('server', 'workspace',
                         'platform', 'task_config_entry')
 
 

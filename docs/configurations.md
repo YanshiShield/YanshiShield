@@ -93,6 +93,7 @@ Note: Environment variables are usually configured before startup. Usually, some
 | CKPT_ROOT_PATH             | checkpoints | Default directory name to save the checkpoint during the federated training process. |
 | DEPLOYMENT_WAY             | cloud       | The deployment method of the coordinator, support cloud or local. If cloud, the should set the COORDINATOR_WORKSPACE_PATH, which is the root work directory of federated job. |
 | COORDINATOR_WORKSPACE_PATH | /fl         | The mounted root directory of federated job in the cloud storage. |
+| K8S_IMAGE_PULL_SECRETS     | None        | Set imagePullSecrets in k8s pod or deployment to pull image If need |
 
 
 
@@ -111,7 +112,6 @@ Note: we highly recommand to use the configuration file.
 | host              | string | no       | Client listen host, default is '0.0.0.0'                     |
 | port              | int    | no       | Client listen port, default is 22000                         |
 | server            | string | yes      | The address of server, format is ip:port, where to report the the train or evaluate result.<br>For example: 192.0.0.1:9000 |
-| lmdb_path         | string | yes      | LMDB path, an local path to used to save task metadata and status. Note: the path must be exist, could be an empty directory |
 | workspace         | string | yes      | Client's workspace path, where used to save some temporary files. These temporary files are generated during the task running, such as checkpoints, task result, etc. |
 | platform          | string | no       | Client's platform, support [k8s, linux], default is linux |
 | task_config_entry | string | yes      | This is a path to store task_config.json. The task_config.json indicate the path of the entrypoint scripts that the task need to run |
@@ -137,6 +137,7 @@ Note: The command line args is a sub-set of config file. If you set same args bo
 | registration         | bool   | no       | Whether the client is registered to the selector component. Default is true |
 | label                | string | no       | Client's label, which can be used to classify and filter devices |
 | runtime              | string | no       | Client supported runtimes, which can be used to classify and filter devices |
+| task_saved           | dict   | no       | The task storage strategy supports four strategies of not/mongo/postgreSQL/lmdb. The default is not_used.  mongo/postgreSQL refers to saving task history information in the mongo/postgreSQL database. lmdb requires additional configuration 'path' in task_saved. |
 | max_task_parallelism | int    | no       | The maximum number of concurrent federated job on the client |
 | username             | string | no       | Client's username, used to authentication. Only used when registration is true. |
 | password             | string | no       | Client's password, used to authentication. Only used when registration is true. |
@@ -159,6 +160,7 @@ Note: Environment variables are usually configured before startup. If a containe
 | WAIT_WORKER_FINISHED_TIMEOUT | 300     | Maximum time to wait for a task to complete, if not, the task will be stopped forcely |
 | WORKER_HTTP_PROXY            | None    | Set up pod environment of http proxy if need                 |
 | WORKER_HTTPS_PROXY           | None    | Set up pod environment of https proxy if need                |
+| K8S_IMAGE_PULL_SECRETS       | None    | Set imagePullSecrets in k8s pod or deployment to pull image If need |
 
 
 

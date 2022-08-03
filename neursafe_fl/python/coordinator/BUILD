@@ -37,7 +37,6 @@ py_wheel(
     python_tag = "py3",
     version = "0.1.0",
     requires = [
-        "lmdb==1.0.0",
         "grpclib==0.4.1",
         "tensorflow==2.4.0",
         "absl-py==0.11.0",
