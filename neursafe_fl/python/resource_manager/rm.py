@@ -13,8 +13,7 @@ import neursafe_fl.python.resource_manager.const as const
 import neursafe_fl.python.resource_manager.errors as errors
 
 from neursafe_fl.python.libs.db.db_factory import create_db
-from neursafe_fl.python.resource_manager.plat_form.platform import \
-    gen_platform, PlatFormType
+from neursafe_fl.python.resource_manager.plat_form.platform import gen_platform
 from neursafe_fl.python.libs.db.errors import DataAlreadyExisting
 from neursafe_fl.python.resource_manager.node import NodeState
 import neursafe_fl.python.resource_manager.util as util
@@ -29,7 +28,7 @@ class ResourceManager:
     """Resource Manager Class
     """
 
-    def __init__(self):
+    def __init__(self, platform_name):
         """
         nodes: {"node_id": Object(Node)...}
         tasks: {"task_id": List(resource_allocation_spec)}
@@ -41,12 +40,13 @@ class ResourceManager:
         self.__nodes = {}
         self.__tasks = {}
 
-        self.__platform = gen_platform({"add": self.__add_node,
+        self.__platform = gen_platform(platform_name,
+                                       {"add": self.__add_node,
                                         "modify": self.__modify_node,
                                         "delete": self.__delete_node})
         self.__db_collection = None
 
-        if const.PLATFORM in [PlatFormType.K8S]:
+        if const.PERSIST_TASK_RESOURCE_USAGE:
             self.__db_collection = create_db(const.DB_TYPE,
                                              db_server=const.DB_ADDRESS,
                                              db_name=const.DB_NAME,
@@ -63,9 +63,9 @@ class ResourceManager:
         self.__restore_task()
 
     def __restore_task(self):
-        if const.PLATFORM == PlatFormType.STANDALONE:
-            logging.info("Platform is %s, no need to restore task.",
-                         const.PLATFORM)
+        if not const.PERSIST_TASK_RESOURCE_USAGE:
+            logging.info("Env PERSIST_TASK_RESOURCE_USAGE set false, "
+                         "no need to restore task.")
             return
 
         tasks = self.__db_collection.find_all()

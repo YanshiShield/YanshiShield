@@ -41,7 +41,8 @@ class TaskManager:
 
         self.__lmdb = LMDBUtil(client_config['lmdb_path'])
 
-        self.__resource_manager = ResourceManager()
+        self.__resource_manager = ResourceManager(
+            self.__client_config["platform"])
         self.__resource_manager.start()
 
     def create(self, task_type, task_info, files, grpc_metadata):
