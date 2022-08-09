@@ -137,7 +137,7 @@ Note: The command line args is a sub-set of config file. If you set same args bo
 | registration         | bool   | no       | Whether the client is registered to the selector component. Default is true |
 | label                | string | no       | Client's label, which can be used to classify and filter devices |
 | runtime              | string | no       | Client supported runtimes, which can be used to classify and filter devices |
-| task_saved           | dict   | no       | The task storage strategy supports four strategies of not/mongo/postgreSQL/lmdb. The default is not_used.  mongo/postgreSQL refers to saving task history information in the mongo/postgreSQL database. lmdb requires additional configuration 'path' in task_saved. |
+| task_saving_strategy | dict   | no       | The task storage strategy supports three strategies of mongo/postgre/lmdb. if not set 'type' in task_saving_strategy, The client will not save task history information. If set 'type' with mongo/postgre/lmdb, this refers to saving task history information in the mongo/postgre/lmdb database. and lmdb requires additional configuration 'path' in task_saving_strategy. |
 | max_task_parallelism | int    | no       | The maximum number of concurrent federated job on the client |
 | username             | string | no       | Client's username, used to authentication. Only used when registration is true. |
 | password             | string | no       | Client's password, used to authentication. Only used when registration is true. |

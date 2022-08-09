@@ -40,7 +40,8 @@ class TaskManager:
         # Record the running tasks, index by (job_name, round, type)
         self.__tasks = {}
 
-        self.__task_dao = create_task_dao(client_config.get("task_saved", {}))
+        self.__task_dao = create_task_dao(
+            client_config.get("task_saving_strategy", {}))
 
         self.__resource_manager = ResourceManager()
         self.__resource_manager.start()

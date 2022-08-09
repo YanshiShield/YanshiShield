@@ -15,11 +15,11 @@ def create_task_dao(config):
     """
     dao_map = {
         "lmdb": LmdbTaskDao,
-        DBType.POSTGRESQL: PostgreTaskDao,
-        DBType.MONGO: MongoTaskDao
+        "postgre": PostgreTaskDao,
+        "mongo": MongoTaskDao
     }
     try:
-        dao = dao_map[config.get("type", "not")](**config)
+        dao = dao_map[config.get("type", "other")](**config)
         logging.info("Use database %s success.", config.get("type"))
         return dao
     except KeyError:
@@ -94,7 +94,10 @@ class PostgreTaskDao(TaskDao):
     """
     def __init__(self, **_):
         super().__init__(**_)
-        _db = create_db(const.DB_TYPE, db_server=const.DB_ADDRESS,
+        self._init_db_collection(DBType.POSTGRESQL)
+
+    def _init_db_collection(self, db_type):
+        _db = create_db(db_type, db_server=const.DB_ADDRESS,
                         db_name=const.DB_NAME, user=const.DB_USERNAME,
                         pass_word=const.DB_PASSWORD)
         try:
@@ -123,3 +126,6 @@ class PostgreTaskDao(TaskDao):
 class MongoTaskDao(PostgreTaskDao):
     """Save task used mongo.
     """
+    def __init__(self, **_):
+        super().__init__(**_)
+        self._init_db_collection(DBType.MONGO)
