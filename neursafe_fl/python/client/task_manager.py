@@ -42,7 +42,7 @@ class TaskManager:
         self.__tasks = {}
 
         self.__task_dao = create_task_dao(
-            client_config.get("task_saving_strategy", {}))
+            client_config.get("task_saving_strategy", None))
 
         self.__resource_manager = ResourceManager(
             self.__client_config["platform"])

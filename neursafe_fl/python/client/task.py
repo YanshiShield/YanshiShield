@@ -84,8 +84,7 @@ class Task:
         kwargs:
             grpc_metadata: The metadata in the grpc header, sent from the
                 coordinator, contains model-id, client_id.
-            task_dao: An implementation of LMDB/Postgre/Mongo for saving
-                task information.
+            task_dao: An implementation for saving task information.
             handle_finish: When task finished, call this function.
     """
     def __init__(self, task_id, task_type, workspace, client_config,

@@ -43,7 +43,6 @@ py_wheel(
     version = "0.1.0",
     python_tag = "py3",
     requires = [
-        "lmdb==1.3.0",
         "grpclib==0.4.1",
         "protobuf==3.14.0",
         "tensorflow==2.4.0",
@@ -109,7 +108,6 @@ py_wheel(
     version = "0.1.0",
     python_tag = "py3",
     requires = [
-        "lmdb==1.3.0",
         "grpclib==0.4.1",
         "protobuf==3.14.0",
         "tensorflow==2.4.0",
@@ -174,7 +172,6 @@ py_wheel(
     version = "0.1.0",
     python_tag = "py3",
     requires = [
-        "lmdb==1.3.0",
         "grpclib==0.4.1",
         "protobuf==3.14.0",
         "cgroupspy==0.1.6",
