@@ -11,9 +11,6 @@
     "registration": "True",
     "platform": "k8s",
     "volumes": {
-      "lmdb": {
-        "source": "/mnt/nsfl/client/fl_lmdb"
-      },
       "workspace": {
         "source": "/mnt/nsfl/client/workspace"
       },

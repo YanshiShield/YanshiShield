@@ -464,7 +464,6 @@ def _gen_task_manager_deployment_files(configs, output):
     envs.extend(_gen_optional_envs(configs["task_manager"].get("options", {})))
 
     pod_mount_paths = {
-        "lmdb": configs["task_manager"]["volumes"]["lmdb"]["source"],
         "workspace": configs["task_manager"]["volumes"]["workspace"]["source"],
         "datasets": configs["task_manager"]["volumes"]["datasets"]["source"],
         "task-configs": configs["task_manager"]["volumes"][
@@ -491,7 +490,6 @@ def _gen_task_manager_deployment_files(configs, output):
     def _gen_task_manager_setup_file():
         with open(os.path.join(TEMPLATE_PATH, "task_manager_setup.json")) as f:
             config = json.load(f)
-            config["lmdb_path"] = pod_mount_paths["lmdb"]
             config["workspace"] = pod_mount_paths["workspace"]
             config["server"] = configs["task_manager"]["server_address"]
 
