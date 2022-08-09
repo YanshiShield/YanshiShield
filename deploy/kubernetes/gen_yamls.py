@@ -275,7 +275,9 @@ def _gen_job_scheduler_deployment_files(configs, output):
         {"name": "MODEL_MANAGER_ADDRESS",
          "value": "%s:%s" % (
              configs["model_manager"]["service_name"],
-             configs["model_manager"]["port"])}]
+             configs["model_manager"]["port"])},
+        {"name": "PERSIST_TASK_RESOURCE_USAGE",
+         "value": "true"}]
 
     envs.extend(_gen_optional_envs(configs["job_scheduler"].get("options", {})))
 

@@ -133,6 +133,7 @@ Note: The command line args is a sub-set of config file. If you set same args bo
 
 | args name            | type   | required | description                                                  |
 | -------------------- | ------ | -------- | ------------------------------------------------------------ |
+| client_id            | string | no       | The unique identifier of the client |
 | external_address     | string | no       | The IP address and port of the client's external service, Default is host:port |
 | registration         | bool   | no       | Whether the client is registered to the selector component. Default is true |
 | label                | string | no       | Client's label, which can be used to classify and filter devices |
