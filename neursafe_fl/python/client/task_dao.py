@@ -1,3 +1,6 @@
+#  Copyright 2022 The Neursafe FL Authors. All Rights Reserved.
+#  SPDX-License-Identifier: Apache-2.0
+
 """Task DAO, used to save task metadata, and query history task.
 """
 import logging
