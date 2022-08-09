@@ -7,7 +7,6 @@
 """
 import abc
 import enum
-import json
 import os
 import time
 import asyncio
@@ -85,7 +84,7 @@ class Task:
         kwargs:
             grpc_metadata: The metadata in the grpc header, sent from the
                 coordinator, contains model-id, client_id.
-            lmdb: An implementation of LMDBUtil for saving task information.
+            task_dao: An implementation for saving task information.
             handle_finish: When task finished, call this function.
     """
     def __init__(self, task_id, task_type, workspace, client_config,
@@ -102,7 +101,7 @@ class Task:
         self._task_config = None
         self.__resource = resource
 
-        self.__lmdb = kwargs['lmdb']
+        self.__task_dao = kwargs['task_dao']
         self.__done_callback = kwargs['handle_finish']
         self._security_algorithm = None
         self._workers = {}
@@ -129,7 +128,7 @@ class Task:
         # must put TaskConfigParser after decompress_files,
         # because script and config maybe send by server,
         # they should save in workspace first.
-        self._task_config = TaskConfigParser(
+        self._task_config = await TaskConfigParser(
             self._task_info.spec, self.workspace,
             self._client_config['task_config_entry']).parse(self.task_type)
 
@@ -288,7 +287,7 @@ class Task:
     def __record_success(self):
         self._stop_time = _now()
         self._status = Status.success
-        self.persist()
+        self.__task_dao.update(self._to_dict())
 
     def __record_error(self, err):
         logging.exception(err)
@@ -296,7 +295,7 @@ class Task:
         self._stop_time = _now()
         self._message = err
         self._status = Status.failed
-        self.persist()
+        self.__task_dao.update(self._to_dict())
 
     async def execute(self):
         """Run the task.
@@ -357,7 +356,7 @@ class Task:
 
     def _to_dict(self):
         return {
-            'task_id': self.task_id,
+            'id': self.task_id,
             'job_name': self._task_info.metadata.job_name,
             'round': self._task_info.metadata.round,
             'config_file': self._task_info.spec.entry_name,
@@ -370,9 +369,7 @@ class Task:
     def persist(self):
         """Insert task config to db.
         """
-        task_dict = self._to_dict()
-        self.__lmdb.write(self.task_id, json.dumps(task_dict))
-        logging.debug('task:%s write db success', self.task_id)
+        self.__task_dao.save(self._to_dict())
 
     def _encode_task_result(self, status, metrics=None, custom_params=None):
         task_result = TaskResult(metadata=self._task_info.metadata,

@@ -135,7 +135,6 @@ In the shared root directory, create the relevant folders as shown in the figure
 
 In the shared directory, create the relevant folders as shown in the figure above. The folder name can be customized, as long as it matches the relevant configuration items in the configuration file:
 
-- **lmdb dir:** Task manager saves job related meta information
 - **workspace dir:** The task manager saves the intermediate data of related jobs, such as the model dispatched by the server, etc.
 - **datasets dir:** Save datasets and dataset configuration files. There must be a datasets.json configuration file in this directory to specify the relationship between different datasets and their corresponding directories. At the same time, users need to store datasets in this directory. For how to configure, please refer to [The "Preparing Configuration File" chapter in the Quick Start Documentation](quick_start.md)
 - **task configs dir:** Save job related configurations, training scripts, and evaluation scripts. The training scripts of federated jobs can not be delivered from the server, so users need to prepare job related configuration, training, and evaluation scripts in advance. For how to configure, please refer to [The "Preparing Configuration File" chapter in the Quick Start Documentation](quick_start.md)
@@ -287,9 +286,6 @@ python3 ./deploy/kubernetes/gen_yamls.py --type server --config_file ./deploy/ku
        "storage_quota": "1024",       # The storage limit that can be used by workspace files in the shared directory on the client side
        "registration": "True",    # Whether to register with the client selector on the server side, after registration, the server side can select appropriate nodes to participate in federated learning based on the node information
        "volumes": {
-         "lmdb": {
-           "source": "/mnt/neursafe_fl/lmdb" # The absolute path of the lmdb dir folder in the shared directory on the client side, the user mounts it into the container
-         },
          "workspace": {
            "source": "/mnt/neursafe_fl/workspace" # The absolute path of the workspace dir folder in the shared directory on the client side, the user mounts it in the container
          },

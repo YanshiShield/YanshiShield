@@ -139,7 +139,6 @@ https_proxy, http_proxy, no_proxy: 如果你的环境需要通过代理访问互
 
 在共享目录下，创建上图所示的相关文件夹，文件夹名可以自定义，只需要和配置文件中的相关配置项匹配即可：
 
-- **lmdb dir：** Task manager会保存作业相关的元信息
 - **workspace dir：** Task manager会保存相关作业的中间数据，如：服务器下发的模型等
 - **datasets dir：** 保存数据集、数据集配置文件，在该目录下必须有个datasets.json的配置文件，用于指定不同数据集与其对应的目录关系，同时，用户需要把数据集存在这个目录中，如何配置请参考[快速使用文档中“准备配置文件”章节](quick_start_zh.md)
 - **task configs dir：** 保存作业相关的配置、训练脚本、评估脚本，联邦作业的训练脚本可以不从server端下发，所以需要用户提前准备好作业相关的配置、训练和评估脚本，如何配置请参考[快速使用文档中“准备配置文件”章节](quick_start_zh.md)
@@ -291,9 +290,6 @@ python3 ./deploy/kubernetes/gen_yamls.py --type server --config_file ./deploy/ku
        "storage_quota": "1024",       # client端共享目录下workspace文件能使用的存储限制
        "registration": "True",    # 是否向server端的client selector注册，注册后，server端可以根据节点信息，刷选合适的节点参与联邦学习
        "volumes": {
-         "lmdb": {
-           "source": "/mnt/neursafe_fl/lmdb" # client端共享目录下lmdb dir文件夹的绝对路径，用户挂载到容器内
-         },
          "workspace": {
            "source": "/mnt/neursafe_fl/workspace" # client端共享目录下workspace dir文件夹的绝对路径，用户挂载到容器内
          },
