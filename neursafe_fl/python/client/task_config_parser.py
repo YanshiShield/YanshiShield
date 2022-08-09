@@ -1,13 +1,18 @@
 #  Copyright 2022 The Neursafe FL Authors. All Rights Reserved.
 #  SPDX-License-Identifier: Apache-2.0
-
 # pylint:disable=too-few-public-methods
 """Parse task config.
 """
+
+import asyncio
+import json
 import os
 
 from neursafe_fl.python.client.validation import raise_exception
-from neursafe_fl.python.utils.file_io import read_json_file
+
+
+MAX_TRY_TIME = 3
+WAIT_SECOND = 0.5
 
 
 def assert_task_config(config_file, config, task_type):
@@ -76,23 +81,36 @@ class TaskConfigParser:
             self.__entry_file = os.path.join(
                 self.__root, task_spec.scripts.config_file)
 
-    def parse(self, task_type):
+    async def parse(self, task_type):
         """Get config based on config file name, and assert config valid.
 
         Args:
             task_type: Training or evaluation task.
         """
-        config = self.__read_config(self.__entry_file)
+        json_config = await self.__wait_read_success()
+        config = json.loads(json_config)
+        if 'script_path' not in config:
+            config['script_path'] = self.__root
         assert_task_config(self.__entry_file, config, task_type)
 
         return config
 
-    def __read_config(self, config_file):
-        try:
-            config = read_json_file(config_file)
-            if 'script_path' not in config:
-                config['script_path'] = self.__root
-            return config
-        except FileNotFoundError:
-            raise_exception(
-                'The task %s configure file not exist.' % self.__entry_file)
+    async def __wait_read_success(self):
+        try_time = 0
+        while try_time < MAX_TRY_TIME:
+            try_time += 1
+            try:
+                with open(self.__entry_file, 'r') as cfg_file:
+                    value = cfg_file.read()
+                    if value == "":
+                        # The decompressed data to minio cannot be read
+                        # immediately, it should wait a short time and
+                        # then read it.
+                        await asyncio.sleep(WAIT_SECOND)
+                    else:
+                        return value
+            except FileNotFoundError:
+                raise_exception(
+                    'The task %s configure file not exist.' % self.__entry_file)
+        raise_exception(
+            'The task %s configure file is empty.' % self.__entry_file)

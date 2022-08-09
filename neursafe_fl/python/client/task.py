@@ -129,7 +129,7 @@ class Task:
         # must put TaskConfigParser after decompress_files,
         # because script and config maybe send by server,
         # they should save in workspace first.
-        self._task_config = TaskConfigParser(
+        self._task_config = await TaskConfigParser(
             self._task_info.spec, self.workspace,
             self._client_config['task_config_entry']).parse(self.task_type)
 
