@@ -109,7 +109,6 @@ def _gen_client_setup_config(client_root_dir, index, port):
     with open(config_template_path) as f:
         config = json.load(f)
 
-    config["lmdb_path"] = _gen_lmdb_dir(client_root_dir)
     config["port"] = int(port)
     config["workspace"] = _gen_client_workspace(client_root_dir)
     config["server"] = "127.0.0.1:%s" % FLAGS.coordinator_port
@@ -121,13 +120,6 @@ def _gen_client_setup_config(client_root_dir, index, port):
     with open(os.path.join(client_root_dir,
                            "%s.json" % FLAGS.job_name), "w") as f:
         json.dump(config, f)
-
-
-def _gen_lmdb_dir(client_root_dir):
-    lmdb_dir = os.path.join(client_root_dir, "lmdb")
-    _create_dir(lmdb_dir)
-
-    return lmdb_dir
 
 
 def _gen_client_workspace(client_root_dir):

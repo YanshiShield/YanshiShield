@@ -1,19 +1,20 @@
 #  Copyright 2022 The Neursafe FL Authors. All Rights Reserved.
 #  SPDX-License-Identifier: Apache-2.0
-
 # pylint:disable=too-few-public-methods, broad-except
 """Task manager.
 """
+
 import asyncio
 import os
 import time
 
-
 from absl import logging
-from neursafe_fl.python.utils.lmdb_util import LMDBUtil
+
 from neursafe_fl.python.client.task import create_task, TaskType
+from neursafe_fl.python.client.task_dao import create_task_dao
 from neursafe_fl.python.client.validation import ParameterError
 from neursafe_fl.python.resource_manager.rm import ResourceManager
+
 
 _RUNNING_TASK_WORKSPACE_SUFFIX = '_running'
 
@@ -40,7 +41,8 @@ class TaskManager:
         # Record the running tasks, index by (job_name, round, type)
         self.__tasks = {}
 
-        self.__lmdb = LMDBUtil(client_config['lmdb_path'])
+        self.__task_dao = create_task_dao(
+            client_config.get("task_saving_strategy", None))
 
         self.__resource_manager = ResourceManager(
             self.__client_config["platform"])
@@ -126,7 +128,7 @@ class TaskManager:
             files_from_server=files,
             resource=resource_spec,
             workspace=workspace,
-            lmdb=self.__lmdb,
+            task_dao=self.__task_dao,
             handle_finish=self.__do_finish,
             grpc_metadata=grpc_metadata)
 
