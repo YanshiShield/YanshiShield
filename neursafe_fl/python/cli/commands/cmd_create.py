@@ -107,8 +107,7 @@ def create_job(ctx, extender_script_path, scripts_path,
     """
     try:
         data_client = DataClient(ctx.get_data_server(), ctx.get_user(),
-                                 ctx.get_password(),
-                                 ctx.get_certificate_path())
+                                 ctx.get_password())
         fl_job = Job(ctx.get_api_server())
         if workspace:
             job_config = init_job_use_workspace(data_client, namespace,
@@ -209,8 +208,7 @@ def _upload_model_and_create(ctx, namespace, config, local_model):
         raise Exception("Not support model is directory.")
     fl_model = Model(ctx.get_api_server())
     data_client = DataClient(ctx.get_data_server(), ctx.get_user(),
-                             ctx.get_password(),
-                             ctx.get_certificate_path())
+                             ctx.get_password())
 
     def upload_progress(progress):
         fl_model.upload_progress(model_info["id"], progress)

@@ -28,7 +28,7 @@ py_wheel(
         "click==7.1.2",
         "urllib3==1.26.4",
         "absl-py==0.11.0",
-        "boto3==1.17.67",
+        "webdav4==0.9.7",
         "cryptography==3.3.1"
     ],
     deps = [":cli_pkg"],

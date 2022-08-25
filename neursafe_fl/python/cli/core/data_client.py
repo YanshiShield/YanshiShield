@@ -3,150 +3,151 @@
 
 """Data client.
 """
-
 import os
-import math
 
-import boto3
-from boto3.s3.transfer import TransferConfig
-from neursafe_fl.python.cli.core.aes import decrypt
+from webdav4.client import Client
 from neursafe_fl.python.cli.core.progress import ProgressPercentage
-from neursafe_fl.python.cli.core.util import get_size
+from neursafe_fl.python.cli.core.aes import decrypt
 
-GB = 1024 ** 3
-MAX_UPLOAD_SIZE = 5 * GB
+TIMEOUT = 300
+CHUNK_SIZE = 2**10
+
+
+def _combine_path(prefix, relative_path):
+    return os.path.join(prefix, relative_path.lstrip("/"))
 
 
 class DataClient:
     """The data client to operate data"""
-    def __init__(self, data_server, user, password, cert_path):
-        if cert_path:
-            self.__client = boto3.client(
-                's3',
-                aws_access_key_id=user,
-                aws_secret_access_key=decrypt(password),
-                endpoint_url=data_server,
-                use_ssl=True,
-                verify=cert_path
-            )
-        else:
-            self.__client = boto3.client(
-                's3',
-                aws_access_key_id=user,
-                aws_secret_access_key=decrypt(password),
-                endpoint_url=data_server
-            )
+    def __init__(self, server_address, user, password):
+        server = "http://%s" % server_address.lstrip("http://")
+        self.__client = Client(server, auth=(user, decrypt(password)),
+                               timeout=TIMEOUT)
 
-        self.__trans_conf = TransferConfig(multipart_threshold=MAX_UPLOAD_SIZE)
-        self.__total_size = 0
-        self.__uploaded_size = 0
-        self.progress = 0
+    def __exists(self, remote_path):
+        return self.__client.exists(remote_path)
 
-    def upload_file(self, namespace, local_file, remote_file):
-        """Upload a file to server.
+    def __mkdirs(self, remote_dir_path):
+        whole_dir = ""
+
+        for child_dir in remote_dir_path.split('/'):
+            whole_dir = os.path.join(whole_dir, child_dir)
+            if not self.__client.exists(whole_dir):
+                self.__client.mkdir(whole_dir)
+
+    def upload_file(self, namespace, local_path, remote_path):
+        """Upload a file to data server.
 
         Args:
-            namespace: job's namespace.
-            local_file: a Local absolute path.
-            remote_file: the file path in server.
+            namespace: namespace which the file belongs to.
+            local_path: local file absolute path.
+            remote_path: remote file relative path in namespace.
         """
-        if remote_file.startswith("/"):
-            remote_file = remote_file[1:]
-        self.__total_size = get_size(local_file)
+        remote_path = _combine_path(namespace, remote_path)
 
-        self.__client.upload_file(local_file, namespace, remote_file,
-                                  Callback=ProgressPercentage(
-                                      local_file, self.__total_progress),
-                                  Config=self.__trans_conf)
+        remote_dir, _ = os.path.split(remote_path)
+
+        if not self.__exists(remote_dir):
+            self.__mkdirs(remote_dir)
+
+        progress = ProgressPercentage(local_path)
+        self.__client.upload_file(local_path, remote_path,
+                                  overwrite=True,
+                                  callback=progress,
+                                  chunk_size=CHUNK_SIZE)
 
     def upload_files(self, namespace, local_dir, remote_dir):
-        """Upload all files in path to server.
+        """Upload all files in director to data server.
 
         Args:
-            namespace: job's namespace.
-            local_dir: a Local absolute path.
-            remote_dir: the file path in server.
+            namespace: namespace which the files belongs to.
+            local_dir: local directory path.
+            remote_dir: remote directory relative path in namespace.
         """
-        if remote_dir.startswith("/"):
-            remote_dir = remote_dir[1:]
-        self.__total_size = get_size(local_dir)
-
-        self.__upload_files(namespace, local_dir, remote_dir)
-
-    def __upload_files(self, namespace, local_dir, remote_dir):
-        for path in os.listdir(local_dir):
-            src = os.path.join(local_dir, path)
-            dest = os.path.join(remote_dir, path)
+        for name_ in os.listdir(local_dir):
+            src = os.path.join(local_dir, name_)
+            dest = os.path.join(remote_dir, name_)
             if os.path.isfile(src):
-                self.__client.upload_file(src, namespace, dest,
-                                          Callback=ProgressPercentage(
-                                              src, self.__total_progress),
-                                          Config=self.__trans_conf)
+                self.upload_file(namespace, src, dest)
                 print("")
             elif os.path.isdir(src):
-                self.__upload_files(namespace, src, dest)
+                self.upload_files(namespace, src, dest)
 
-    def __total_progress(self, byte_amount):
-        self.__uploaded_size += byte_amount
-        self.progress = math.floor((
-            self.__uploaded_size / float(self.__total_size)) * 100)
-
-    def download_file(self, namespace, remote_file, _file):
-        """Download remote file to local.
+    def download_file(self, namespace, remote_path, local_path):
+        """Download file to local path
 
         Args:
-            namespace: job's namespace.
-            remote_file: the file path in server.
-            _file: a Local absolute path or a flie-like obj.
+            namespace: namespace which the file belongs to.
+            remote_path: remote file relative path in namespace.
+            local_path: local file absolute path.
         """
-        if remote_file.startswith("/"):
-            remote_file = remote_file[1:]
+        remote_path = _combine_path(namespace, remote_path)
 
-        file_size = self.__client.head_object(
-            Bucket=namespace, Key=remote_file).get("ContentLength", 1)
+        file_size = self.__client.info(remote_path)["content_length"]
 
-        progress = ProgressPercentage(remote_file, download=True,
+        progress = ProgressPercentage(remote_path, download=True,
                                       size=file_size)
-        if isinstance(_file, str):
-            self.__client.download_file(namespace, remote_file, _file,
-                                        Callback=progress,
-                                        Config=self.__trans_conf)
-        else:
-            self.__client.download_fileobj(namespace, remote_file, _file,
-                                           Config=self.__trans_conf)
+
+        self.__client.download_file(remote_path, local_path,
+                                    callback=progress,
+                                    chunk_size=CHUNK_SIZE)
+
+    def download_fileobj(self, namespace, remote_path, file_obj):
+        """Download file to file object.
+
+        Args:
+            namespace: namespace which the file belongs to.
+            remote_path: remote file relative path in namespace.
+            file_obj: file object.
+        """
+        remote_path = _combine_path(namespace, remote_path)
+
+        self.__client.download_fileobj(remote_path, file_obj,
+                                       chunk_size=CHUNK_SIZE)
 
     def download_files(self, namespace, remote_dir, local_dir):
-        """Download all files in server to local.
+        """
+        Download all files in remote directory to local directory.
 
         Args:
-            namespace: job's namespace.
-            remote_dir: the file path in server.
-            local_dir: a Local absolute path.
+            namespace: namespace which the files belongs to.
+            remote_dir: remote directory relative path in namespace.
+            local_dir: local directory path.
         """
-        if remote_dir.startswith("/"):
-            remote_dir = remote_dir[1:]
+        local_absolute_dir = _combine_path(local_dir, remote_dir)
+        if not os.path.exists(local_absolute_dir):
+            os.makedirs(local_absolute_dir)
 
-        objs = self.__client.list_objects(Bucket=namespace, Prefix=remote_dir)
-        for obj in objs["Contents"]:
-            # print(obj.object_name, obj.is_dir)
-            dest = os.path.join(local_dir, obj["Key"])
-            if not os.path.exists(os.path.dirname(dest)):
-                os.makedirs(os.path.dirname(dest))
+        remote_absolute_dir = _combine_path(namespace, remote_dir)
 
-            self.__client.download_file(namespace, obj["Key"], dest,
-                                        Config=self.__trans_conf)
+        for info in self.__client.ls(remote_absolute_dir):
+            relative_path = info["name"].lstrip(namespace)
+            if info["type"] == "file":
+                self.download_file(namespace, relative_path,
+                                   _combine_path(local_dir, relative_path))
+                print("")
+            else:
+                self.download_files(namespace, relative_path,
+                                    local_dir)
 
-    def list_namespaces(self):
-        """List namespaces"""
-        buckets = self.__client.list_buckets()
-        namespaces = []
-        for bucket in buckets['Buckets']:
-            namespaces.append(bucket["Name"])
-        return namespaces
+    def list(self, namespace, remote_dir):
+        """List remote directory
 
-    def list_objects(self, namespace, remote_dir):
-        """List objects"""
-        if remote_dir.startswith("/"):
-            remote_dir = remote_dir[1:]
+        Args:
+            namespace: namespace which the directory belongs to.
+            remote_dir: remote directory relative path in namespace.
+        """
+        remote_path = _combine_path(namespace, remote_dir)
 
-        return self.__client.list_objects(Bucket=namespace, Prefix=remote_dir)
+        return self.__client.ls(remote_path)
+
+    def exists(self, namespace, remote_path):
+        """Check remote path exists.
+
+        Args:
+            namespace: namespace which the directory belongs to.
+            remote_path: remote relative path in namespace.
+        """
+        remote_path = _combine_path(namespace, remote_path)
+
+        return self.__client.exists(remote_path)

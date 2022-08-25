@@ -110,8 +110,7 @@ def update_job(ctx, extender_script_path, scripts_path,
     """
     try:
         data_client = DataClient(ctx.get_data_server(), ctx.get_user(),
-                                 ctx.get_password(),
-                                 ctx.get_certificate_path())
+                                 ctx.get_password())
 
         fl_job = Job(ctx.get_api_server())
         if workspace:

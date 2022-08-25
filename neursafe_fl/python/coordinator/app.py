@@ -2,7 +2,6 @@
 #  SPDX-License-Identifier: Apache-2.0
 
 """Server Entry Point."""
-
 import asyncio
 
 from absl import app
@@ -12,6 +11,8 @@ from neursafe_fl.python.utils.log import set_log
 
 from neursafe_fl.python.coordinator.coordinator import Coordinator
 from neursafe_fl.python.coordinator.validations import validate_config
+import neursafe_fl.python.coordinator.common.const as const
+from neursafe_fl.python.utils.s3_conversion import convert_s3_to_posix
 
 
 FLAGS = flags.FLAGS
@@ -71,6 +72,11 @@ def main(argv):
     config_dic = FLAGS.flag_values_dict()
     set_log(config_dic["log_level"])
     logging.debug("Load configuration: %s", config_dic)
+
+    if const.STORAGE_TYPE.lower() == "s3":
+        convert_s3_to_posix(const.WORKSPACE_BUCKET, const.S3_ENDPOINT,
+                            const.S3_ACCESS_KEY, const.S3_SECRET_KEY,
+                            const.COORDINATOR_WORKSPACE_PATH)
 
     valid_config = validate_config(config_dic)
     coordinator = Coordinator(valid_config)

@@ -61,8 +61,7 @@ def download_model(ctx, namespace=None, name=None, version=None,
             os.makedirs(local_path)
 
         data_client = DataClient(ctx.get_data_server(), ctx.get_user(),
-                                 ctx.get_password(),
-                                 ctx.get_certificate_path())
+                                 ctx.get_password())
         model_namespace = model_info["storage_info"][0]
         model_path = model_info["storage_info"][1]
         file_name = os.path.basename(model_path)

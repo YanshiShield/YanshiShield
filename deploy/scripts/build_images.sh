@@ -63,6 +63,7 @@ image_cfgs=(
   deploy/docker-images/dockerfiles/selector.Dockerfile,,nsfl-selector:${opt_tag},,$opt_registry
   deploy/docker-images/dockerfiles/proxy.Dockerfile,,nsfl-proxy:${opt_tag},,$opt_registry
   deploy/docker-images/dockerfiles/model_manager.Dockerfile,,nsfl-model-manager:${opt_tag},,$opt_registry
+  deploy/docker-images/dockerfiles/data_server.Dockerfile,,nsfl-data-server:${opt_tag},,$opt_registry
   )
 
 

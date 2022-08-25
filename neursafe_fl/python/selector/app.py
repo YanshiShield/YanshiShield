@@ -14,6 +14,8 @@ from absl import logging
 from neursafe_fl.python.utils.log import set_log
 from neursafe_fl.python.utils.file_io import read_json_file
 from neursafe_fl.python.selector.selector import Selector
+import neursafe_fl.python.selector.const as const
+from neursafe_fl.python.utils.s3_conversion import convert_s3_to_posix
 
 FLAGS = flags.FLAGS
 
@@ -63,6 +65,12 @@ def main(argv):
 
     config_dic = FLAGS.flag_values_dict()
     set_log(config_dic["log_level"])
+
+    if const.STORAGE_TYPE.lower() == "s3":
+        convert_s3_to_posix(const.WORKSPACE_BUCKET, const.S3_ENDPOINT,
+                            const.S3_ACCESS_KEY, const.S3_SECRET_KEY,
+                            const.WORKSPACE)
+
     logging.info("Load parameters: %s", config_dic)
     config = _parse_config(config_dic)
 

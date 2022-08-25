@@ -37,6 +37,19 @@ class Coordinator:
             CoordinatorCreateFailed: Ignore.
         """
         def prepare_env_cfg():
+            if const.STORAGE_TYPE.lower() == "s3":
+                return {"REPORT_PERIOD": const.REPORT_PERIOD,
+                        "JOB_SCHEDULER_ADDRESS": const.JOB_SCHEDULER_ADDRESS,
+                        "SELECTOR_ADDRESS": const.SELECTOR_ADDRESS,
+                        "COORDINATOR_WORKSPACE_PATH":
+                            const.COORDINATOR_WORKSPACE_PATH,
+                        "DEPLOYMENT_WAY": const.DEPLOYMENT_WAY,
+                        "STORAGE_TYPE": const.STORAGE_TYPE,
+                        "S3_ENDPOINT": const.S3_ENDPOINT,
+                        "S3_ACCESS_KEY": const.S3_ACCESS_KEY,
+                        "S3_SECRET_KEY": const.S3_SECRET_KEY,
+                        "WORKSPACE_BUCKET": const.WORKSPACE_BUCKET}
+
             return {"REPORT_PERIOD": const.REPORT_PERIOD,
                     "JOB_SCHEDULER_ADDRESS": const.JOB_SCHEDULER_ADDRESS,
                     "SELECTOR_ADDRESS": const.SELECTOR_ADDRESS,
@@ -48,6 +61,7 @@ class Coordinator:
         cmds = ['python3.7', '-m',
                 'neursafe_fl.python.coordinator.app', '--config_file',
                 job_cfg["config_file"]]
+        privileged = const.STORAGE_TYPE.lower() == "s3"
 
         name = self.__gen_name(namespace, job_cfg['id'])
         try:
@@ -58,7 +72,8 @@ class Coordinator:
                                          "port", int(const.COORDINATOR_PORT)),
                                      image=const.COORDINATOR_IMAGE,
                                      volumes=volumes,
-                                     envs=prepare_env_cfg())
+                                     envs=prepare_env_cfg(),
+                                     privileged=privileged)
         except TaskExisted as err:
             logging.exception(str(err))
             raise CoordinatorExists('Coordinator(%s:%s) exists.' % (
@@ -70,72 +85,60 @@ class Coordinator:
                     namespace, name)) from err
 
     def __contruct_volumes(self, job_cfg, workspace, namespace):
-
         def prepare_startup_cfg_file():
-            # Coordinator部分参数只能通过文件进行传递，所以必须将配置写入文件。
             job_dir = join(workspace, job_cfg["job-id"])
             if not exists(job_dir):
                 mkdir(job_dir)
 
             job_cfg_path = join(job_dir, 'coordinator.json')
             write_json_file(job_cfg_path, job_cfg)
-            return job_cfg_path
 
-        volumes = []
+            return join(const.COORDINATOR_WORKSPACE_PATH,
+                        const.TEMP_DIR, job_cfg["job-id"], 'coordinator.json')
 
-        def append_volume(name, path):
-            if const.DEPLOYMENT_WAY == "cloud":
-                path = path.lstrip("/")
-                src = join(const.SOURCE_MOUNT_PATH, "%s/%s" % (namespace,
-                                                               path))
-                dest = join(const.COORDINATOR_WORKSPACE_PATH, path)
-            else:
-                src, dest = path, path
-            volumes.append((name, src, dest))
-            return dest
+        if const.STORAGE_TYPE.lower() == "s3":
+            volumes = [("devfuse", "/dev/fuse", "/dev/fuse", "host")]
+        else:
+            volumes = [("workspace", const.WORKSPACE_PVC,
+                        const.COORDINATOR_WORKSPACE_PATH, "pvc")]
 
-        # change the path to the real path mounted in pod
-        if job_cfg.get("model"):  # from model store
+        if job_cfg.get("model"):
             model_namespace = job_cfg["model"]["model_namespace"]
             model_path = job_cfg["model"]["model_path"]
-            src = join(const.SOURCE_MOUNT_PATH, "%s/%s" % (
-                model_namespace, model_path.lstrip("/")))
-            dest = join(const.COORDINATOR_WORKSPACE_PATH,
-                        model_path.lstrip("/"))
-            volumes.append(("model-path", src, dest))
-        else:  # from user namespace
-            dest = append_volume('model-path', job_cfg['model_path'])
-        job_cfg['model_path'] = dest
+            job_cfg['model_path'] = join(const.COORDINATOR_WORKSPACE_PATH,
+                                         model_namespace,
+                                         model_path.lstrip("/"))
+        else:
+            job_cfg['model_path'] = join(const.COORDINATOR_WORKSPACE_PATH,
+                                         namespace,
+                                         job_cfg['model_path'].lstrip("/"))
 
-        if 'scripts' in job_cfg:
-            dest = append_volume('scripts', job_cfg['scripts']['path'])
-            job_cfg['scripts']['path'] = dest
+        if "scripts" in job_cfg:
+            job_cfg['scripts']['path'] = join(const.COORDINATOR_WORKSPACE_PATH,
+                                              namespace,
+                                              job_cfg['scripts']['path'])
 
         if 'ssl' in job_cfg:
-            dest = append_volume('ssl', job_cfg['ssl'])
-            job_cfg['ssl'] = dest
+            job_cfg["ssl"] = join(const.COORDINATOR_WORKSPACE_PATH,
+                                  namespace,
+                                  job_cfg["ssl"])
 
         if ('extender' in job_cfg
                 and 'script_path' in job_cfg['extender']):
-            dest = append_volume('extender-script',
-                                 job_cfg['extender']['script_path'])
-            job_cfg['extender']['script_path'] = dest
+            job_cfg['extender']['script_path'] = join(
+                const.COORDINATOR_WORKSPACE_PATH, namespace,
+                job_cfg['extender']['script_path'].lstrip("/"))
 
         if 'output' in job_cfg:
-            dest = append_volume("output", job_cfg["output"])
-            job_cfg["output"] = dest
+            job_cfg["output"] = join(
+                const.COORDINATOR_WORKSPACE_PATH, namespace,
+                job_cfg['output'].lstrip("/"))
 
         # mount the config file of coordinator, and
         # this config must be placed after other volumes.
         startup_cfg_file_path = prepare_startup_cfg_file()
         job_cfg["config_file"] = startup_cfg_file_path
-        if const.DEPLOYMENT_WAY == "cloud":
-            config_file = "%s/coordinator.json" % job_cfg["job-id"]
-            host_dir = join(const.SOURCE_MOUNT_PATH, const.TEMP_DIR)
-            host_path = join(host_dir, config_file)
-            volumes.append(('entrypoint', host_path, startup_cfg_file_path))
 
-        logging.debug(volumes)
         return volumes
 
     @gen.coroutine

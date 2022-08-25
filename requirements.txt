@@ -21,3 +21,6 @@ pymongo==3.11.3
 psycopg2==2.7.7
 pycryptodome==3.10.1
 pyOpenSSL==20.0.1
+WsgiDAV==4.0
+cheroot==8.6.0
+webdav4==0.9.7

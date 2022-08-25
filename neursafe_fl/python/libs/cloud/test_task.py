@@ -182,11 +182,11 @@ def get_task_cfg():
             'envs': {'name1': 'value1', 'name2': 'value2'},
             'image': 'fl-coordinator:latest', 'volumes': [
                 ('startup_cfg_file_path', '/tmp/coordinator.json',
-                 '/tmp/coordinator.json'),
+                 '/tmp/coordinator.json', "pvc"),
                 ('model_path', '/root/wl/fl/pytorch_mnist/init_weights.pth',
-                 '/root/wl/fl/pytorch_mnist/init_weights.pth'),
+                 '/root/wl/fl/pytorch_mnist/init_weights.pth', "pvc"),
                 ('scripts', '/root/wl/fl/pytorch_mnist',
-                 '/root/wl/fl/pytorch_mnist')]}
+                 '/root/wl/fl/pytorch_mnist', "pvc")]}
 
 
 def get_pod():

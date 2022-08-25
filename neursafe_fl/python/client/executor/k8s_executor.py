@@ -5,6 +5,7 @@
 """
 Kubernetes executor, task will execute on kubernetes cluster.
 """
+import os
 import asyncio
 from absl import logging
 
@@ -14,7 +15,6 @@ from neursafe_fl.python.libs.cloud.task import K8sTask, TaskExisted, \
 from neursafe_fl.python.sdk.utils import TASK_RUNTIME, TASK_WORKSPACE, DATASETS
 import neursafe_fl.python.client.const as const
 from neursafe_fl.python.client.executor.errors import FLError
-from neursafe_fl.python.utils.file_io import read_json_file
 from neursafe_fl.python.client.worker import WorkerStatus
 from neursafe_fl.python.libs.cloud.const import K8S_NAMESPACE
 
@@ -45,11 +45,15 @@ class K8sExecutor(Executor):
         node_id = self._resource_spec["node_id"]
         resource = self._resource_spec["resource"]
         cmds = self.__construct_cmd()
-        volumes = [("workspace", self._workspace, self._workspace),
-                   ("cwd", self._cwd, self._cwd),
-                   ("datasets", self._datasets, self._datasets)]
-        self.__add_dataset_volume(volumes)
         envs = self.__set_env_vars()
+
+        if const.STORAGE_TYPE.lower() == "s3":
+            volumes = [("devfuse", "/dev/fuse", "/dev/fuse", "host")]
+            privileged = True
+        else:
+            volumes = [("workspace", const.WORKSPACE_PVC,
+                        const.WORKSPACE, "pvc")]
+            privileged = False
 
         try:
             await self.__k8s_client.create(name=self._id,
@@ -61,7 +65,7 @@ class K8sExecutor(Executor):
                                            port=const.WORKER_PORT,
                                            node_id=node_id,
                                            resources=resource,
-                                           working_dir=self._cwd)
+                                           privileged=privileged)
         except TaskExisted as err:
             logging.warning(str(err))
             await self.__delete_pod()
@@ -121,19 +125,31 @@ class K8sExecutor(Executor):
             return None
 
     def __construct_cmd(self):
-        cmds = []
+        if const.STORAGE_TYPE.lower() == "s3":
+            entry_path = os.path.join(self._cwd,
+                                      self._run_config['entry'].lstrip("/"))
+            cmds = ["/bin/sh", "-c",
+                    "python3.7 -c \"from neursafe_fl.python.utils.s3_conversion"
+                    " import convert_s3_to_posix;convert_s3_to_posix("
+                    "'$WORKSPACE_BUCKET', '$S3_ENDPOINT', '$S3_ACCESS_KEY', "
+                    "'$S3_SECRET_KEY', '$WORKSPACE')\" && "
+                    "python3.7 %s" % entry_path]
+        else:
+            cmds = []
 
-        params = dict(self._run_config['params'],
-                      **self._executor_info.spec.params)
+            params = dict(self._run_config['params'],
+                          **self._executor_info.spec.params)
 
-        args = [self._run_config['entry']]
-        for key, value in params.items():
-            args.append('%s' % key)
-            if value:
-                args.append(value)
+            args = [os.path.join(self._cwd,
+                                 self._run_config['entry'].lstrip("/"))]
+            for key, value in params.items():
+                args.append('%s' % key)
+                if value:
+                    args.append(value)
 
-        cmds.append(self._run_config['command'])
-        cmds.extend(args)
+            cmds.append(self._run_config['command'])
+            cmds.extend(args)
+
         return cmds
 
     def __set_env_vars(self):
@@ -141,7 +157,13 @@ class K8sExecutor(Executor):
             TASK_RUNTIME: self._executor_info.spec.runtime,
             TASK_WORKSPACE: self._workspace,
             'PYTHONPATH': self._gen_pythonpath(),
-            'OPTIMIZER_NAME': self._executor_info.spec.optimizer.name
+            'OPTIMIZER_NAME': self._executor_info.spec.optimizer.name,
+            "STORAGE_TYPE": const.STORAGE_TYPE,
+            "S3_ENDPOINT": const.S3_ENDPOINT,
+            "S3_ACCESS_KEY": const.S3_ACCESS_KEY,
+            "S3_SECRET_KEY": const.S3_SECRET_KEY,
+            "WORKSPACE_BUCKET": const.WORKSPACE_BUCKET,
+            "WORKSPACE": const.WORKSPACE
         }
         if self._executor_info.spec.optimizer.params:
             params = []
@@ -170,15 +192,15 @@ class K8sExecutor(Executor):
 
         return env_vars
 
-    def __add_dataset_volume(self, volumes):
-        datasets = read_json_file(self._datasets)
-        used_datasets = self._executor_info.spec.datasets
-        if used_datasets:
-            for index, used_dataset in enumerate(used_datasets.split(",")):
-                if datasets.get(used_dataset, None):
-                    volumes.append(("dataset-" + str(index),
-                                    datasets[used_dataset],
-                                    datasets[used_dataset]))
-                else:
-                    logging.warning("Not exist %s in datasets, %s.",
-                                    used_dataset, self._datasets)
+    # def __add_dataset_volume(self, volumes):
+    #     datasets = read_json_file(self._datasets)
+    #     used_datasets = self._executor_info.spec.datasets
+    #     if used_datasets:
+    #         for index, used_dataset in enumerate(used_datasets.split(",")):
+    #             if datasets.get(used_dataset, None):
+    #                 volumes.append(("dataset-" + str(index),
+    #                                 datasets[used_dataset],
+    #                                 datasets[used_dataset]))
+    #             else:
+    #                 logging.warning("Not exist %s in datasets, %s.",
+    #                                 used_dataset, self._datasets)

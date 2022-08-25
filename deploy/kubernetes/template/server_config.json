@@ -3,24 +3,14 @@
     "service_name": "nsfl-job-scheduler",
     "port": 8088,
     "db_collection_name": "jobs",
-    "coordinator_configs_dir": "nsfl/coordinator_configs",
+    "coordinator_configs_dir": "coordinator_configs",
     "image": "nsfl-job-scheduler:latest",
-    "volumes": {
-      "workspace": {
-        "source": "/mnt"
-      }
-    },
     "options": {}
   },
   "client_selector": {
     "service_name": "nsfl-client-selector",
     "port": 50055,
     "image": "nsfl-selector:latest",
-    "volumes": {
-      "config": {
-        "source": "/mnt/nsfl/selector/"
-      }
-    },
     "options": {}
   },
   "model_manager": {
@@ -28,11 +18,17 @@
     "port": 50057,
     "db_collection_name": "models",
     "image": "nsfl-model-manager:latest",
-    "models_dir": "models",
-    "volumes": {
-      "workspace": {
-        "source": "/mnt/nsfl/"
-      }
+    "options": {}
+  },
+  "data_server": {
+    "service_name": "nsfl-data-server",
+    "port": 30088,
+    "external": true,
+    "image": "nsfl-data-server:latest",
+    "secret_key_ref": {
+      "name": "data-server-secret",
+      "user_key": "username",
+      "passwd_key": "password"
     },
     "options": {}
   },
@@ -41,12 +37,7 @@
     "grpc_port": 30091,
     "http_port": 30092,
     "external": true,
-    "image": "nsfl-proxy:latest",
-    "volumes": {
-      "config": {
-        "source": "/mnt/nsfl/proxy/"
-      }
-    }
+    "image": "nsfl-proxy:latest"
   },
   "api_server": {
     "http_port": 30083,
@@ -65,14 +56,19 @@
     "image_pull_secret": "registry-secret"
   },
   "storage": {
-    "type": "s3",
-    "address": "http://10.67.134.15:9000",
-    "secret_key_ref": {
-      "name": "miniosecret",
-      "user_key": "username",
-      "passwd_key": "password"
-    }
-},
+    "models_dir": "models",
+    "proxy_dir": "proxy",
+    "selector_dir": "selector",
+    "coordinator_configs_dir": "coordinator_configs",
+    "backend": {
+      "type": "s3",
+      "address": "http://10.67.134.15:9000",
+      "bucket": "nsfl",
+      "secret_key_ref": {
+        "name": "miniosecret",
+        "user_key": "username",
+        "passwd_key": "password"
+    }}},
   "db": {
     "type": "postgreSQL",
     "address": "10.67.134.32:12202",
