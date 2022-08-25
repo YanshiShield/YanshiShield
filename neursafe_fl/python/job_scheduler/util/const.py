@@ -19,16 +19,25 @@ DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_NAME = os.getenv("DB_NAME", "federated_learning")
 DB_COLLECTION_NAME = os.getenv("DB_COLLECTION_NAME", "jobs")
 
-# System environment
-SELECTOR_ADDRESS = os.getenv("SELECTOR_ADDRESS")
-HTTP_PORT = int(os.getenv("HTTP_PORT", "8080"))
-SOURCE_MOUNT_PATH = os.getenv("SOURCE_MOUNT_PATH", "/mnt/minio")
-
-# Mount SOURCE_MOUNT_PATH into WORKSPACE PATH in Pod
+# Storage
+STORAGE_TYPE = os.getenv("STORAGE_TYPE", "posix")
 WORKSPACE = os.getenv("WORKSPACE", "/workspace")
 
 # Temporary dir name in WORKSPACE
 TEMP_DIR = os.getenv("TEMP_DIR", "tmp")
+
+# S3 Storage
+S3_ENDPOINT = os.getenv("S3_ENDPOINT")
+S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY")
+S3_SECRET_KEY = os.getenv("S3_SECRET_KEY")
+WORKSPACE_BUCKET = os.getenv("WORKSPACE_BUCKET")
+
+# POSIX Storage
+WORKSPACE_PVC = os.getenv("WORKSPACE_PVC")
+
+# System environment
+SELECTOR_ADDRESS = os.getenv("SELECTOR_ADDRESS")
+HTTP_PORT = int(os.getenv("HTTP_PORT", "8080"))
 
 # Coordinator config
 COORDINATOR_IMAGE = os.getenv("COORDINATOR_IMAGE", "fl-coordinator:latest")
@@ -55,9 +64,8 @@ RETRY_INTERVAL = int(
 REQUIRED_ENV_VARIABLES = ["DB_ADDRESS", "DB_USERNAME", "DB_PASSWORD", "DB_TYPE",
                           "DB_NAME", "DB_COLLECTION_NAME", "HTTP_PORT",
                           "SELECTOR_ADDRESS", "JOB_SCHEDULER_ADDRESS",
-                          "MODEL_MANAGER_ADDRESS", "SOURCE_MOUNT_PATH",
-                          "TEMP_DIR", "COORDINATOR_IMAGE", "PROXY_ADDRESS",
-                          "K8S_ADDRESS"]
+                          "MODEL_MANAGER_ADDRESS", "K8S_ADDRESS",
+                          "TEMP_DIR", "COORDINATOR_IMAGE", "PROXY_ADDRESS"]
 
 # Proxy config(Refer to neursafe_fl/python/trans/proxy.py)
 # Infrastructure config(Refer to neursafe_fl/python/libs/cloud/const.py)

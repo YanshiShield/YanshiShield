@@ -38,9 +38,8 @@ def cli(ctx):
 
     try:
         data_client = DataClient(ctx.get_data_server(), ctx.get_user(),
-                                 ctx.get_password(),
-                                 ctx.get_certificate_path())
-        data_client.list_namespaces()
+                                 ctx.get_password())
+        data_client.list('', '/')
         click.echo("data server ok.")
     except Exception as err:
         logging.exception(str(err))

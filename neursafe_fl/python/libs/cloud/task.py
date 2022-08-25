@@ -142,6 +142,7 @@ class K8sTask(BaseTask):
         node_id = task.get("node_id")
         resources = task.get("resources", {})
         working_dir = task.get("working_dir")
+        privileged = task.get("privileged", False)
 
         try:
             if self.__service:
@@ -149,7 +150,7 @@ class K8sTask(BaseTask):
 
             pod = yield self.__create_pod(name, namespace, cmds, envs,
                                           port, image, volumes, node_id,
-                                          resources, working_dir)
+                                          resources, working_dir, privileged)
 
             task['state'] = pod['status']['phase']
             raise gen.Return(task)
@@ -186,10 +187,11 @@ class K8sTask(BaseTask):
     # pylint: disable=too-many-arguments
     @gen.coroutine
     def __create_pod(self, pod_id, namespace, cmds, envs,
-                     port, image, volumes, node_id, resources, working_dir):
+                     port, image, volumes, node_id, resources, working_dir,
+                     privileged):
         pod_spec = self.__construct_pod_spec(
             pod_id, namespace, cmds, envs,
-            port, image, volumes, node_id, resources, working_dir)
+            port, image, volumes, node_id, resources, working_dir, privileged)
 
         pod = yield self.__pod.create(pod_spec)
         raise gen.Return(pod)
@@ -197,7 +199,7 @@ class K8sTask(BaseTask):
     # pylint: disable=too-many-arguments, unused-argument, too-many-locals
     def __construct_pod_spec(self, pod_id, namespace, cmds, envs,
                              port, image, volumes, node_id, resources,
-                             working_dir):
+                             working_dir, privileged):
         params = {
             'pod_name': pod_id,
             'namespace': namespace,
@@ -232,15 +234,24 @@ class K8sTask(BaseTask):
             pod_spec["spec"]["imagePullSecrets"] = [{
                 "name": K8S_IMAGE_PULL_SECRETS}]
 
+        if privileged:
+            container_spec["securityContext"] = {"privileged": True}
+
         def add_volumes():
-            def add_volume(name, src, dest):
-                pod_spec['spec']['volumes'].append(
-                    {'name': name, 'hostPath': {'path': src}})
+            def add_volume(name, src, dest, type_):
                 container_spec['volumeMounts'].append(
                     {'name': name, 'mountPath': dest})
+                if type_ == "pvc":
+                    pod_spec['spec']['volumes'].append(
+                        {'name': name,
+                         'persistentVolumeClaim': {'claimName': src}})
+                else:
+                    pod_spec['spec']['volumes'].append(
+                        {'name': name,
+                         'hostPath': {'path': src}})
 
-            for name, src, dest in volumes:
-                add_volume(name, src, dest)
+            for name, src, dest, type_ in volumes:
+                add_volume(name, src, dest, type_)
 
         def add_envs():
             for name, value in envs.items():

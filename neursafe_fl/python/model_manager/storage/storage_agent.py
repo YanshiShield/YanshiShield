@@ -9,7 +9,6 @@ import threading
 from absl import logging
 from tornado.web import gen
 import neursafe_fl.python.model_manager.utils.const as const
-from neursafe_fl.python.model_manager.storage.s3_client import S3Client
 from neursafe_fl.python.model_manager.storage.posix_client import PosixClient
 from neursafe_fl.python.model_manager.storage.base_io import PathNotExist
 
@@ -27,16 +26,7 @@ StorageResponse = namedtuple("StorageResponse", "code, state, message")
 def create_storage_agent():
     """Create the backend agent of storage.
     """
-    if const.STORAGE_TYPE == StorageType.S3:
-        storage_client = S3Client(access_key=const.STORAGE_ACCESS_KEY,
-                                  secret_key=const.STORAGE_SECRET_KEY,
-                                  endpoint=const.STORAGE_ENDPOINT)
-    elif const.STORAGE_TYPE == StorageType.POSIX:
-        storage_client = PosixClient(root_path=const.WORKSPACE)
-    else:
-        raise TypeError("Not support storage %s" % const.STORAGE_TYPE)
-
-    return storage_client
+    return PosixClient(root_path=const.WORKSPACE)
 
 
 class StorageAgent:

@@ -63,8 +63,9 @@ class TestCoordinator(unittest.TestCase):
             namespace="default",
             cmds=["python3.7", "-m",
                   "neursafe_fl.python.coordinator.app", "--config_file",
-                  "/tmp/job-id/coordinator.json"],
+                  "/fl/tmp/job-id/coordinator.json"],
             port=50051, image="fl-coordinator:latest",
+            privileged=False,
             volumes=get_volumes(),
             envs={"REPORT_PERIOD": "10",
                   "JOB_SCHEDULER_ADDRESS": "job-scheduler:8088",
@@ -238,15 +239,7 @@ def get_job_config():
 
 
 def get_volumes():
-    return [("model-path",
-             "/mnt/minio/fl/root/wl/fl/pytorch_mnist/init_weights.pth",
-             "/fl/root/wl/fl/pytorch_mnist/init_weights.pth"),
-            ("scripts", "/mnt/minio/fl/root/wl/fl/pytorch_mnist",
-             "/fl/root/wl/fl/pytorch_mnist"),
-            ('output', '/mnt/minio/fl/root/wl/fl/pytorch_mnist',
-             '/fl/root/wl/fl/pytorch_mnist'),
-            ('entrypoint', '/mnt/minio/tmp/job-id/coordinator.json',
-             '/tmp/job-id/coordinator.json')]
+    return [('workspace', None, '/fl', 'pvc')]
 
 
 if __name__ == "__main__":

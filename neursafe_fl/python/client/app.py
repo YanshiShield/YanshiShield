@@ -14,6 +14,8 @@ from neursafe_fl.python.client.validation import validate_agent_config, \
     SUPPORT_PLATFORM
 from neursafe_fl.python.utils.file_io import read_json_file
 from neursafe_fl.python.utils.log import set_log
+from neursafe_fl.python.utils.s3_conversion import convert_s3_to_posix
+import neursafe_fl.python.client.const as const
 
 
 DEFAULT_HOST = '0.0.0.0'
@@ -90,12 +92,18 @@ def main(argv):
     """
     del argv
 
+    if const.STORAGE_TYPE.lower() == "s3":
+        convert_s3_to_posix(const.WORKSPACE_BUCKET, const.S3_ENDPOINT,
+                            const.S3_ACCESS_KEY, const.S3_SECRET_KEY,
+                            const.WORKSPACE)
+
     config_dic = FLAGS.flag_values_dict()
     if FLAGS.config_file:
         config_dic = __parse_config_file(config_dic['config_file'])
         __set_default_value(config_dic)
 
     set_log(config_dic['log_level'])
+
     validate_agent_config(config_dic)
 
     client = Client(config_dic)

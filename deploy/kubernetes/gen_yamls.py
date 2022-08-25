@@ -104,7 +104,8 @@ def _gen_service_yaml(name, ports, namespace, external=False):
 
 
 def _gen_deployment_yaml(name, ports, image, envs, volumes,
-                         namespace, cmds=None):
+                         namespace, cmds=None, image_pull_secret=None,
+                         privileged=False):
     deployment = _load_deployment_template()
     ports_ = []
     volumes_ = []
@@ -116,10 +117,17 @@ def _gen_deployment_yaml(name, ports, image, envs, volumes,
     deployment["spec"]["selector"]["matchLabels"]["app"] = name
     deployment["spec"]["template"]["metadata"]["labels"]["app"] = name
 
+    if image_pull_secret:
+        deployment["spec"]["template"]["spec"]["imagePullSecrets"] = [
+            {"name": image_pull_secret}]
+
     container = deployment["spec"]["template"]["spec"]["containers"][0]
     container["image"] = image
     container["name"] = name
     container["env"] = envs
+
+    if privileged:
+        container["securityContext"] = {"privileged": True}
 
     if cmds:
         container["command"] = cmds
@@ -130,8 +138,14 @@ def _gen_deployment_yaml(name, ports, image, envs, volumes,
 
     for volume in volumes:
         mounts.append({"mountPath": volume["pod"], "name": volume["name"]})
-        volumes_.append({"name": volume["name"],
-                         "hostPath": {"path": volume["host"]}})
+        if volume["type"] == "pvc":
+            volumes_.append({"name": volume["name"],
+                             'persistentVolumeClaim': {
+                                 'claimName': volume["pvc"]}})
+        else:
+            volumes_.append({"name": volume["name"],
+                             'hostPath': {
+                                 'path': volume["path"]}})
     container["volumeMounts"] = mounts
 
     deployment["spec"]["template"]["spec"]["volumes"] = volumes_
@@ -149,28 +163,56 @@ def _gen_optional_envs(options):
     return envs
 
 
+def _gen_storage_configs(storage):
+    if storage["backend"]["type"].lower() == "s3":
+        storage_envs = [
+            {"name": "STORAGE_TYPE",
+             "value": storage["backend"]["type"]},
+            {"name": "S3_ENDPOINT",
+             "value": storage["backend"]["address"]},
+            {"name": "S3_ACCESS_KEY",
+             "valueFrom": {
+                 "secretKeyRef": {
+                     "name": storage["backend"]["secret_key_ref"]["name"],
+                     "key": storage["backend"]["secret_key_ref"]["user_key"]}}
+             },
+            {"name": "S3_SECRET_KEY",
+             "valueFrom": {
+                 "secretKeyRef": {
+                     "name": storage["backend"]["secret_key_ref"]["name"],
+                     "key": storage["backend"]["secret_key_ref"]["passwd_key"]}}
+             },
+            {"name": "WORKSPACE_BUCKET",
+             "value": storage["backend"]["bucket"]},
+        ]
+        volumes = [{"name": "devfuse",
+                    "type": "host",
+                    "pod": "/dev/fuse",
+                    "path": "/dev/fuse"}]
+        privileged = True
+    else:
+        storage_envs = [
+            {"name": "STORAGE_TYPE",
+             "value": storage["backend"]["type"]},
+            {"name": "WORKSPACE_PVC",
+             "value": storage["backend"]["pvc"]}]
+        volumes = [{"type": "pvc",
+                    "name": "workspace",
+                    "pod": "/workspace",
+                    "pvc": storage["backend"]["pvc"]}]
+        privileged = False
+
+    return storage_envs, volumes, privileged
+
+
 def _gen_model_manager_deployment_files(configs, output):
     name = configs["model_manager"]["service_name"]
     ports = [configs["model_manager"]["port"]]
     image = configs["model_manager"]["image"]
     namespace = configs["k8s"].get("namespace", "default")
+    image_pull_secret = configs["k8s"].get("image_pull_secret")
 
     envs = [
-        {"name": "STORAGE_ENDPOINT",
-         "value": configs["storage"]["address"]},
-        {"name": "STORAGE_TYPE",
-         "value": configs["storage"]["type"]},
-        {"name": "ACCESS_KEY",
-         "valueFrom": {
-             "secretKeyRef": {
-                 "name": configs["storage"]["secret_key_ref"]["name"],
-                 "key": configs["storage"]["secret_key_ref"]["user_key"]}}},
-        {"name": "SECRET_KEY",
-         "valueFrom": {
-             "secretKeyRef": {
-                 "name": configs["storage"]["secret_key_ref"]["name"],
-                 "key": configs["storage"]["secret_key_ref"]["passwd_key"]}}
-         },
         {"name": "DB_ADDRESS",
          "value": configs["db"]["address"]},
         {"name": "DB_USERNAME",
@@ -192,21 +234,62 @@ def _gen_model_manager_deployment_files(configs, output):
          "value": configs["model_manager"]["db_collection_name"]},
         {"name": "PORT",
          "value": str(configs["model_manager"]["port"])},
+        {"name": "MODELS_DIR",
+         "value": configs["storage"]["models_dir"]},
         {"name": "LOG_LEVEL",
          "value": configs["others"]["log_level"]}]
 
-    envs.extend(_gen_optional_envs(configs["model_manager"].get("options", {})))
+    storage_envs, volumes, privileged = _gen_storage_configs(configs["storage"])
 
-    volumes = [{"name": "workspace",
-                "pod": "/workspace",
-                "host": configs["model_manager"][
-                    "volumes"]["workspace"]["source"]}]
+    envs.extend(storage_envs)
+    envs.extend(_gen_optional_envs(configs["model_manager"].get("options", {})))
 
     service = _gen_service_yaml(name, ports, namespace)
     deployment = _gen_deployment_yaml(name, ports, image,
-                                      envs, volumes, namespace)
+                                      envs, volumes, namespace,
+                                      image_pull_secret=image_pull_secret,
+                                      privileged=privileged)
 
     _save_yaml([service, deployment], output, "model-manager.yaml")
+
+
+def _gen_data_server_deployment_files(configs, output):
+    name = configs["data_server"]["service_name"]
+    ports = [configs["data_server"]["port"]]
+    image = configs["data_server"]["image"]
+    namespace = configs["k8s"].get("namespace", "default")
+    image_pull_secret = configs["k8s"].get("image_pull_secret")
+    external = configs["proxy"]["external"]
+
+    envs = [
+        {"name": "ACCESS_USER",
+         "valueFrom": {
+             "secretKeyRef": {
+                 "name": configs["data_server"]["secret_key_ref"]["name"],
+                 "key": configs["data_server"]["secret_key_ref"]["user_key"]}}},
+        {"name": "ACCESS_PASSWORD",
+         "valueFrom": {
+             "secretKeyRef": {
+                 "name": configs["data_server"]["secret_key_ref"]["name"],
+                 "key": configs["data_server"]["secret_key_ref"]["passwd_key"]}}
+         },
+        {"name": "PORT",
+         "value": str(configs["data_server"]["port"])},
+        {"name": "LOG_LEVEL",
+         "value": configs["others"]["log_level"]}]
+
+    storage_envs, volumes, privileged = _gen_storage_configs(configs["storage"])
+
+    envs.extend(storage_envs)
+    envs.extend(_gen_optional_envs(configs["data_server"].get("options", {})))
+
+    service = _gen_service_yaml(name, ports, namespace, external)
+    deployment = _gen_deployment_yaml(name, ports, image,
+                                      envs, volumes, namespace,
+                                      image_pull_secret=image_pull_secret,
+                                      privileged=privileged)
+
+    _save_yaml([service, deployment], output, "data-server.yaml")
 
 
 def _gen_job_scheduler_deployment_files(configs, output):
@@ -214,6 +297,7 @@ def _gen_job_scheduler_deployment_files(configs, output):
     ports = [configs["job_scheduler"]["port"]]
     image = configs["job_scheduler"]["image"]
     namespace = configs["k8s"].get("namespace", "default")
+    image_pull_secret = configs["k8s"].get("image_pull_secret")
 
     envs = [
         {"name": "DB_ADDRESS",
@@ -260,12 +344,9 @@ def _gen_job_scheduler_deployment_files(configs, output):
         {"name": "JOB_SCHEDULER_ADDRESS",
          "value": "%s:%s" % (name, configs["job_scheduler"]["port"])},
         {"name": "TEMP_DIR",
-         "value": configs["job_scheduler"]["coordinator_configs_dir"]},
+         "value": configs["storage"]["coordinator_configs_dir"]},
         {"name": "WORKSPACE",
          "value": "/workspace"},
-        {"name": "SOURCE_MOUNT_PATH",
-         "value": configs[
-             "job_scheduler"]["volumes"]["workspace"]["source"]},
         {"name": "GPU_RS_KEY",
          "value": configs["k8s"].get("gpu_rs_key", "nvidia.com/gpu")},
         {"name": "K8S_NAMESPACE",
@@ -279,16 +360,16 @@ def _gen_job_scheduler_deployment_files(configs, output):
         {"name": "PERSIST_TASK_RESOURCE_USAGE",
          "value": "true"}]
 
-    envs.extend(_gen_optional_envs(configs["job_scheduler"].get("options", {})))
+    storage_envs, volumes, privileged = _gen_storage_configs(configs["storage"])
 
-    volumes = [{"name": "workspace",
-                "pod": "/workspace",
-                "host": configs["job_scheduler"][
-                    "volumes"]["workspace"]["source"]}]
+    envs.extend(storage_envs)
+    envs.extend(_gen_optional_envs(configs["job_scheduler"].get("options", {})))
 
     service = _gen_service_yaml(name, ports, namespace)
     deployment = _gen_deployment_yaml(name, ports, image, envs,
-                                      volumes, namespace)
+                                      volumes, namespace,
+                                      image_pull_secret=image_pull_secret,
+                                      privileged=privileged)
 
     _save_yaml([service, deployment], output, "job-scheduler.yaml")
 
@@ -298,22 +379,24 @@ def _gen_client_selector_deployment_files(configs, output):
     ports = [configs["client_selector"]["port"]]
     image = configs["client_selector"]["image"]
     namespace = configs["k8s"].get("namespace", "default")
+    image_pull_secret = configs["k8s"].get("image_pull_secret")
+
+    storage_envs, volumes, privileged = _gen_storage_configs(configs["storage"])
 
     envs = []
+    envs.extend(storage_envs)
     envs.extend(_gen_optional_envs(
         configs["client_selector"].get("options", {})))
 
-    volumes = [{"name": "config-file",
-                "pod": "/nsfl/config/",
-                "host": configs[
-                    "client_selector"]["volumes"]["config"]["source"]}]
-
     cmds = ["python3.7", "-m", "neursafe_fl.python.selector.app",
-            "--config_file", "/nsfl/config/client_selector_setup.json"]
+            "--config_file", "/workspace/%s/client_selector_setup.json" %
+            configs["storage"]["selector_dir"]]
 
     service = _gen_service_yaml(name, ports, namespace)
     deployment = _gen_deployment_yaml(name, ports, image, envs,
-                                      volumes, namespace, cmds)
+                                      volumes, namespace, cmds,
+                                      image_pull_secret=image_pull_secret,
+                                      privileged=privileged)
 
     _save_yaml([service, deployment], output, "client-selector.yaml")
 
@@ -339,16 +422,23 @@ def _gen_proxy_deployment_files(configs, output):
     ports = [grpc_port, http_port]
     image = configs["proxy"]["image"]
     external = configs["proxy"]["external"]
+    image_pull_secret = configs["k8s"].get("image_pull_secret")
     envs = []
 
-    volumes = [{"name": "config-file",
-                "pod": "/nginx/conf/",
-                "host": configs[
-                    "proxy"]["volumes"]["config"]["source"]}]
+    storage_envs, volumes, privileged = _gen_storage_configs(configs["storage"])
+
+    envs.extend(storage_envs)
+
+    conf_dir = os.path.join("/workspace",
+                             configs["storage"]["proxy_dir"].lstrip("/"))
+    cmds = ["/nginx/start_nginx.sh", "/workspace",
+            os.path.join(conf_dir, "nginx.conf")]
 
     service = _gen_service_yaml(name, ports, namespace, external)
     deployment = _gen_deployment_yaml(name, ports, image,
-                                      envs, volumes, namespace)
+                                      envs, volumes, namespace, cmds,
+                                      image_pull_secret=image_pull_secret,
+                                      privileged=privileged)
 
     _save_yaml([service, deployment], output, "proxy.yaml")
 
@@ -420,6 +510,8 @@ def _gen_task_manager_deployment_files(configs, output):
     image = configs["task_manager"]["image"]
     external = configs["task_manager"]["external"]
     namespace = configs["k8s"].get("namespace", "default")
+    image_pull_secret = configs["k8s"].get("image_pull_secret")
+    workspace = "/workspace"
 
     envs = [
         {"name": "DB_ADDRESS",
@@ -457,51 +549,60 @@ def _gen_task_manager_deployment_files(configs, output):
          "value": configs["executor"]["image"]},
         {"name": "WORKER_PORT",
          "value": str(configs["executor"]["port"])},
+        {"name": "WORKSPACE",
+         "value": workspace},
         {"name": "WORKER_HTTP_PROXY",
          "value": configs["executor"]["http_proxy"]},
         {"name": "WORKER_HTTPS_PROXY",
          "value": configs["executor"]["https_proxy"]}]
+
+    storage_envs, volumes, privileged = _gen_storage_configs(configs["storage"])
+    envs.extend(storage_envs)
     envs.extend(_gen_optional_envs(configs["task_manager"].get("options", {})))
 
-    pod_mount_paths = {
-        "workspace": configs["task_manager"]["volumes"]["workspace"]["source"],
-        "datasets": configs["task_manager"]["volumes"]["datasets"]["source"],
-        "task-configs": configs["task_manager"]["volumes"][
-            "task-configs"]["source"],
-        "config": configs["task_manager"]["volumes"]["config"]["source"]}
-
-    volumes = []
-
-    for name_, volume in configs["task_manager"]["volumes"].items():
-        volumes.append({"name": name_,
-                        "pod": pod_mount_paths[name_],
-                        "host": volume["source"]
-                        })
+    paths = {
+        "lmdb": os.path.join(workspace,
+                             configs["storage"]["lmdb_dir"].lstrip("/")),
+        "workspace": os.path.join(
+            workspace, configs["storage"]["workspace_dir"].lstrip("/")),
+        "datasets": os.path.join(
+            workspace, configs["storage"]["datasets_dir"].lstrip("/")),
+        "task_configs": os.path.join(
+            workspace, configs["storage"]["task_configs_dir"].lstrip("/")),
+        "config": os.path.join(
+            workspace,
+            configs["storage"]["task_manager_config_dir"].lstrip("/"))}
 
     cmds = ["python3.7", "-m", "neursafe_fl.python.client.app",
-            "--config_file", os.path.join(pod_mount_paths["config"],
+            "--config_file", os.path.join(paths["config"],
                                           "task_manager_setup.json")]
 
     service = _gen_service_yaml(name, ports, namespace, external)
     deployment = _gen_deployment_yaml(name, ports, image, envs,
-                                      volumes, namespace, cmds)
+                                      volumes, namespace, cmds,
+                                      image_pull_secret=image_pull_secret,
+                                      privileged=privileged)
     _save_yaml([service, deployment], output, "task-manager.yaml")
 
     def _gen_task_manager_setup_file():
         with open(os.path.join(TEMPLATE_PATH, "task_manager_setup.json")) as f:
             config = json.load(f)
-            config["workspace"] = pod_mount_paths["workspace"]
-            config["server"] = configs["task_manager"]["server_address"]
 
+            config["lmdb_path"] = paths["lmdb"]
+            config["workspace"] = paths["workspace"]
+            config["server"] = configs["task_manager"]["server_address"]
             config["port"] = configs["task_manager"]["port"]
             config["runtime"] = configs["task_manager"]["runtime"]
-            config["datasets"] = os.path.join(pod_mount_paths["datasets"],
+            config["datasets"] = os.path.join(paths["datasets"],
                                               "datasets.json")
             config["log_level"] = configs["others"]["log_level"]
             config["platform"] = configs["task_manager"]["platform"]
-            config["task_config_entry"] = pod_mount_paths["task-configs"]
+            config["task_config_entry"] = paths["task_configs"]
             config["registration"] = configs["task_manager"]["registration"]
             config["storage_quota"] = configs["task_manager"]["storage_quota"]
+            config["external_address"] = "%s:%s" % (
+                configs["task_manager"]["service_ip"],
+                configs["task_manager"]["port"])
 
         with open(os.path.join(output, "task_manager_setup.json"), "w") as f:
             json.dump(config, f)
@@ -517,6 +618,7 @@ def _gen_server_deployment_files(config_file, output):
     _gen_proxy_deployment_files(configs, output)
     _gen_api_server_deployment_files(configs, output)
     _gen_model_manager_deployment_files(configs, output)
+    _gen_data_server_deployment_files(configs, output)
 
 
 def _gen_client_deployment_files(config_file, output):

@@ -3,6 +3,7 @@
     "service_name": "nsfl-task-manager",
     "port": 30090,
     "external": true,
+    "service_ip": "10.67.134.15",
     "db_collection_name": "tasks",
     "image": "nsfl-client-cpu:latest",
     "server_address": "10.67.134.15:30091",
@@ -10,20 +11,6 @@
     "storage_quota": 1024,
     "registration": "True",
     "platform": "k8s",
-    "volumes": {
-      "workspace": {
-        "source": "/mnt/nsfl/client/workspace"
-      },
-      "datasets": {
-        "source": "/mnt/nsfl/client/datasets"
-      },
-      "task-configs": {
-        "source": "/mnt/nsfl/client/task_configs"
-      },
-      "config": {
-        "source": "/mnt/nsfl/client/config"
-      }
-    },
     "options": {}
   },
   "executor": {
@@ -32,6 +19,21 @@
     "http_proxy": "",
     "https_proxy": ""
   },
+  "storage": {
+    "lmdb_dir": "client/lmdb",
+    "workspace_dir": "client/workspace",
+    "datasets_dir": "client/datasets",
+    "task_configs_dir": "client/task_configs",
+    "task_manager_config_dir": "client/config",
+    "backend": {
+      "type": "s3",
+      "address": "http://10.67.134.15:9000",
+      "bucket": "nsfl",
+      "secret_key_ref": {
+        "name": "miniosecret",
+        "user_key": "username",
+        "passwd_key": "password"
+    }}},
   "k8s": {
     "address": "10.67.134.15:6443",
     "gpu_rs_key": "nvidia.com/gpu",

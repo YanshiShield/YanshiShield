@@ -6,6 +6,7 @@
 """
 from io import BytesIO
 import json
+import os
 import sys
 
 from absl import logging
@@ -17,7 +18,7 @@ from neursafe_fl.python.cli.core.job import Job
 from neursafe_fl.python.cli.core.util import parse_job_id
 from neursafe_fl.python.cli.core.model import Model
 
-METRICS_FILE = "/metrics.json"
+METRICS_FILE = "metrics.json"
 
 
 @click.group("get", short_help="Get federated jobs, models or"
@@ -129,12 +130,17 @@ def get_namespace(ctx):
     """
     try:
         data_client = DataClient(ctx.get_data_server(), ctx.get_user(),
-                                 ctx.get_password(),
-                                 ctx.get_certificate_path())
-        namespaces = data_client.list_namespaces()
+                                 ctx.get_password())
+
+        namespaces = []
+        for i in data_client.list('', '/'):
+            if i["type"] == "directory":
+                namespaces.append(i["display_name"])
+
         click.echo("user support namespaces: %s" % namespaces)
     except Exception as err:
         logging.exception(str(err))
+
         click.echo("Error message: %s, the detail see %s" % (
             str(err), LOG_FILE))
         sys.exit(1)
@@ -247,40 +253,46 @@ def __get_last_metrics(ctx, namespace, job_id, job_config):
         return None
 
     data_client = DataClient(ctx.get_data_server(), ctx.get_user(),
-                             ctx.get_password(),
-                             ctx.get_certificate_path())
-    objs = __get_last_output(data_client, namespace, job_id, job_config)
+                             ctx.get_password())
 
-    return __parse_metrics(data_client, namespace, objs)
+    paths = data_client.list(namespace, job_config.get("output"))
+    pattern = "fl_%s_output_V" % job_id
 
+    def get_serial_number(path_name):
+        if pattern in path_name:
+            return int(path_name[len(pattern):])
 
-def __get_last_output(data_client, namespace, job_id, job_config):
-    remote_dir = "%s/fl_%s_output_V" % (job_config.get("output"), job_id)
-    objs = data_client.list_objects(namespace, remote_dir)
+        return 0
 
-    if "Contents" not in objs:
-        return []
-    objs["Contents"].sort(key=lambda obj: obj["LastModified"], reverse=True)
-    return objs["Contents"][:3]
+    def get_metrics(output):
+        metrics_file_path = os.path.join(output, METRICS_FILE)
 
+        if data_client.exists(namespace, metrics_file_path):
+            file_obj = BytesIO()
+            data_client.download_fileobj(namespace, metrics_file_path, file_obj)
+            file_obj.seek(0)
 
-def __parse_metrics(data_client, namespace, objs):
-    for obj in objs:
-        if obj["Key"].endswith(METRICS_FILE):
-            metrics = __load_metrics(data_client, namespace, obj)
-            for key, value in metrics.items():
-                if isinstance(value, list):
-                    # get last metrics fi has multiply round.
-                    metrics[key] = value[-1]
-            return metrics
+            return json.load(file_obj)
+
+        return None
+
+    def extract_metrics():
+        for key, value in metrics.items():
+            if isinstance(value, list):
+                metrics[key] = value[-1]
+        return metrics
+
+    paths.sort(key=lambda info: get_serial_number(info["display_name"]),
+               reverse=True)
+
+    for path_ in paths:
+        if path_["type"] == "directory" and pattern in path_["display_name"]:
+            metrics = get_metrics(path_["name"].lstrip(namespace))
+
+            if metrics:
+                return extract_metrics()
+
     return None
-
-
-def __load_metrics(data_client, namespace, obj):
-    _file = BytesIO()
-    data_client.download_file(namespace, obj["Key"], _file)
-    _file.seek(0)
-    return json.load(_file)
 
 
 @cli.command("models", short_help="Get models info.")
