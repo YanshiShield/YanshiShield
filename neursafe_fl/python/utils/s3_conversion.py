@@ -14,6 +14,7 @@ import botocore
 
 MAX_RETRY_TIMES = int(os.getenv("MAX_RETRY_TIMES", "2"))
 RETRY_INTERNAL = int(os.getenv("RETRY_INTERNAL", "1"))
+WAIT_MOUNT_TIMEOUT = int(os.getenv("WAIT_MOUNT_TIMEOUT", "300"))
 
 
 class MountBucketError(Exception):
@@ -88,13 +89,18 @@ def convert_s3_to_posix(bucket_name, endpoint_url,  # noqa: C901
             raise MountBucketError("Execute command failed: %s" % shell_cmd)
 
     def wait_mount_successfully():
-        while True:
+        retry_times = 0
+
+        while retry_times <= WAIT_MOUNT_TIMEOUT:
             if os.path.ismount(mount_path):
                 logging.info("Path: %s already mounted." % mount_path)
-                break
+                return
 
             logging.info("Path: %s is mounting." % mount_path)
-            time.sleep(1)
+            retry_times += 1
+            time.sleep(RETRY_INTERNAL)
+
+        raise MountBucketError("Wait mounting successfully time out.")
 
     def clear():
         if os.path.exists(passwd_file):
