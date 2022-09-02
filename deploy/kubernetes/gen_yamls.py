@@ -596,7 +596,7 @@ def _gen_task_manager_deployment_files(configs, output):
             config["datasets"] = os.path.join(paths["datasets"],
                                               "datasets.json")
             config["log_level"] = configs["others"]["log_level"]
-            config["platform"] = configs["task_manager"]["platform"]
+            config["platform"] = "k8s"
             config["task_config_entry"] = paths["task_configs"]
             config["registration"] = configs["task_manager"]["registration"]
             config["storage_quota"] = configs["task_manager"]["storage_quota"]
