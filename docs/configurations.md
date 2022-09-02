@@ -26,11 +26,11 @@ Each component's configuration will be described in detail below.
   - [Config file](#config-file-2)
     - [ExtenderConfig](#extenderconfig)
   - [ENVS](#envs-2)
-- [Job Scheduler](#job-scheduler-1)
+- [Job Scheduler](#job-scheduler)
   - [ENVS](#envs-3)
-- [Model Manager](#model-manager-1)
+- [Model Manager](#model-manager)
   - [ENVS](#envs-4)
-- [Data Server](#dataserver)
+- [Data Server](#data-server)
   - [ENVS](#envs-5)
 
 
