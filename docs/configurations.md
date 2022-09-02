@@ -12,6 +12,7 @@ Each component's configuration will be described in detail below.
 ## Table of Contents
 
 [Component Launch Configuration](#component-launch-configuration)
+
 - [Coordinator](#coordinator)
   - [Command Line](#command-line)
   - [Config File](#config-file)
@@ -29,6 +30,8 @@ Each component's configuration will be described in detail below.
   - [ENVS](#envs-3)
 - [Model Manager](#model-manager-1)
   - [ENVS](#envs-4)
+- [Data Server](#dataserver)
+  - [ENVS](#envs-5)
 
 
 
@@ -146,7 +149,7 @@ Note: The command line args is a sub-set of config file. If you set same args bo
 | private_key          | string | no       | The path to store the private key, see [here](https://www.pycrypto.org/) how to generate private keys. |
 | certificate          | string | no       | The path to store the certificate, see [here](https://pypi.org/project/pyOpenSSL/) how to generate and load certificate. |
 
-##### 
+ 
 
 #### ENVS
 
@@ -156,14 +159,31 @@ Note: Environment variables are usually configured before startup. If a containe
 
 | ENV                          | Default | Description                                                  |
 | ---------------------------- | ------- | ------------------------------------------------------------ |
+| WORKSPACE | /worksapce | The workspace of this component |
 | CONTAINER_EXECUTOR_IMAGE     | None    | If the client's task execution environment is kubernetes, then should specify the image address |
 | WORKER_PORT                  | 8050    | Service port when the task is executed                       |
 | WAIT_WORKER_FINISHED_TIMEOUT | 300     | Maximum time to wait for a task to complete, if not, the task will be stopped forcely |
 | WORKER_HTTP_PROXY            | None    | Set up pod environment of http proxy if need                 |
 | WORKER_HTTPS_PROXY           | None    | Set up pod environment of https proxy if need                |
 | K8S_IMAGE_PULL_SECRETS       | None    | Set imagePullSecrets in k8s pod or deployment to pull image If need |
-
-
+| DB_TYPE                       | mongo                | The type of database, support ["mongo", "postgreSQL"]        |
+| DB_ADDRESS                    | None                 | The service address of database                              |
+| DB_USERNAME                   | None                 | The username to login the database                           |
+| DB_PASSWORD                   | None                 | The password to login the database                           |
+| DB_NAME                       | None                 | The used database name                                       |
+| COLLECTION_NAME               | None                 | The used db collection name                                  |
+| STORAGE_TYPE                  | posix                | The storage protocol used by the backend storage             |
+| S3_ENDPOINT                   | None                 | If protocol type of distributed storage is s3, configure the endpoint of  DFS |
+| S3_ACCESS_KEY                 | None                 | If protocol type of distributed storage is s3, configure the access key of DFS |
+| S3_SECRET_KEY                 | None                 | If protocol type of distributed storage is s3, configure the secret key of DFS |
+| WORKSPACE_BUCKET              | None                 | If protocol type of distributed storage is s3, configure the bucket used |
+| WORKSPACE_PVC | None | If protocol type of distributed storage is POSIX, configure the pvc used |
+| K8S_ADDRESS                   | None                 | The service address of Kubernetes                            |
+| K8S_API_PROTOCOL              | http                 | The protocol used to access the k8s api server               |
+| K8S_API_TOKEN                 | None                 | If the K8S api server requires token authentication, a valid token value needs to be configured |
+| K8S_IMAGE_PULL_SECRETS        | None                 | If the docker repository requires authentication, you need to configure the corresponding secret |
+| GPU_RS_KEY                    | nvidia.com/gpu       | If the cluster has GPU resources, set the resource key value of GPU resources of k8s |
+| K8S_NAMESPACE                 | default              | Which namespace of k8s the related components deploy in      |
 
 ### Selector
 
@@ -212,10 +232,15 @@ You can config the strategies and extensions for evaluating and filtering client
 
 #### ENVS
 
-| ENV           | Default | Description                                                  |
-| ------------- | ------- | ------------------------------------------------------------ |
-| SINGLE_HEART  | 300     | The time interval at which the selector requires the client to report, if the client is a single device |
-| CLUSTER_HEART | 600     | The time interval at which the selector requires the client to report, if the client is a cluster, which means more stable |
+| ENV              | Default | Description                                                  |
+| ---------------- | ------- | ------------------------------------------------------------ |
+| SINGLE_HEART     | 300     | The time interval at which the selector requires the client to report, if the client is a single device |
+| CLUSTER_HEART    | 600     | The time interval at which the selector requires the client to report, if the client is a cluster, which means more stable |
+| STORAGE_TYPE     | posix   | The storage protocol used by the backend storage             |
+| S3_ENDPOINT      | None    | If protocol type of distributed storage is s3, configure the endpoint of  DFS |
+| S3_ACCESS_KEY    | None    | If protocol type of distributed storage is s3, configure the access key of DFS |
+| S3_SECRET_KEY    | None    | If protocol type of distributed storage is s3, configure the secret key of DFS |
+| WORKSPACE_BUCKET | None    | If protocol type of distributed storage is s3, configure the bucket used |
 
 
 
@@ -227,31 +252,42 @@ Note: Job Scheduler is mainly responsible for scheduling tasks and interacting w
 
 #### ENVS
 
-| ENV                           | Default | Description                                                  |
-| ----------------------------- | ------- | ------------------------------------------------------------ |
-| SELECTOR_ADDRESS              | None    | The service address of Selector Component                    |
-| ROUTE_REGISTER_ADDRESS        | None    | The service address of Proxy Component                       |
-| CLOUD_OS                      | k8s     | The system operating environment of each component           |
-| K8S_ADDRESS                   | None    | The service address of Kubernetes                            |
-| HTTP_PORT                     | None    | The service port on which this job scheduler component runs  |
-| COORDINATOR_IMAGE             | None    | The docker image address of Coordinator component            |
-| WORKSPACE_ROOT_PATH           | /fl     | The root directory of all the federated jobs in the storage  |
-| STORAGE_PATH                  | None    | The path in the pod that mount the HOST_PATH                 |
-| HOST_PATH                     | None    | The local path that needs to be mounted when the job scheduler pod is running |
-| JS_NAMESPACE                  | None    | The namespace that job scheduler use                         |
-| DEPLOYMENT_WAY                | cloud   | The deployment method of component, default is in kubernetes |
-| DB_TYPE                       | mongo   | The type of database, support ["mongo", "postgreSQL"]        |
-| COORDINATOR_HEARTBEAT_TIMEOUT | 20      | The maximum time interval reported by the coordinator, if timeout, the coordinator will be deleted, the jod will set to failed |
-| MAX_RETRY_TIMES               | 30      | Maximum number of attempts to connect                        |
-| COORDINATOR_QUERY_INTERVAL    | 1       | The retry time interval after schedule the coordinator       |
-| DB_ADDRESS                    | None    | The service address of database                              |
-| DB_USERNAME                   | None    | The username to login the database                           |
-| DB_PASSWORD                   | None    | The password to login the database                           |
-| DB_NAME                       | None    | The used database name                                       |
-| COLLECTION_NAME               | None    | The used db collection name                                  |
-| REPORT_PERIOD                 | 10      | The report time interval of coordinator                      |
-| JOB_SCHEDULER_ADDRESS         | None    | The service address of Job Scheduler component               |
-| MODEL_MANAGER_ADDRESS         | None    | The service address of Model Manager component               |
+| ENV                           | Default              | Description                                                  |
+| ----------------------------- | -------------------- | ------------------------------------------------------------ |
+| HTTP_PORT                     | None                 | The service port on which this job scheduler component runs  |
+| DB_TYPE                       | mongo                | The type of database, support ["mongo", "postgreSQL"]        |
+| DB_ADDRESS                    | None                 | The service address of database                              |
+| DB_USERNAME                   | None                 | The username to login the database                           |
+| DB_PASSWORD                   | None                 | The password to login the database                           |
+| DB_NAME                       | None                 | The used database name                                       |
+| COLLECTION_NAME               | None                 | The used db collection name                                  |
+| WORKSPACE                     | /worksapce           | The workspace of this component                              |
+| TEMP_DIR                      | /coordinator_configs | The relative path of the coordinator configs directory which store dynamically generated coordinator startup configuration files |
+| STORAGE_TYPE                  | posix                | The storage protocol used by the backend storage             |
+| S3_ENDPOINT                   | None                 | If protocol type of distributed storage is s3, configure the endpoint of  DFS |
+| S3_ACCESS_KEY                 | None                 | If protocol type of distributed storage is s3, configure the access key of DFS |
+| S3_SECRET_KEY                 | None                 | If protocol type of distributed storage is s3, configure the secret key of DFS |
+| WORKSPACE_BUCKET              | None                 | If protocol type of distributed storage is s3, configure the bucket used |
+| WORKSPACE_PVC                 | None                 | If protocol type of distributed storage is POSIX, configure the pvc used |
+| COORDINATOR_IMAGE             | None                 | The docker image address of Coordinator component            |
+| COORDINATOR_WORKSPACE_PATH    | None                 | The workspace of coordinator                                 |
+| COORDINATOR_PORT              | 50051                | The service port of coordinator                              |
+| CLOUD_OS                      | k8s                  | The system operating environment of each component           |
+| DEPLOYMENT_WAY                | cloud                | The deployment method of component, default is in kubernetes |
+| K8S_ADDRESS                   | None                 | The service address of Kubernetes                            |
+| K8S_API_PROTOCOL              | http                 | The protocol used to access the k8s api server               |
+| K8S_API_TOKEN                 | None                 | If the K8S api server requires token authentication, a valid token value needs to be configured |
+| K8S_IMAGE_PULL_SECRETS        | None                 | If the docker repository requires authentication, you need to configure the corresponding secret |
+| GPU_RS_KEY                    | nvidia.com/gpu       | If the cluster has GPU resources, set the resource key value of GPU resources of k8s |
+| K8S_NAMESPACE                 | default              | Which namespace of k8s the related components deploy in      |
+| MODEL_MANAGER_ADDRESS         | None                 | The service address of Model Manager component               |
+| PROXY_ADDRESS                 | None                 | The service address of Proxy Component                       |
+| JOB_SCHEDULER_ADDRESS         | None                 | The service address of Job Scheduler component               |
+| SELECTOR_ADDRESS              | None                 | The service address of Selector Component                    |
+| REPORT_PERIOD                 | 10                   | The report time interval of coordinator                      |
+| COORDINATOR_HEARTBEAT_TIMEOUT | 20                   | The maximum time interval reported by the coordinator, if timeout, the coordinator will be deleted, the jod will set to failed |
+| MAX_RETRY_TIMES               | 30                   | Maximum number of attempts to connect                        |
+| COORDINATOR_QUERY_INTERVAL    | 1                    | The retry time interval after schedule the coordinator       |
 
 
 
@@ -269,10 +305,31 @@ Note: Job Scheduler is mainly responsible for scheduling tasks and interacting w
 | DB_PASSWORD        | None       | The password to login the database                           |
 | DB_NAME            | None       | The used database name                                       |
 | DB_COLLECTION_NAME | None       | The used db collection name                                  |
-| MOUNT_PATH         | /mnt/minio | The local host path of model storage, this path will be mounted into the component pod(container) |
-| MODEL_STORE        | models     | The root path to store the model under the MOUNT_PATH        |
-| STORAGE_TYPE       | s3         | The type of backend storage, support ["poisx", "s3"]         |
-| STORAGE_ENDPOINT   | None       | The address of backend storage if use s3 object storage      |
-| ACCESS_KEY         | None       | The ACCESS_KEY to the standard s3 object storage             |
-| SECRET_KEY         | None       | The SECRET_KEY to the standard s3 object storage             |
+| WORKSPACE          | /worksapce | The workspace of this component                              |
+| MODELS_DIR         | models     | The relative path where all models are stored in the workspace |
+| STORAGE_TYPE       | posix      | The storage protocol used by the backend storage             |
+| S3_ENDPOINT        | None       | If protocol type of distributed storage is s3, configure the endpoint of  DFS |
+| S3_ACCESS_KEY      | None       | If protocol type of distributed storage is s3, configure the access key of DFS |
+| S3_SECRET_KEY      | None       | If protocol type of distributed storage is s3, configure the secret key of DFS |
+| WORKSPACE_BUCKET   | None       | If protocol type of distributed storage is s3, configure the bucket used |
+
+
+
+### Data Server
+
+#### ENVS
+
+| ENV              | Default    | Description                                                  |
+| ---------------- | ---------- | ------------------------------------------------------------ |
+| SERVER_ADDRESS   | 0.0.0.0    | The service address of this component                        |
+| PORT             | 50057      | The service port of this component                           |
+| LOG_LEVEL        | INFO       | The log level, support [DEBUG, INFO, WARNING, ERROR]         |
+| WORKSPACE        | /worksapce | The workspace of this component                              |
+| STORAGE_TYPE     | posix      | The storage protocol used by the backend storage             |
+| ACCESS_USER      | None       | User name for data server authentication                     |
+| ACCESS_PASSWORD  | None       | Password for data server authentication                      |
+| S3_ENDPOINT      | None       | If protocol type of distributed storage is s3, configure the endpoint of  DFS |
+| S3_ACCESS_KEY    | None       | If protocol type of distributed storage is s3, configure the access key of DFS |
+| S3_SECRET_KEY    | None       | If protocol type of distributed storage is s3, configure the secret key of DFS |
+| WORKSPACE_BUCKET | None       | If protocol type of distributed storage is s3, configure the bucket used |
 

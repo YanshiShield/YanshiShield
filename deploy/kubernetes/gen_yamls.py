@@ -356,9 +356,7 @@ def _gen_job_scheduler_deployment_files(configs, output):
         {"name": "MODEL_MANAGER_ADDRESS",
          "value": "%s:%s" % (
              configs["model_manager"]["service_name"],
-             configs["model_manager"]["port"])},
-        {"name": "PERSIST_TASK_RESOURCE_USAGE",
-         "value": "true"}]
+             configs["model_manager"]["port"])}]
 
     storage_envs, volumes, privileged = _gen_storage_configs(configs["storage"])
 
@@ -554,7 +552,9 @@ def _gen_task_manager_deployment_files(configs, output):
         {"name": "WORKER_HTTP_PROXY",
          "value": configs["executor"]["http_proxy"]},
         {"name": "WORKER_HTTPS_PROXY",
-         "value": configs["executor"]["https_proxy"]}]
+         "value": configs["executor"]["https_proxy"]},
+        {"name": "PERSIST_TASK_RESOURCE_USAGE",
+         "value": "true"}]
 
     storage_envs, volumes, privileged = _gen_storage_configs(configs["storage"])
     envs.extend(storage_envs)

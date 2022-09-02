@@ -133,7 +133,7 @@ https_proxy, http_proxy, no_proxy: 如果你的环境需要通过代理访问互
 
 在共享根目录下，创建上图所示的相关文件夹，文件夹名可以自己定义，只需要和下一章节中配置文件的相关配置项匹配即可：
 
-- **system dir：**用于存储联邦系统需要的相关文件，该目录拆分如下：
+- **system dir：** 用于存储联邦系统需要的相关文件，该目录拆分如下：
   - **models dir：** Model manager会用来保存模型相关的文件
   - **client selector dir：** 用于存储Client selecor需要的配置等文件
   - **proxy dir：** 用于存储Proxy需要的配置等文件
@@ -220,7 +220,7 @@ python3 ./deploy/kubernetes/gen_yamls.py --type server --config_file ./deploy/ku
        "grpc_port": 30091,        # 对外服务的grpc端口，与service name组合就是服务地址,端口号范围30000-32767
        "http_port": 30092,        # 对外服务的http端口，与service name组合就是服务地址,端口号范围30000-32767
        "external": true, # 是否对外暴露服务，可以方便外部组件访问，如client端的task manager组件访问
-       "image": "10.67.134.35:5000/nsfl-proxy:latest", # 使用的镜像
+       "image": "10.67.134.35:5000/nsfl-proxy:latest" # 使用的镜像
      },
      "api_server": {
        "http_port": 30083,  # 对外服务的http端口,端口号范围30000-32767
