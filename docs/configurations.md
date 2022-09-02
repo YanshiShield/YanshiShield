@@ -322,7 +322,7 @@ Note: Job Scheduler is mainly responsible for scheduling tasks and interacting w
 | ENV              | Default    | Description                                                  |
 | ---------------- | ---------- | ------------------------------------------------------------ |
 | SERVER_ADDRESS   | 0.0.0.0    | The service address of this component                        |
-| PORT             | 50057      | The service port of this component                           |
+| PORT             | 30088      | The service port of this component                           |
 | LOG_LEVEL        | INFO       | The log level, support [DEBUG, INFO, WARNING, ERROR]         |
 | WORKSPACE        | /worksapce | The workspace of this component                              |
 | STORAGE_TYPE     | posix      | The storage protocol used by the backend storage             |
