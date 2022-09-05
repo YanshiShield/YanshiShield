@@ -141,7 +141,7 @@ Using cluster deployment method, k8s will deploy the pod on any node. Therefore,
 
 ### Server side
 
-![](D:/★近期工作/联邦开源工作/docs/images/cluster_deploy/server_path_management.png)
+![](images/cluster_deploy/server_path_management.png)
 
 In the shared root directory, create the relevant folders as shown in the figure above. The folder name can be defined by yourself, as long as it matches the relevant configuration items of the configuration file in the next chapter:
 
@@ -157,7 +157,7 @@ In the shared root directory, create the relevant folders as shown in the figure
 
 ### Client side
 
-![](D:/★近期工作/联邦开源工作/docs/images/cluster_deploy/client_path_management.png)
+![](images/cluster_deploy/client_path_management.png)
 
 In the shared directory, create the relevant folders as shown in the figure above. The folder name can be customized, as long as it matches the relevant configuration items in the configuration file:
 
@@ -170,7 +170,7 @@ In the shared directory, create the relevant folders as shown in the figure abov
 
 ## Prepare deployment files
 
-![](D:/★近期工作/联邦开源工作/docs/images/cluster_deploy/components_interaction_architecture.png)
+![](images/cluster_deploy/components_interaction_architecture.png)
 
 
 
