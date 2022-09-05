@@ -22,11 +22,35 @@ On the server side and all clients that choose to deploy in cluster mode, Kubern
 
 ### 2. Install distributed file system 
 
-Regardless of the server side or the client side, if it is deployed in a cluster, it is recommended to install a distributed file system system that supports S3 or Posix file interface access, such as Minio, for the installation of Minio, refer to the [official guide](https://github.com/minio/minio).
+Regardless of the server side or the client side, if it is deployed in a cluster, it is recommended to install and support the S3 or POSIX protocol
 
-Note: If the distributed file system requires an account and password to log in, please create a K8S Secret object to store the account and password.
+- S3 protocol
 
+  1. Users first need to install a back-end storage that supports the S3 protocol, such as Minio, Minio installation reference [official guide](https://github.com/minio/minio).
 
+  2. If the back-end storage requires authentication to login in, please create a K8S Secret object to store the account and password as follows:
+
+     ```yaml
+     apiVersion: v1
+     kind: Secret
+     metadata:
+       name: miniosecret
+     type: Opaque
+     data:
+       username: bnNmbA==
+       password: MXFhekBXU1gjRURD
+     ```
+
+  Note: The system will store users and system files in a shared directory, so only need to create a Bucket.
+
+- POSIX protocol
+
+  1. Users first need to install a back-end storage that supports the POSIX protocol, such as NFS
+  2. The back-end storage is implemented through the storage management of K8S. The storage of all system components is implemented by directly mounting the corresponding PVC. Therefore, users need to create the corresponding PVC in advance. Refer to the [official guidance](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) of k8s.
+
+  Note: The system will store users and system files in a shared directory, so only need to create a PVC.
+
+  
 
 ### 3.  Install S3FS 
 
@@ -117,21 +141,23 @@ Using cluster deployment method, k8s will deploy the pod on any node. Therefore,
 
 ### Server side
 
-![](D:/★近期工作/联邦开源工作/docs/images/cluster_deploy/server_path_management.png)
+![](images/cluster_deploy/server_path_management.png)
 
-In the shared root directory, create the relevant folders as shown in the figure above. The folder name can be defined by yourself, as long as it matches the relevant configuration items in the configuration file:
+In the shared root directory, create the relevant folders as shown in the figure above. The folder name can be defined by yourself, as long as it matches the relevant configuration items of the configuration file in the next chapter:
 
-- **models dir:** Model manager uses to save model related files
-- **client selector dir:** Used to store configuration and other files required by Client selector
-- **proxy dir:** Used to store configuration and other files required by Proxy
-- **coordinator configs dir:** The Job scheduler will be used to save the dynamically generated Coordinator startup configuration file, and the Coordinator will find the corresponding startup configuration file from it when it starts.
-- **namespace dir:** When creating a federated job, you need to specify a namespace, and the relevant job information, such as scripts, models, etc., will be saved in the corresponding namespace folder. Before creating a job, you need to create a namespace folder first.
+- **system dir：** Used to store related files required by system, the directory is split as follows:
+  - **models dir：** Model manager uses to save model related files
+  - **client selector dir：** Used to store configuration and other files required by Client selector
+  - **proxy dir：** Used to store configuration and other files required by Proxy
+  - **coordinator configs dir：** The Job scheduler will be used to save the dynamically generated Coordinator startup configuration file, and the Coordinator will find the corresponding startup configuration file when it starts
+
+- **namespace dir：** When creating a federated job, you need to specify a namespace, and the relevant job information, such as scripts, models, etc., will be saved in the corresponding namespace folder. Therefore, you need to create a folder corresponding to the namespace before creating a job
 
 
 
 ### Client side
 
-![](D:/★近期工作/联邦开源工作/docs/images/cluster_deploy/client_path_management.png)
+![](images/cluster_deploy/client_path_management.png)
 
 In the shared directory, create the relevant folders as shown in the figure above. The folder name can be customized, as long as it matches the relevant configuration items in the configuration file:
 
@@ -144,7 +170,7 @@ In the shared directory, create the relevant folders as shown in the figure abov
 
 ## Prepare deployment files
 
-![](D:/★近期工作/联邦开源工作/docs/images/cluster_deploy/components_interaction_architecture.png)
+![](images/cluster_deploy/components_interaction_architecture.png)
 
 
 
@@ -170,40 +196,36 @@ python3 ./deploy/kubernetes/gen_yamls.py --type server --config_file ./deploy/ku
    {
      "job_scheduler": {
        "service_name": "nsfl-job-scheduler", # Service name, convenient for other components to access
-       "port": 8088,   # External service port, combined with service name is the service address
+       "port": 8088,   # Service port, combined with service name is the service address
        "db_collection_name": "jobs",  # Store job information in the specified collection in the database
        "coordinator_configs_dir": "default", # The name of the folder corresponding to the condinator configs dir in the shared directory on the server side (not a relative path or an absolute path, but a folder name)
        "image": "10.67.134.35:5000/nsfl-job-scheduler:latest", # Image used
-       "volumes": {
-         "workspace": {
-           "source": "/mnt/neursafe_fl" # The absolute path of the shared root directory on the server side, which needs to be mounted in the container
-         }
-       },
        "options": {} # Other optional environment variables, the key is the name of the environment variable, and the value is the value corresponding to the environment variable
      },
      "client_selector": {
        "service_name": "nsfl-client-selector",  # Service name, convenient for other components to access
-       "port": 50055,  # External service port, combined with service name is the service address
+       "port": 50055,  # Service port, combined with service name is the service address
        "image": "10.67.134.35:5000/nsfl-selector:latest", # Image used
-       "volumes": {
-         "config": {
-           "source": "/mnt/neursafe_fl/selector/" # The absolute path corresponding to the client selector dir folder in the shared root directory of the server side needs to be mounted in the container
-         }
-       },
        "options": {}  # Other optional environment variables, the key is the name of the environment variable, and the value is the value corresponding to the environment variable
      },
      "model_manager": {
        "service_name": "nsfl-model-manager",  # Service name, convenient for other components to access
-       "port": 50057,  # External service port, combined with service name is the service address
+       "port": 50057,  # Service port, combined with service name is the service address
        "db_collection_name": "models",  # Store model information in the specified collection in the database
        "image": "10.67.134.35:5000/nsfl-model-manager:latest", # Image used
-       "models_dir": "models",  # The name of the folder corresponding to the models dir in the shared directory on the server side (not a relative path or an absolute path, but a folder name)
-       "volumes": {
-         "workspace": {
-           "source": "/mnt/neursafe_fl/"  # The absolute path of the shared root directory on the server side, which needs to be mounted in the container
-         }
-       },
        "options": {} # Other optional environment variables, the key is the name of the environment variable, and the value is the value corresponding to the environment variable
+     },
+     "data_server": {
+       "service_name": "nsfl-data-server",  # Service name, convenient for other components to access
+       "port": 30088,                       # Service port, combined with service name is the service address
+       "external": true,                    # Whether to expose the service externally, it can be easily accessed by external components
+       "image": "nsfl-data-server:latest",  # Image used
+       "secret_key_ref": {
+         "name": "data-server-secret",  # The name of the k8s secret object, used to store the account and password for data server access
+         "user_key": "username",        # The key value corresponding to the username in the above k8s secret object
+         "passwd_key": "password"       # The key value corresponding to the password in the above k8s secret object
+       },
+       "options": {}  # Other optional environment variables, the key is the name of the environment variable, and the value is the value corresponding to the environment variable
      },
      "proxy": {
        "service_name": "nsfl-proxy",  # Service name, convenient for other components to access
@@ -224,22 +246,31 @@ python3 ./deploy/kubernetes/gen_yamls.py --type server --config_file ./deploy/ku
      },
      "coordinator": {
        "image": "10.67.134.35:5000/nsfl-coordinator:latest", # Image used
-       "port": 50051 # coordinator's external service port
+       "port": 50051 # coordinator's service port
      },
      "k8s": {
        "address": "10.67.134.15:8080", # k8s api server address
-       "gpu_rs_key": "nvidia.com/gpu", # The resource key value of GPU resources of k8s, used to specify the using amount of GPU resources when applying for resources
+       "gpu_rs_key": "nvidia.com/gpu", # If the cluster has GPU resources, set the resource key value of GPU resources of k8s, used to specify the using amount of GPU resources when applying for resources
        "namespace": "default" # Specify which namespace that system components are deployed in
+       "api_protocol": "https", # Access protocol of k8s api server
+       "api_token": "",  # If the K8S api server requires token authentication, a valid token value needs to be configured
+       "image_pull_secret": "registry-secret"  # If the docker repository requires authentication, you need to configure the corresponding secret in advance
      },
      "storage": {
-       "type": "s3",  # Access type used by DFS storage
-       "address": "http://10.67.134.15:9000",  # DFS service address
-       "secret_key_ref": {
-         "name": "miniosecret", # The name of the k8s secret object, used to store the account and password for DFS access
-         "user_key": "username", # The key value corresponding to the username in the above k8s secret object
-         "passwd_key": "password" # The key value corresponding to the password in the above k8s secret object
-       }
-   },
+       "models_dir": "system/models",  # The relative path of the models dir in the shared directory on the server
+       "proxy_dir": "system/proxy",  # The relative path of the proxy dir in the shared directory on the server
+       "selector_dir": "system/selector",  # The relative path of the selector dir in the shared directory on the server
+       "coordinator_configs_dir": "system/coordinator_configs",  # The relative path of the coordinator configs dir in the shared directory on the server
+       "backend": {
+         "type": "s3",  # The access protocol of DFS storage is s3
+         "address": "http://10.67.134.15:9000",  # The service address of DFS storage
+         "bucket": "nsfl",    # The name of bucket used to store the data
+         "secret_key_ref": {
+           "name": "miniosecret",    # The name of the k8s secret object, used to store the account and password for DFS access
+           "user_key": "username",   # The key value corresponding to the username in the above k8s secret object
+           "passwd_key": "password"  # The key value corresponding to the password in the above k8s secret object
+       }}
+     },
      "db": {
        "type": "postgreSQL",  # database type
        "address": "10.67.134.32:12202",  # database access address
@@ -253,6 +284,15 @@ python3 ./deploy/kubernetes/gen_yamls.py --type server --config_file ./deploy/ku
        "log_level": "info" # Specify log level for all components
      }
    }
+   ```
+
+   If the back-end storage protocol is the POSIX protocol, you only need to modify the content of the backend field in the storage item, as follows:
+
+   ```json
+   "backend": {
+         "type": "posix",   # The access protocol of DFS storage is posix
+         "pvc": "nsfl-pvc"  # The PVC that has been created, which connect to distributed storage
+         }
    ```
 
    The configuration file specifies the configuration items that must be configured, and other optional configuration items for each component can be configured under "options", such as "options": {"REPORT_PERIOD": 10}, optional configuration items for all components (Environment variable) can [Refer to Environment Variable Configuration](develop.md)
@@ -277,28 +317,15 @@ python3 ./deploy/kubernetes/gen_yamls.py --type server --config_file ./deploy/ku
    {
      "task_manager": {
        "service_name": "nsfl-task-manager",    # Service name, convenient for other components to access
-       "port": 9090,  # External service port, combined with service name is the service address
+       "port": 9090,  # Service port, combined with service name is the service address
        "external": true,  # Whether to expose the service externally, it can facilitate the access of external components, such as the component access on the server side
+       "service_ip": "10.67.134.15",  # Access ip for external components
        "db_collection_name": "tasks",  # Store task information in the specified collection in the database
        "image": "10.67.134.35:5000/nsfl-client-cpu:latest", # Image used
        "server_address": "10.67.134.15.9001", # The external grpc access address of the proxy component on the server side
        "runtime": "tensorflow,pytorch",  # Runtimes supported by the client, separated by ","
        "storage_quota": "1024",       # The storage limit that can be used by workspace files in the shared directory on the client side
        "registration": "True",    # Whether to register with the client selector on the server side, after registration, the server side can select appropriate nodes to participate in federated learning based on the node information
-       "volumes": {
-         "workspace": {
-           "source": "/mnt/neursafe_fl/workspace" # The absolute path of the workspace dir folder in the shared directory on the client side, the user mounts it in the container
-         },
-         "datasets": {
-           "source": "/mnt/neursafe_fl/datasets" # The absolute path of the datasets dir folder in the shared directory on the client side, the user mounts it in the container
-         },
-         "task_configs": {
-           "source": "/mnt/neursafe_fl/task_configs" # The absolute path of the task configs dir folder in the shared directory on the client side, the user mounts it in the container
-         },
-         "config": {
-           "source": "/mnt/neursafe_fl/config/" # The absolute path of the config dir folder in the shared directory on the client side, the user mounts it in the container
-         }
-       },
        "options": {} # Other optional environment variables, the key is the name of the environment variable, and the value is the value corresponding to the environment variable
      },
      "executor": {
@@ -307,10 +334,29 @@ python3 ./deploy/kubernetes/gen_yamls.py --type server --config_file ./deploy/ku
        "http_proxy": "",                # The proxy required by the executor(if the environment requires proxy to access internet, it needs to be configured)
        "https_proxy": ""                # The proxy required by the executor(if the environment requires proxy to access internet, it needs to be configured)
      },
+     "storage": {
+       "lmdb_dir": "lmdb",  # The relative path of the lmdb dir in the shared directory on the client
+       "workspace_dir": "workspace", # The relative path of the workspace dir in the shared directory on the client
+       "datasets_dir": "datasets",  # The relative path of the datasets dir in the shared directory on the client
+       "task_configs_dir": "task_configs",  # The relative path of the task configs dir in the shared directory on the client
+       "task_manager_config_dir": "config",  # The relative path of the task manager config dir in the shared directory on the client
+       "backend": {
+         "type": "s3",  # The access protocol of DFS storage is s3
+         "address": "http://10.67.134.15:9000",  # The service address of DFS storage
+         "bucket": "nsfl",    # The name of bucket used to store the data
+         "secret_key_ref": {
+           "name": "miniosecret",    # The name of the k8s secret object, used to store the account and password for DFS access
+           "user_key": "username",   # The key value corresponding to the username in the above k8s secret object
+           "passwd_key": "password"  # The key value corresponding to the password in the above k8s secret object
+       }}
+     },
      "k8s": {
        "address": "10.67.134.15:8080", # k8s api server address
        "gpu_rs_key": "nvidia.com/gpu",  # The resource key value of GPU resources of k8s, used to specify the using amount of GPU resources when applying for resources
        "namespace": "default" # Specify which namespace that system components are deployed in
+       "api_protocol": "https", # Access protocol of k8s api server
+       "api_token": "",  # If the K8S api server requires token authentication, a valid token value needs to be configured
+       "image_pull_secret": "registry-secret"  # If the docker repository requires authentication, you need to configure the corresponding secret in advance
      },
      "db": {
        "type": "postgreSQL",          # database type
@@ -325,6 +371,15 @@ python3 ./deploy/kubernetes/gen_yamls.py --type server --config_file ./deploy/ku
        "log_level": "info"  # Specify log level for all components
      }
    }
+   ```
+
+   If the back-end storage protocol is the POSIX protocol, you only need to modify the content of the backend field in the storage item, as follows:
+
+   ```json
+   "backend": {
+         "type": "posix",   # The access protocol of DFS storage is posix
+         "pvc": "nsfl-pvc"  # The PVC that has been created, which connect to distributed storage
+         }
    ```
 
 2. Execute the script to generate all deployment files and configuration files

@@ -356,9 +356,7 @@ def _gen_job_scheduler_deployment_files(configs, output):
         {"name": "MODEL_MANAGER_ADDRESS",
          "value": "%s:%s" % (
              configs["model_manager"]["service_name"],
-             configs["model_manager"]["port"])},
-        {"name": "PERSIST_TASK_RESOURCE_USAGE",
-         "value": "true"}]
+             configs["model_manager"]["port"])}]
 
     storage_envs, volumes, privileged = _gen_storage_configs(configs["storage"])
 
@@ -554,7 +552,9 @@ def _gen_task_manager_deployment_files(configs, output):
         {"name": "WORKER_HTTP_PROXY",
          "value": configs["executor"]["http_proxy"]},
         {"name": "WORKER_HTTPS_PROXY",
-         "value": configs["executor"]["https_proxy"]}]
+         "value": configs["executor"]["https_proxy"]},
+        {"name": "PERSIST_TASK_RESOURCE_USAGE",
+         "value": "true"}]
 
     storage_envs, volumes, privileged = _gen_storage_configs(configs["storage"])
     envs.extend(storage_envs)
@@ -596,7 +596,7 @@ def _gen_task_manager_deployment_files(configs, output):
             config["datasets"] = os.path.join(paths["datasets"],
                                               "datasets.json")
             config["log_level"] = configs["others"]["log_level"]
-            config["platform"] = configs["task_manager"]["platform"]
+            config["platform"] = "k8s"
             config["task_config_entry"] = paths["task_configs"]
             config["registration"] = configs["task_manager"]["registration"]
             config["storage_quota"] = configs["task_manager"]["storage_quota"]

@@ -49,7 +49,7 @@ To verify whether nsfl-ctl is successfully installed, execute the following comm
 nsfl-ctl
 ```
 
- ![](D:/★近期工作/联邦开源工作/docs/images/test_nsflctl.png)
+ ![](images/test_nsflctl.png)
 
 You can add the command parameter --help to view the instructions for using the command
 
@@ -92,34 +92,3 @@ After the installation, please refer to the [quick start](quick_start.md) to exp
 ## Cluster Mode
 
 Please refer to [Cluster Deployment Guide](cluster_deploy.md) to complete the deployment of Neursafe FL.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
