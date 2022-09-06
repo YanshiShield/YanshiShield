@@ -23,7 +23,7 @@ class Coordinator:
     """"""
 
     def __init__(self):
-        self.__task = TASK  # TODO: 使用单例或者全局变量
+        self.__task = TASK
 
     @gen.coroutine
     def create(self, job_cfg, workspace, namespace='default'):
