@@ -10,14 +10,16 @@ import enum
 import os
 import time
 import asyncio
+import pickle
 
+from io import BytesIO
 from absl import logging
 from grpclib.exceptions import GRPCError
 
 from neursafe_fl.python.client.workspace.custom import get_result_path, \
     read_result_parameters, write_prepared_parameters
 from neursafe_fl.python.client.workspace.delta_weights import \
-    calculate_delta_weights, save_delta_weights, has_trained_weights_result
+    calculate_delta_weights, has_trained_weights_result
 from neursafe_fl.python.client.workspace.metrics import read_metrics
 from neursafe_fl.python.runtime.runtime_factory import RuntimeFactory
 from neursafe_fl.python.utils.file_io import zip_files, list_all_files, unzip
@@ -270,13 +272,11 @@ class Task:
             await self.__create_workers()
             await self.__wait_workers_running()
             await self.__wait_workers_finished()
+            await self._report()
         except FLError as err:
             self.__record_error(str(err))
             await self._report_failed_to_server()
             return
-
-        try:
-            await self._report()
         except (RemoteServerError, GRPCError) as err:
             self.__record_error(str(err))
             return
@@ -416,29 +416,37 @@ class TrainTask(Task):
         The content contains model delta weight, metrics and custom
         self-defined result.
         """
-        task_result, file_in_memory = await self.__prepare_report()
+        task_result, delta_weights_io, files_io = await self.__prepare_report()
 
-        await self.__do_report(task_result, file_in_memory)
+        await self.__do_report(task_result, delta_weights_io, files_io)
 
     async def __prepare_report(self):
         metrics = self._get_metrics()
-        delta_weight_file = None
-        if self.__has_weights_result():
-            delta_weight_file = await self.__calculate_delta_weights(metrics)
+
+        delta_weights = await self.__calculate_delta_weights(metrics)
+
         custom_params = self.__get_custom_parameters()
         custom_files = self.__list_custom_files()
 
         task_result = self._encode_task_result(Status.success,
                                                metrics, custom_params)
-        file_in_memory = self.__zip_files(delta_weight_file, custom_files)
+        files_io = self.__zip_files(custom_files)
 
-        return task_result, file_in_memory
+        delta_weights_io = (File(name='delta_weights'),
+                            BytesIO(pickle.dumps(delta_weights)))
 
-    async def __do_report(self, task_result, file_in_memory):
+        return task_result, delta_weights_io, files_io
+
+    async def __do_report(self, task_result, delta_weights_io, files_io):
+        file_like_objs = [delta_weights_io]
+
+        if files_io:
+            file_like_objs.append(files_io)
+
         await stream_call(
             TrainReplyServiceStub, 'TrainReply', TaskResult,
             self._client_config['server'],
-            config=task_result, file_like_objs=[file_in_memory],
+            config=task_result, file_like_objs=file_like_objs,
             certificate_path=self._client_config.get('ssl', None),
             metadata=self.grpc_metadata)
 
@@ -447,13 +455,16 @@ class TrainTask(Task):
             self._task_info.spec.runtime, self.workspace)
 
     async def __calculate_delta_weights(self, metrics):
-        fl_model = RuntimeFactory.create_model(self._task_info.spec.runtime)
+        if self.__has_weights_result():
+            fl_model = RuntimeFactory.create_model(self._task_info.spec.runtime)
 
-        delta_weights = self.__calculate_raw_delta_weights(fl_model)
-        delta_weights = await self.__protect_delta_weights_if_need(
-            delta_weights, metrics)
+            delta_weights = self.__calculate_raw_delta_weights(fl_model)
+            delta_weights = await self.__protect_delta_weights_if_need(
+                delta_weights, metrics)
 
-        return self.__save_delta_weights(fl_model, delta_weights)
+            return delta_weights
+
+        raise FLError("No trained weights.")
 
     def __calculate_raw_delta_weights(self, fl_model):
         return calculate_delta_weights(
@@ -465,11 +476,6 @@ class TrainTask(Task):
                 delta_weights, sample_num=metrics.get('sample_num', 1))
         return delta_weights
 
-    def __save_delta_weights(self, fl_model, weights):
-        return save_delta_weights(fl_model, weights,
-                                  self._task_info.spec.runtime,
-                                  self.workspace)
-
     def __get_custom_parameters(self):
         return read_result_parameters(self.workspace)
 
@@ -477,23 +483,22 @@ class TrainTask(Task):
         result_path = get_result_path(self.workspace)
         return list_all_files(result_path)
 
-    def __zip_files(self, delta_weights_file, custom_files):
-        result_path = get_result_path(self.workspace)
+    def __zip_files(self, custom_files):
+        if custom_files:
+            result_path = get_result_path(self.workspace)
 
-        if delta_weights_file:
-            files = [(os.path.basename(delta_weights_file),
-                      delta_weights_file)]
-        else:
             files = []
 
-        for filename in custom_files:
-            files.append(('custom/' + filename,
-                          os.path.join(result_path, filename)))
+            for filename in custom_files:
+                files.append(('custom/' + filename,
+                              os.path.join(result_path, filename)))
 
-        file_info = File(name='result.zip',
-                         compress=True)
+            file_info = File(name='result.zip',
+                             compress=True)
 
-        return file_info, zip_files(files)
+            return file_info, zip_files(files)
+
+        return None
 
 
 class EvaluateTask(Task):
