@@ -4,6 +4,7 @@
 # pylint:disable=too-many-arguments, no-member
 """Train Round Module."""
 from os.path import basename
+import pickle
 
 from absl import logging
 from neursafe_fl.python.utils.file_io import unzip, zip_files
@@ -149,15 +150,19 @@ class TrainRound(BaseRound):
         params, files = msg[0], msg[1]
         unzip_path = self._workspace.get_client_upload_dir(self._round_id,
                                                            number)
-        file_io = files[0][1]
-        unzip(file_io, unzip_path)
 
-        delta = self._workspace.get_runtime_file_by("delta_weights",
-                                                    self._model.runtime)
-        delta_weights = join(unzip_path, delta)
+        def parse_weights(weights_io):
+            weights_io.seek(0)
+            return pickle.loads(files[0][1].read())
 
-        weights = self._model.load_weights(delta_weights)
-        return {"weights": weights,
+        def parse_custom_configuration():
+            if len(files) > 1:
+                files_io = files[1][1]
+                unzip(files_io, unzip_path)
+
+        parse_custom_configuration()
+
+        return {"weights": parse_weights(files[0][1]),
                 "custom_files": join(unzip_path, "custom/"),
                 "custom_params": params.spec.custom_params,
                 "metrics": params.spec.metrics,
