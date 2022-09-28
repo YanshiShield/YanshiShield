@@ -58,6 +58,8 @@ class RoundController:
         self.__error_code = 0
         self.__error_msg = None
 
+        self.__need_wait = config.get("need_wait", True)
+
     async def run(self, round_ins):
         """Run the round's main process.
 
@@ -76,7 +78,8 @@ class RoundController:
             await self.__select_clients()
             await self.__broadcast_task_to_client()
             self.__start_monitor_timer()
-            await self.__wait_updates()
+            if self.__need_wait:
+                await self.__wait_updates()
             status, values = await self.__finish()
             result.status = status
             result.delta_weights = values.get("weights")
@@ -202,6 +205,8 @@ class RoundController:
     async def __normal_finish(self):
         logging.info("Round receive enough success message %s",
                      self.__success_reply)
+        if self.__timer:
+            self.__timer.cancel()
         return await self.__round.on_finish()
 
     def __abnormal_finish(self):

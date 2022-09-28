@@ -68,6 +68,7 @@ class Coordinator:
             yield self.__task.create(name=name,
                                      namespace=K8S_NAMESPACE,
                                      cmds=cmds,
+                                     node_id=const.NODE_AFFINITY,
                                      port=job_cfg.get(
                                          "port", int(const.COORDINATOR_PORT)),
                                      image=const.COORDINATOR_IMAGE,
