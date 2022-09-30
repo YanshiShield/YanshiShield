@@ -32,7 +32,7 @@ class SSAController:
             try:
                 destination = stream.metadata["destination"]
                 msg = await stream.recv_message()
-                self.__ssa_controller.handle_msg(destination, msg)
+                await self.__ssa_controller.handle_msg(destination, msg)
                 await stream.send_message(Response(state='success'))
             except Exception as err:
                 logging.exception(str(err))
@@ -78,7 +78,7 @@ class SSAController:
         except KeyError:
             logging.warning("%s already deleted.", handle)
 
-    def handle_msg(self, destination, msg):
+    async def handle_msg(self, destination, msg):
         """Message forwarding function.
 
         Args:
@@ -86,7 +86,7 @@ class SSAController:
                          The value is 'server' or partner id.
             msg: messages reported by the partner, or send by the server.
         """
-        self.__handlers[(msg.handle, destination)].handle_msg(msg)
+        await self.__handlers[(msg.handle, destination)].handle_msg(msg)
 
 
 # A singleton ssa controller.

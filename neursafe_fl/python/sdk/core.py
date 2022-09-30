@@ -7,12 +7,9 @@
 import os
 from absl import logging
 
-from neursafe_fl.python.client.workspace.delta_weights import \
-    load_init_weights, save_trained_weights, save_trained_model
-from neursafe_fl.python.client.workspace.metrics import write_metrics
-from neursafe_fl.python.runtime.runtime_factory import Runtime
-from neursafe_fl.python.sdk.utils import get_task_workspace, get_runtime, \
-    get_datasets
+import neursafe_fl.python.sdk.utils as utils
+import neursafe_fl.python.sdk.report as report
+import neursafe_fl.python.client.workspace.delta_weights as weights
 from neursafe_fl.python.utils.file_io import read_json_file
 
 
@@ -22,9 +19,9 @@ def load_weights(model):
     Args:
         model: The model will be loaded weights.
     """
-    task_workspace = get_task_workspace()
-    runtime = get_runtime()
-    load_init_weights(model, runtime, task_workspace)
+    task_workspace = utils.get_task_workspace()
+    runtime = utils.get_runtime()
+    return weights.load_init_weights(model, runtime, task_workspace)
 
 
 def __is_chief_worker():
@@ -35,31 +32,52 @@ def __is_chief_worker():
     return False
 
 
-def commit_weights(model, optimizer=None):
-    """Commit trained weights to framework, and the framework will
-    calculate delta weights and send it to server.
+def _calc_delta_weights(model):
+    delta_weights = weights.calculate_delta_weights(model,
+                                                    utils.get_runtime())
+    return delta_weights
 
-    Args:
-        model: Will commit the weights in model to framework.
-        optimizer: the optimizer instance used in training.
-    """
-    if __is_chief_worker():
-        task_workspace = get_task_workspace()
-        runtime = get_runtime()
-        if runtime == Runtime.PYTORCH.value:
-            save_trained_weights(model, runtime, task_workspace)
-        else:
-            save_trained_model(model, runtime, task_workspace)
 
-        if os.getenv("OPTIMIZER_NAME") == "scaffold" and optimizer:
+def _protect_weights(weights_, metrics):
+    security_algorithm = utils.create_security_algorithm()
+
+    if security_algorithm:
+        protected_weights = utils.do_function_sync(
+            security_algorithm.protect_weights, weights_,
+            sample_num=metrics.get('sample_num', 1))
+
+        return protected_weights
+
+    return weights_
+
+
+def _commit_trained_results(metrics, model, optimizer=None):
+    def do_optional_works():
+        if os.getenv(utils.TASK_OPTIMIZER) == "scaffold" and optimizer:
             optimizer.update(model)
 
+    if __is_chief_worker():
+        # STEP 1: Do optional works
+        do_optional_works()
 
-def commit_metrics(metrics):
-    """Commit metrics to server.
+        # STEP 2: Calculate delta weights.
+        delta_weights = _calc_delta_weights(model)
 
-    Training or evaluation metrics will be committed to framework, and the
-    framework will send it to server.
+        # STEP 3: Protect delta weights if needed
+        delta_weights = _protect_weights(delta_weights, metrics)
+
+        # STEP 4: Report to coordinator.
+        report.submit(metrics, delta_weights)
+
+
+def _commit_evaluated_results(metrics):
+    # Report to coordinator
+    report.submit(metrics)
+
+
+def commit(metrics, model=None, optimizer=None):
+    """Commit trained weights to framework, and the framework will
+    calculate delta weights and send it to server.
 
     Args:
         metrics: A dictionary stored the metrics data after train or evaluate,
@@ -71,10 +89,13 @@ def commit_metrics(metrics):
                 precision float,
                 recall_rate float,
             all is optional.
+        model: Will commit the weights in model to framework.
+        optimizer: the optimizer instance used in training.
     """
-    if __is_chief_worker():
-        task_workspace = get_task_workspace()
-        write_metrics(task_workspace, metrics)
+    if model:
+        _commit_trained_results(metrics, model, optimizer=optimizer)
+    else:
+        _commit_evaluated_results(metrics)
 
 
 def get_dataset_path(name):
@@ -83,4 +104,4 @@ def get_dataset_path(name):
     Args:
         name: Get the path of a dataset based on this name.
     """
-    return read_json_file(get_datasets())[name]
+    return read_json_file(utils.get_datasets())[name]

@@ -7,23 +7,16 @@
 """
 import abc
 import enum
-import os
 import time
 import asyncio
-import pickle
 
-from io import BytesIO
 from absl import logging
-from grpclib.exceptions import GRPCError
 
-from neursafe_fl.python.client.workspace.custom import get_result_path, \
-    read_result_parameters, write_prepared_parameters
-from neursafe_fl.python.client.workspace.delta_weights import \
-    calculate_delta_weights, has_trained_weights_result
+from neursafe_fl.python.client.workspace.custom import write_prepared_parameters
 from neursafe_fl.python.client.workspace.metrics import read_metrics
 from neursafe_fl.python.runtime.runtime_factory import RuntimeFactory
-from neursafe_fl.python.utils.file_io import zip_files, list_all_files, unzip
-from neursafe_fl.proto.message_pb2 import TaskResult, Status, File
+from neursafe_fl.python.utils.file_io import unzip
+from neursafe_fl.proto.message_pb2 import TaskResult, Status
 from neursafe_fl.proto.reply_service_grpc import TrainReplyServiceStub, \
     EvaluateReplyServiceStub
 from neursafe_fl.python.client.executor.errors import FLError
@@ -31,7 +24,7 @@ from neursafe_fl.python.client.executor.executor import DEFAULT_TASK_TIMEOUT
 from neursafe_fl.python.client.task_config_parser import TaskConfigParser
 from neursafe_fl.python.libs.secure.secure_aggregate.ssa import \
     create_ssa_client
-from neursafe_fl.python.trans.grpc_call import RemoteServerError, stream_call
+from neursafe_fl.python.trans.grpc_call import stream_call
 from neursafe_fl.python.client.validation import ParameterError
 from neursafe_fl.python.client.worker import Worker, WorkerStatus
 import neursafe_fl.python.client.const as const
@@ -105,7 +98,6 @@ class Task:
 
         self.__task_dao = kwargs['task_dao']
         self.__done_callback = kwargs['handle_finish']
-        self._security_algorithm = None
         self._workers = {}
 
         self._start_time = _now()
@@ -114,10 +106,7 @@ class Task:
         self._status = Status.running
         self._executing_task = None
 
-    @abc.abstractmethod
-    async def _report(self):
-        """Report the task result to server.
-        """
+        self._ssa_client = None
 
     @abc.abstractmethod
     async def _report_failed_to_server(self):
@@ -134,45 +123,36 @@ class Task:
             self._task_info.spec, self.workspace,
             self._client_config['task_config_entry']).parse(self.task_type)
 
-        self._security_algorithm = self.__create_security_algorithm_if_need(
-            self._task_info, self._task_config,
-            self.task_type)
+        self.__create_ssa_client_if_need(self._task_info, self._task_config,
+                                         self.task_type)
 
         _write_custom_parameters_in_workspace(
             self.workspace, self._task_info.spec.custom_params)
 
-    def __create_security_algorithm_if_need(self, task_info, task_config,
-                                            task_type):
+    def __create_ssa_client_if_need(self, task_info, task_config, task_type):
         algorithm_parameters = task_info.spec.secure_algorithm
-        if algorithm_parameters and task_type == TaskType.train.name:
-            ssa_client = None
-            if algorithm_parameters['type'].lower() == 'ssa':
-                handle = "%s-%s" % (task_info.metadata.job_name,
-                                    task_info.metadata.round)
-                task_timeout = task_config[task_type].get('timeout',
-                                                          DEFAULT_TASK_TIMEOUT)
-                ssa_client = create_ssa_client(
-                    algorithm_parameters['mode'],
-                    handle=handle,
-                    server_addr=self._client_config['server'],
-                    ssl_key=self._client_config.get('ssl', None),
-                    client_id=self.grpc_metadata["client_id"],
-                    min_client_num=int(algorithm_parameters['threshold']),
-                    client_num=int(algorithm_parameters['clients_num']),
-                    use_same_mask=algorithm_parameters['use_same_mask'],
-                    grpc_metadata=self.grpc_metadata,
-                    ready_timer_interval=task_timeout,
-                    server_aggregate_interval=int(
-                        algorithm_parameters['aggregate_timeout']))
-                ssa_client.initialize()
-
-            security_algorithm = RuntimeFactory.create_security_algorithm(
-                task_info.spec.runtime,
-                secure_algorithm=dict(algorithm_parameters),
-                ssa_client=ssa_client)
-
-            return security_algorithm
-        return None
+        if (algorithm_parameters
+                and task_type == TaskType.train.name
+                and algorithm_parameters['type'].lower() == 'ssa'):
+            handle = "%s-%s" % (task_info.metadata.job_name,
+                                task_info.metadata.round)
+            task_timeout = task_config[task_type].get('timeout',
+                                                      DEFAULT_TASK_TIMEOUT)
+            self._ssa_client = create_ssa_client(
+                algorithm_parameters['mode'],
+                handle=handle,
+                server_addr=self._client_config['server'],
+                ssl_key=self._client_config.get('ssl', None),
+                client_id=self.grpc_metadata["client_id"],
+                min_client_num=int(algorithm_parameters['threshold']),
+                client_num=int(algorithm_parameters['clients_num']),
+                use_same_mask=algorithm_parameters['use_same_mask'],
+                workspace=self.workspace,
+                grpc_metadata=self.grpc_metadata,
+                ready_timer_interval=task_timeout,
+                server_aggregate_interval=int(
+                    algorithm_parameters['aggregate_timeout']))
+            self._ssa_client.initialize()
 
     def __gen_worker_id(self, worker_index):
         return self.task_id + '-' + str(worker_index)
@@ -202,7 +182,8 @@ class Task:
                             worker_config=self._task_config,
                             workspace=self.workspace,
                             distributed_env=distributed_envs[id_],
-                            resource_spec=resource)
+                            resource_spec=resource,
+                            grpc_metadata=self.grpc_metadata)
             await worker.execute()
             self._workers[id_] = worker
 
@@ -272,16 +253,18 @@ class Task:
             await self.__create_workers()
             await self.__wait_workers_running()
             await self.__wait_workers_finished()
-            await self._report()
         except FLError as err:
             self.__record_error(str(err))
+            if self._ssa_client:
+                self._ssa_client.finish(success=False)
+
             await self._report_failed_to_server()
-            return
-        except (RemoteServerError, GRPCError) as err:
-            self.__record_error(str(err))
             return
 
         self.__record_success()
+        if self._ssa_client:
+            self._ssa_client.finish(success=True)
+
         logging.info('Task_id:%s run success', self.task_id)
 
     def __record_success(self):
@@ -411,114 +394,10 @@ class TrainTask(Task):
             certificate_path=self._client_config.get('ssl', None),
             metadata=self.grpc_metadata)
 
-    async def _report(self):
-        """Implement the report method. Return the training result to server.
-        The content contains model delta weight, metrics and custom
-        self-defined result.
-        """
-        task_result, delta_weights_io, files_io = await self.__prepare_report()
-
-        await self.__do_report(task_result, delta_weights_io, files_io)
-
-    async def __prepare_report(self):
-        metrics = self._get_metrics()
-
-        delta_weights = await self.__calculate_delta_weights(metrics)
-
-        custom_params = self.__get_custom_parameters()
-        custom_files = self.__list_custom_files()
-
-        task_result = self._encode_task_result(Status.success,
-                                               metrics, custom_params)
-        files_io = self.__zip_files(custom_files)
-
-        delta_weights_io = (File(name='delta_weights'),
-                            BytesIO(pickle.dumps(delta_weights)))
-
-        return task_result, delta_weights_io, files_io
-
-    async def __do_report(self, task_result, delta_weights_io, files_io):
-        file_like_objs = [delta_weights_io]
-
-        if files_io:
-            file_like_objs.append(files_io)
-
-        await stream_call(
-            TrainReplyServiceStub, 'TrainReply', TaskResult,
-            self._client_config['server'],
-            config=task_result, file_like_objs=file_like_objs,
-            certificate_path=self._client_config.get('ssl', None),
-            metadata=self.grpc_metadata)
-
-    def __has_weights_result(self):
-        return has_trained_weights_result(
-            self._task_info.spec.runtime, self.workspace)
-
-    async def __calculate_delta_weights(self, metrics):
-        if self.__has_weights_result():
-            fl_model = RuntimeFactory.create_model(self._task_info.spec.runtime)
-
-            delta_weights = self.__calculate_raw_delta_weights(fl_model)
-            delta_weights = await self.__protect_delta_weights_if_need(
-                delta_weights, metrics)
-
-            return delta_weights
-
-        raise FLError("No trained weights.")
-
-    def __calculate_raw_delta_weights(self, fl_model):
-        return calculate_delta_weights(
-            fl_model, self._task_info.spec.runtime, self.workspace)
-
-    async def __protect_delta_weights_if_need(self, delta_weights, metrics):
-        if self._security_algorithm:
-            delta_weights = await self._security_algorithm.protect_weights(
-                delta_weights, sample_num=metrics.get('sample_num', 1))
-        return delta_weights
-
-    def __get_custom_parameters(self):
-        return read_result_parameters(self.workspace)
-
-    def __list_custom_files(self):
-        result_path = get_result_path(self.workspace)
-        return list_all_files(result_path)
-
-    def __zip_files(self, custom_files):
-        if custom_files:
-            result_path = get_result_path(self.workspace)
-
-            files = []
-
-            for filename in custom_files:
-                files.append(('custom/' + filename,
-                              os.path.join(result_path, filename)))
-
-            file_info = File(name='result.zip',
-                             compress=True)
-
-            return file_info, zip_files(files)
-
-        return None
-
 
 class EvaluateTask(Task):
     """Evaluate task.
     """
-
-    async def _report(self):
-        """Report evaluate result.
-        """
-        metrics = self._get_metrics()
-
-        task_result = self._encode_task_result(Status.success,
-                                               metrics=metrics)
-
-        await stream_call(
-            EvaluateReplyServiceStub, 'EvaluateReply', TaskResult,
-            self._client_config['server'], config=task_result,
-            certificate_path=self._client_config.get('ssl', None),
-            metadata=self.grpc_metadata)
-
     async def _report_failed_to_server(self):
         task_result = self._encode_task_result(Status.failed)
         await stream_call(

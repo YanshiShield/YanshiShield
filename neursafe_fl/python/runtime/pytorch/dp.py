@@ -6,6 +6,7 @@
 Used differential privacy to protect pytorch weights.
 """
 import collections
+import torch
 
 from neursafe_fl.python.runtime.security_algorithm import SecurityAlgorithm
 from neursafe_fl.python.libs.secure.differential_privacy.dp_delta_weights \
@@ -37,6 +38,7 @@ class PytorchDP(SecurityAlgorithm):
                     weight.numpy(),  # pylint:disable=no-member
                     self.__secure_algorithm.get("adding_same_noise", False))
 
-            noised_weights[name] = noised_weight
+            noised_weights[name] = torch.Tensor(
+                noised_weight).to("cpu")
 
         return noised_weights

@@ -21,7 +21,6 @@ from tensorflow.python.util.tf_export import keras_export
 from neursafe_fl.python.libs.optimizer.tensorflow.utils import \
     subtract_variables, add_variables, multiply
 from neursafe_fl.python.sdk.custom import get_file, put_file
-from neursafe_fl.python.sdk.core import load_weights
 
 # The local control_variates file path
 local_control_variates_path = os.getenv("CONTROL_VARIATES",
@@ -135,11 +134,10 @@ class Scaffold(optimizer_v2.OptimizerV2):
         """Update the local variates after training.
 
         Args:
-            model: the model used to train.
+            fl model: the fl model used to train.
         """
-        trainable_y = model.trainable_weights
-        load_weights(model)
-        trainable_x = model.trainable_weights
+        trainable_y = model.weights
+        trainable_x = model.init_weights
 
         # compute new local control variates, and save for next round.
         tmp1 = subtract_variables(self._local_variate, self._global_variate)

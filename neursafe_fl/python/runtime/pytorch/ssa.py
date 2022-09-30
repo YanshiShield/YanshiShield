@@ -15,7 +15,7 @@ class PytorchSSA(SecurityAlgorithm):
     """
     def __init__(self, **kwargs):
         super().__init__()
-        self.__ssa_client = kwargs['ssa_client']
+        self.__ssa_protector = kwargs['ssa_protector']
 
     async def protect_weights(self, weights, **kwargs):
         """Protect weights by secret share aggregate.
@@ -29,8 +29,8 @@ class PytorchSSA(SecurityAlgorithm):
         """
         sample_num = kwargs.get('sample_num', 1)
         new_weights = collections.OrderedDict()
-        await self.__ssa_client.wait_ready()
+        await self.__ssa_protector.wait_ready()
         for name, weight in weights.items():
             new_weights[name] = np.multiply(weight, sample_num)
 
-        return self.__ssa_client.encrypt(new_weights)
+        return self.__ssa_protector.encrypt(new_weights)

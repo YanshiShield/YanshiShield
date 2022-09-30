@@ -14,7 +14,7 @@ class TensorflowSSA(SecurityAlgorithm):
     """
     def __init__(self, **kwargs):
         super().__init__()
-        self.__ssa_client = kwargs['ssa_client']
+        self.__ssa_protector = kwargs['ssa_protector']
 
     async def protect_weights(self, weights, **kwargs):
         """Protect weights by secret share aggregate.
@@ -27,9 +27,9 @@ class TensorflowSSA(SecurityAlgorithm):
             masked weights: weights which added mask by ssa.
         """
         sample_num = kwargs.get('sample_num', 1)
-        await self.__ssa_client.wait_ready()
+        await self.__ssa_protector.wait_ready()
         new_weights = []
         for weight in weights:
             new_weights.append(np.multiply(weight, sample_num))
 
-        return self.__ssa_client.encrypt(new_weights)
+        return self.__ssa_protector.encrypt(new_weights)

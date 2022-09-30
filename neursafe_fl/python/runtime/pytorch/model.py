@@ -4,6 +4,7 @@
 """
 Pytorch model in FL.
 """
+from copy import deepcopy
 
 import torch
 import torch.nn as nn
@@ -16,6 +17,8 @@ class PytorchModel(Model):
     """
     def __init__(self, **kwargs):
         self.__model = kwargs.get('model', None)
+        self.init_weights = None
+        self.init_parameters = None
 
     def save(self, obj, path, **kwargs):
         """Save weights to local path.
@@ -52,4 +55,34 @@ class PytorchModel(Model):
         if not self.__model:
             raise LoadWeightsError(
                 'Load weights failed, not have base model to load weights.')
+        return self.__model
+
+    def cache_init_weights(self, path):
+        """Cache init weights to memory.
+
+        Args:
+            path: The int weights file path.
+        """
+        self.init_weights = torch.load(path)
+
+        if not self.__model:
+            raise LoadWeightsError(
+                'Load weights failed, not have base model to load weights.')
+
+        self.init_parameters = deepcopy(self.__model).parameters()
+
+    @property
+    def weights(self):
+        """
+        Return current model weights.
+
+        Note: state_dict() return a reference of weights.
+        """
+        return self.__model.state_dict()
+
+    @property
+    def raw_model(self):
+        """
+        Return raw model
+        """
         return self.__model
