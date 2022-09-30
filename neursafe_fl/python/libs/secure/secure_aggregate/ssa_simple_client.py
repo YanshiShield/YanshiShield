@@ -42,12 +42,12 @@ class SSASimpleClient(SSABaseClient):
             stage_time_interval: the time to wait a stage timeout.
     """
     def __init__(self, handle, server_addr, ssl_key, client_id,
-                 min_client_num, client_num, use_same_mask,
+                 min_client_num, client_num, use_same_mask, workspace,
                  grpc_metadata=None,
                  ready_timer_interval=60, **kwargs):
         super().__init__(handle, server_addr, ssl_key, client_id,
                          min_client_num, client_num, use_same_mask,
-                         grpc_metadata)
+                         grpc_metadata, workspace)
 
         self.__ready_timer_interval = ready_timer_interval
         self.__ready_timer = None
@@ -123,7 +123,7 @@ class SSASimpleClient(SSABaseClient):
             certificate_path=self._ssl_key,
             metadata=self._grpc_metadata)
 
-    def __handle_public_keys(self, msg):
+    async def __handle_public_keys(self, msg):
         try:
             self.__assert_stage(ProtocolStage.ExchangePublicKey)
             self.__assert_number(len(msg.public_keys_bcst.public_key))
@@ -160,44 +160,19 @@ class SSASimpleClient(SSABaseClient):
                 int(v_public_key.s_pk))
             self._s_uv_s.append((v_id, PseudorandomGenerator(s_uv)))
 
+        self._persist_secret()
         self.__ready_event.set()
         self.__stage = ProtocolStage.CiphertextAggregate
 
-    async def wait_ready(self):
-        """Wait initialize ready.
-        """
-        await self.__ready_event.wait()
+    def finish(self, success, err=None):
+        if success:
+            self.__stop_ready_timer()
+            self.__clear()
+            self.__stage = ProtocolStage.DecryptResult
+        else:
+            self.__process_error(err)
 
-        self.__raise_exception_if_error()
-
-    def encrypt(self, data):
-        """Use double mask to encrypt data.
-
-        Note: you must call wait_mask_generated first,
-            or maybe double mask not ready.
-
-        Args:
-            data: the plaintext used to encrypt. supported type:
-                [int, float, and iterable value ].
-
-        return:
-            The encrypted data.
-        """
-        self.__raise_exception_if_error()
-        self.__assert_stage(ProtocolStage.CiphertextAggregate)
-
-        new_data = self._do_encrypt(data)
-
-        self.__stop_ready_timer()
-        self.__clear()
-        self.__stage = ProtocolStage.DecryptResult
-        return new_data
-
-    def __raise_exception_if_error(self):
-        if self.__error:
-            raise RuntimeError(self.__error)
-
-    def handle_msg(self, msg):
+    async def handle_msg(self, msg):
         """Handle message from server.
         """
         msg_handlers = {
@@ -205,4 +180,4 @@ class SSASimpleClient(SSABaseClient):
         }
 
         which = msg.WhichOneof('spec')
-        msg_handlers[which](msg)
+        await msg_handlers[which](msg)

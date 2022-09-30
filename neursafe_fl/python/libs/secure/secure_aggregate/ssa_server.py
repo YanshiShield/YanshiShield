@@ -54,7 +54,7 @@ class SSABaseServer:
         """Decrypt the accumulated data."""
 
     @abc.abstractmethod
-    def handle_msg(self, msg):
+    async def handle_msg(self, msg):
         """Process the ssa protocol message."""
 
     def _accumulate_data(self, data):
@@ -179,7 +179,7 @@ class SSAServer(SSABaseServer):
             self.__set_initialize_finished_ready()
             self.__clear()
 
-    def __handle_public_key(self, msg):
+    async def __handle_public_key(self, msg):
         self.__assert_stage(ProtocolStage.ExchangePublicKey)
 
         self.__save_public_key(msg.public_key_rpt)
@@ -225,7 +225,7 @@ class SSAServer(SSABaseServer):
                          certificate_path=self._ssl_key,
                          metadata={"destination": client_id})
 
-    def __handle_encrypted_shares(self, msg):
+    async def __handle_encrypted_shares(self, msg):
         self.__assert_stage(ProtocolStage.ExchangeEncryptedShare)
 
         self.__save_encrypted_shares(msg.encrypted_shares_rpt)
@@ -416,7 +416,7 @@ class SSAServer(SSABaseServer):
         logging.debug('masks %s', masks)
         return masks
 
-    def __handle_secret_shares(self, msg):
+    async def __handle_secret_shares(self, msg):
         self.__assert_stage(ProtocolStage.DecryptResult)
 
         self.__save_secret_shares(msg.secret_shares_rpt)
@@ -508,7 +508,7 @@ class SSAServer(SSABaseServer):
         if self.__error:
             raise RuntimeError(self.__error)
 
-    def handle_msg(self, msg):
+    async def handle_msg(self, msg):
         """Process the ssa protocol message.
         """
         msg_handlers = {
@@ -518,4 +518,4 @@ class SSAServer(SSABaseServer):
         }
 
         which = msg.WhichOneof('spec')
-        msg_handlers[which](msg)
+        await msg_handlers[which](msg)

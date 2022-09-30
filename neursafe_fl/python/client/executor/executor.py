@@ -48,6 +48,7 @@ class Executor:  # pylint:disable=too-many-instance-attributes
         self._datasets = kwargs.get('datasets')
         self._resource_spec = kwargs['resource_spec']
         self._distributed_env = kwargs['distributed_env']
+        self._basic_envs = kwargs.get("basic_envs", {})
 
         self._timer = None
 

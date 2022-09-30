@@ -15,7 +15,7 @@ import neursafe_fl.python.client.executor.errors as err
 from neursafe_fl.python.client.executor.executor import Executor, \
     DEFAULT_TASK_TIMEOUT
 from neursafe_fl.python.client.workspace.log import FLLogger
-from neursafe_fl.python.sdk.utils import TASK_RUNTIME, TASK_WORKSPACE, DATASETS
+from neursafe_fl.python.sdk.utils import DATASETS
 from neursafe_fl.python.utils.timer import Timer
 from neursafe_fl.python.client.executor.cgroup import Cgroup
 from neursafe_fl.python.client.worker import WorkerStatus
@@ -143,11 +143,10 @@ class LinuxExecutor(Executor):
 
     def __set_env_vars(self):
         env_vars = {
-            TASK_RUNTIME: self._executor_info.spec.runtime,
-            TASK_WORKSPACE: self._workspace,
             'PYTHONPATH': self._gen_pythonpath(),
-            'OPTIMIZER_NAME': self._executor_info.spec.optimizer.name
         }
+        env_vars.update(self._basic_envs)
+
         if self._executor_info.spec.optimizer.params:
             params = []
             for key in self._executor_info.spec.optimizer.params:

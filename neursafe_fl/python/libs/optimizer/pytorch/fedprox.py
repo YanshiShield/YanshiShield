@@ -60,7 +60,7 @@ class PerturbedGradientDescent(Optimizer):
             mu = param_group["mu"]
 
             for param in param_group["params"]:
-                if not param.grad:
+                if param.grad is None:
                     continue
 
                 delta_param = param.grad.data
@@ -87,6 +87,6 @@ class PerturbedGradientDescent(Optimizer):
                         delta_param = buffer
 
                 delta_param.add_(mu, param.data - param_state["init"])
-                param.data.add_(-param_group["learning_rate"], delta_param)
+                param.data.add_(-param_group["lr"], delta_param)
 
         return loss

@@ -4,8 +4,7 @@
 """FL SDK interface
 """
 
-from neursafe_fl.python.sdk.core import load_weights, commit_weights, \
-    commit_metrics, get_dataset_path
+from neursafe_fl.python.sdk.core import load_weights, commit, get_dataset_path
 from neursafe_fl.python.sdk.custom import get_parameter, get_parameters, \
     put_parameter, put_parameters, get_file, put_file
 

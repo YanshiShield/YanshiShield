@@ -41,3 +41,23 @@ class Model:
                 return_type: Model or weights.
                 need_compile: Used in tensorflow.
         """
+
+    @abc.abstractmethod
+    def cache_init_weights(self, path):
+        """Cache init weights from local file to memory
+
+        Args:
+            path: The file where to load model or weights
+        """
+
+    @property
+    def weights(self):
+        """
+        Return current model weights.
+        """
+
+    @property
+    def raw_model(self):
+        """
+        Return raw model
+        """

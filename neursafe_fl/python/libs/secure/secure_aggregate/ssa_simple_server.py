@@ -98,7 +98,7 @@ class SSASimpleServer(SSABaseServer):
             self.__error = error
             self.__clear()
 
-    def __handle_public_key(self, msg):
+    async def __handle_public_key(self, msg):
         self.__assert_stage(ProtocolStage.ExchangePublicKey)
 
         self.__save_public_key(msg.public_key_rpt)
@@ -195,7 +195,7 @@ class SSASimpleServer(SSABaseServer):
         if self.__error:
             raise RuntimeError(self.__error)
 
-    def handle_msg(self, msg):
+    async def handle_msg(self, msg):
         """Process the ssa protocol message.
         """
         msg_handlers = {
@@ -203,4 +203,4 @@ class SSASimpleServer(SSABaseServer):
         }
 
         which = msg.WhichOneof('spec')
-        msg_handlers[which](msg)
+        await msg_handlers[which](msg)

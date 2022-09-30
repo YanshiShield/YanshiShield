@@ -12,7 +12,6 @@ import torch
 from absl import logging
 from torch.optim.optimizer import Optimizer
 from neursafe_fl.python.sdk.custom import get_file, put_file
-from neursafe_fl.python.sdk.core import load_weights
 
 # The local control_variates file path
 local_control_variates_path = os.getenv("CONTROL_VARIATES",
@@ -132,21 +131,26 @@ class Scaffold(Optimizer):
 
     def update(self, model):
         """Update the control variates of scaffold
-        """
-        if isinstance(model, (torch.nn.DataParallel,
-                              torch.nn.parallel.DistributedDataParallel)):
-            logging.info("transfer model from data parallel to local.")
-            model = model.module.to(device)
 
-        zero_params = [torch.zeros_like(p.data) for p in model.parameters()
+        Args:
+            model: fl model, defined in neursafe_fl/python/runtime/model.py
+        """
+        raw_model = model.raw_model
+
+        if isinstance(raw_model, (torch.nn.DataParallel,
+                                  torch.nn.parallel.DistributedDataParallel)):
+            logging.info("transfer model from data parallel to local.")
+            raw_model = raw_model.module.to(device)
+
+        zero_params = [torch.zeros_like(p.data) for p in raw_model.parameters()
                        if p.requires_grad]
-        trained_params = [torch.zeros_like(p.data) for p in model.parameters()
-                          if p.requires_grad]
-        for param, model_param in zip(trained_params, model.parameters()):
+        trained_params = [torch.zeros_like(p.data)
+                          for p in raw_model.parameters() if p.requires_grad]
+        for param, model_param in zip(trained_params, raw_model.parameters()):
             param.data = model_param.data.clone()
 
-        load_weights(model)
-        init_server_params = model.parameters()
+        init_server_params = model.init_parameters
+
         update_local_variates(trained_params, zero_params, init_server_params,
                               self.server_controls, self.local_controls,
                               self.sample_num, self.batch_size, self.lr)

@@ -12,7 +12,7 @@ from absl import logging
 from neursafe_fl.python.client.executor.executor import Executor
 from neursafe_fl.python.libs.cloud.task import K8sTask, TaskExisted, \
     TaskCreateFailed, TaskNotExist, TaskDeleteFailed, TaskGetFailed
-from neursafe_fl.python.sdk.utils import TASK_RUNTIME, TASK_WORKSPACE, DATASETS
+from neursafe_fl.python.sdk.utils import DATASETS
 import neursafe_fl.python.client.const as const
 from neursafe_fl.python.client.executor.errors import FLError
 from neursafe_fl.python.client.worker import WorkerStatus
@@ -154,10 +154,7 @@ class K8sExecutor(Executor):
 
     def __set_env_vars(self):
         env_vars = {
-            TASK_RUNTIME: self._executor_info.spec.runtime,
-            TASK_WORKSPACE: self._workspace,
             'PYTHONPATH': self._gen_pythonpath(),
-            'OPTIMIZER_NAME': self._executor_info.spec.optimizer.name,
             "STORAGE_TYPE": const.STORAGE_TYPE,
             "S3_ENDPOINT": const.S3_ENDPOINT,
             "S3_ACCESS_KEY": const.S3_ACCESS_KEY,
@@ -165,6 +162,8 @@ class K8sExecutor(Executor):
             "WORKSPACE_BUCKET": const.WORKSPACE_BUCKET,
             "WORKSPACE": const.WORKSPACE
         }
+        env_vars.update(self._basic_envs)
+
         if self._executor_info.spec.optimizer.params:
             params = []
             for key in self._executor_info.spec.optimizer.params:

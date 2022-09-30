@@ -7,12 +7,13 @@
 """
 import abc
 import asyncio
-from collections import OrderedDict
 import random
+import pickle
+import fcntl
+import os
 
 from absl import logging
 from secretsharing import SecretSharer
-import numpy as np
 
 from neursafe_fl.python.utils.timer import Timer
 from neursafe_fl.proto.secure_aggregate_grpc import SSAServiceStub
@@ -21,7 +22,7 @@ from neursafe_fl.proto.secure_aggregate_pb2 import SSAMessage, PublicKey,\
 from neursafe_fl.python.libs.secure.secure_aggregate.aes import \
     encrypt_with_gcm, decrypt_with_gcm
 from neursafe_fl.python.libs.secure.secure_aggregate.common import \
-    ProtocolStage, can_be_added, PseudorandomGenerator
+    ProtocolStage, PseudorandomGenerator
 from neursafe_fl.python.libs.secure.secure_aggregate.dh import DiffieHellman
 from neursafe_fl.python.libs.secure.secure_aggregate.ssa_controller import \
     ssa_controller
@@ -33,13 +34,23 @@ MIN_B_MASK = 10000000000
 MAX_B_MASK = 9999999999999999
 ENCRYPTED_SHARE_DELIMITER = '$$'
 STAGE_TIME_INTERVAL = 60
+SECRET_FILE_NAME = "nsfl_ssa"
+WAIT_TIMEOUT = 600
+WAIT_INTERNAL = 0.5
+
+
+def gen_secret_file_path(workspace):
+    """
+    Return secret shares file path
+    """
+    return os.path.join(workspace, SECRET_FILE_NAME)
 
 
 class SSABaseClient:
     """Secret Share Aggregate, base client"""
     def __init__(self, handle, server_addr, ssl_key, client_id,
                  min_client_num, client_num, use_same_mask,
-                 grpc_metadata):
+                 grpc_metadata, workspace):
         self._handle = handle
         self._my_id = client_id
         self._server_addr = server_addr
@@ -56,83 +67,40 @@ class SSABaseClient:
         self._b = None
         self._s_uv_s = []
 
+        self._secret_persistence_path = gen_secret_file_path(workspace)
+
     @abc.abstractmethod
     def initialize(self):
         """Initialize client."""
 
     @abc.abstractmethod
-    async def wait_ready(self):
-        """Wait initialize ready.
-        """
-
-    @abc.abstractmethod
-    def encrypt(self, data):
-        """Use mask to encrypt data."""
-
-    @abc.abstractmethod
-    def handle_msg(self, msg):
+    async def handle_msg(self, msg):
         """Handle message from server.
         """
 
-    def _do_encrypt(self, data):
-        if isinstance(data, list):
-            # tf's weights is list, the value is ndarray
-            new_data = self.__encrypt_list(data)
-        elif isinstance(data, OrderedDict):
-            # pytorch's value in OrderedDict, the value is torch.Tensor
-            new_data = self.__encrypt_ordered_dict(data)
-        elif can_be_added(data):
-            masks = self._genernate_masks(1)
-            new_data = np.add(data, masks[0])
-        else:
-            raise TypeError('Not support data type %s' % type(data))
-        return new_data
+    @abc.abstractmethod
+    def finish(self, success, err=None):
+        """
+        Do finish work after encryption work.
 
-    def __encrypt_list(self, data):
-        new_data = []
-        if not self._use_same_mask:
-            masks = self._genernate_masks(len(data))
-            for index, item in enumerate(data):
-                new_data.append(np.add(item, masks[index]))
-        else:
-            masks = self._genernate_masks(1)
-            for item in data:
-                new_data.append(np.add(item, masks[0]))
-        return new_data
+        Args:
+            success: whether encryption work successful.
+            err: error info if success is False.
+        """
 
-    def __encrypt_ordered_dict(self, data):
-        new_data = OrderedDict()
-        if not self._use_same_mask:
-            masks = self._genernate_masks(len(data))
-            for index, (name, value) in enumerate(data.items()):
-                new_data[name] = np.add(value, masks[index])
-        else:
-            masks = self._genernate_masks(1)
-            for name, value in data.items():
-                new_data[name] = np.add(value, masks[0])
-        return new_data
+    def _persist_secret(self):
+        secret_info = {"s_uv_s": self._s_uv_s,
+                       "b": self._b,
+                       "id": self._my_id}
 
-    def _genernate_masks(self, data_size):
-        if self._b:
-            b_prg = PseudorandomGenerator(self._b)
-        else:
-            b_prg = None
+        secret = encrypt_with_gcm(self._secret_persistence_path,
+                                  str(pickle.dumps(secret_info)),
+                                  self._secret_persistence_path,
+                                  self._secret_persistence_path)
 
-        masks = []
-        for _ in range(data_size):
-            s_total = 0
-            for (v_id, s_uv_prg) in self._s_uv_s:
-                if self._my_id > v_id:
-                    s_total += s_uv_prg.next_number()
-                else:
-                    s_total -= s_uv_prg.next_number()
-
-            if b_prg:
-                masks.append(b_prg.next_number() + s_total)
-            else:
-                masks.append(s_total)
-        logging.debug('masks %s', masks)
-        return masks
+        with open(self._secret_persistence_path, "wb") as f:
+            fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+            pickle.dump(secret, f)
 
 
 class SSAClient(SSABaseClient):
@@ -155,14 +123,14 @@ class SSAClient(SSABaseClient):
             stage_time_interval: the time to wait a stage timeout.
     """
     def __init__(self, handle, server_addr, ssl_key, client_id,
-                 min_client_num, client_num, use_same_mask,
+                 min_client_num, client_num, use_same_mask, workspace,
                  grpc_metadata=None,
                  ready_timer_interval=60,
                  server_aggregate_interval=90,
                  **kwargs):
         super().__init__(handle, server_addr, ssl_key, client_id,
                          min_client_num, client_num, use_same_mask,
-                         grpc_metadata)
+                         grpc_metadata, workspace)
 
         self.__stage_time_interval = kwargs.get("stage_time_interval",
                                                 STAGE_TIME_INTERVAL)
@@ -235,6 +203,7 @@ class SSAClient(SSABaseClient):
         self.__stage_timer = None
 
     def __staget_timeout(self, error_msg):
+        logging.error("Stage timer timeout, current state: %s" % self.__stage)
         self.__process_error(error_msg)
 
     def __process_error(self, error):
@@ -243,34 +212,12 @@ class SSAClient(SSABaseClient):
             self.__ready_event.set()
             self.__clear()
 
-    async def wait_ready(self):
-        """Wait initialize ready.
-        """
-        await self.__ready_event.wait()
-
-        self.__raise_exception_if_error()
-
-    def encrypt(self, data):
-        """Use double mask to encrypt data.
-
-        Note: you must call wait_mask_generated first,
-            or maybe double mask not ready.
-
-        Args:
-            data: the plaintext used to encrypt. supported type:
-                [int, float, and iterable value ].
-
-        return:
-            The encrypted data.
-        """
-        self.__raise_exception_if_error()
-        self.__assert_stage(ProtocolStage.CiphertextAggregate)
-
-        new_data = self._do_encrypt(data)
-
-        self.__stop_ready_timer()
-        self.__stage = ProtocolStage.DecryptResult
-        return new_data
+    def finish(self, success, err=None):
+        if success:
+            self.__stop_ready_timer()
+            self.__stage = ProtocolStage.DecryptResult
+        else:
+            self.__process_error(err)
 
     async def __start(self):
         self.__stage = ProtocolStage.ExchangePublicKey
@@ -310,7 +257,7 @@ class SSAClient(SSABaseClient):
             certificate_path=self._ssl_key,
             metadata=self._grpc_metadata)
 
-    def __handle_public_keys(self, msg):
+    async def __handle_public_keys(self, msg):
         try:
             self.__assert_stage(ProtocolStage.ExchangePublicKey)
             self.__assert_number(len(msg.public_keys_bcst.public_key))
@@ -399,7 +346,7 @@ class SSAClient(SSABaseClient):
             handle=self._handle,
             encrypted_shares_rpt=encrypted_shares)
 
-    def __handle_encrypted_shares(self, msg):
+    async def __handle_encrypted_shares(self, msg):
         try:
             self.__assert_stage(ProtocolStage.ExchangeEncryptedShare)
             self.__assert_number(
@@ -429,11 +376,22 @@ class SSAClient(SSABaseClient):
             self._s_uv_s.append((v_id, PseudorandomGenerator(s_uv)))
 
         self.__stage = ProtocolStage.CiphertextAggregate
+
+        self._persist_secret()
         self.__set_ready()
 
-    def __handle_alive_clients(self, msg):
+    async def __handle_alive_clients(self, msg):
+        async def wait_stage_in_correct(stage):
+            retry = 0
+            while self.__stage is not stage:
+                if retry > WAIT_TIMEOUT:
+                    raise Exception("Wait in stage timeout." % stage.name)
+
+                retry += 1
+                await asyncio.sleep(WAIT_INTERNAL)
+
         try:
-            self.__assert_stage(ProtocolStage.DecryptResult)
+            await wait_stage_in_correct(ProtocolStage.DecryptResult)
             self.__assert_number(len(msg.alive_clients_bcst.client_id))
             self.__stop_server_aggregate_timer()
 
@@ -490,11 +448,7 @@ class SSAClient(SSABaseClient):
             handle=self._handle,
             secret_shares_rpt=secret_shares)
 
-    def __raise_exception_if_error(self):
-        if self.__error:
-            raise RuntimeError(self.__error)
-
-    def handle_msg(self, msg):
+    async def handle_msg(self, msg):
         """Handle message from server.
         """
         msg_handlers = {
@@ -504,4 +458,4 @@ class SSAClient(SSABaseClient):
         }
 
         which = msg.WhichOneof('spec')
-        msg_handlers[which](msg)
+        await msg_handlers[which](msg)

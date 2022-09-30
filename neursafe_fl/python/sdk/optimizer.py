@@ -6,10 +6,10 @@
 """
 import os
 from absl import logging
-from neursafe_fl.python.sdk.utils import get_runtime
+from neursafe_fl.python.sdk.utils import get_runtime, TASK_OPTIMIZER
 
 
-OPTIMIZER_NAME = "OPTIMIZER_NAME"
+OPTIMIZER_NAME = TASK_OPTIMIZER
 OPTIMIZER_PARAMS = "OPTIMIZER_PARAMS"
 
 FEDPROX = "fedprox"

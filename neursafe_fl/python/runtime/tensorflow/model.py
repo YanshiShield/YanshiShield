@@ -14,6 +14,7 @@ class TensorflowModel(Model):
     """
     def __init__(self, **kwargs):
         self.__model = kwargs.get('model', None)
+        self.init_weights = None
 
     def save(self, obj, path, **kwargs):
         """Save model/weights to local path.
@@ -67,3 +68,32 @@ class TensorflowModel(Model):
 
         raise LoadWeightsError(
             'Load weights failed, not have base model to load weights.')
+
+    def cache_init_weights(self, path):
+        """Cache init weights to memory.
+
+        Args:
+            path: The int weights file path.
+        """
+        if self.__model:
+            self.__model.load_weights(path)
+            self.init_weights = self.__model.get_weights()
+        else:
+            raise LoadWeightsError(
+                'Cache init weights failed, not have base model.')
+
+    @property
+    def weights(self):
+        """
+        Return current model weights.
+
+        Note: get_weights() return a copy of weight.
+        """
+        return self.__model.get_weights()
+
+    @property
+    def raw_model(self):
+        """
+        Return raw model
+        """
+        return self.__model
