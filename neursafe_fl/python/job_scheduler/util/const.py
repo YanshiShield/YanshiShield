@@ -50,6 +50,7 @@ REPORT_PERIOD = os.getenv("REPORT_PERIOD", "10")
 JOB_SCHEDULER_ADDRESS = os.getenv("JOB_SCHEDULER_ADDRESS", "job-scheduler:8088")
 MODEL_MANAGER_ADDRESS = os.getenv("MODEL_MANAGER_ADDRESS",
                                   "fl-model-manager:50057")
+NODE_AFFINITY = os.getenv("NODE_AFFINITY", "ubuntu-15")
 
 # system internal const variable
 DEFAULT_CLIENT_NUM = int(os.getenv("DEFAULT_CLIENT_NUM", "1"))

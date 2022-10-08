@@ -57,6 +57,8 @@ class Workspace:
     def get_checkpoints(self):
         """Return all checkpoints info"""
         ckpts = {}
+        if not os.path.exists(self.__output_dir):
+            os.makedirs(self.__output_dir)
         dirs = os.listdir(self.__output_dir)
         job_dir_pattern = "fl_%s_output_V*" % self.__job_name
         ckpt_id_pattern = "%s(.*)" % CHECKPOINT_FILE_PREFIX

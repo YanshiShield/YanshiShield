@@ -4,6 +4,7 @@
 # pylint:disable=too-many-instance-attributes, too-few-public-methods
 """Trainer Module."""
 import json
+import copy
 import asyncio
 from absl import logging
 
@@ -255,11 +256,62 @@ class Trainer:
         self.__calculate_statistics(result.status, result.statistics)
 
     async def __custom_process(self):
-        self.__round = CustomRound(self.__config, self.__round_id,
-                                   self.__workspace)
-        logging.info("Start execute custom round, number %s", self.__round_id)
-        result = await self.__round.run()
+        """Implement lifelong learning process.
+
+            1. train
+            2. evaluate
+            3. deploy
+        """
+        result = await self.__run_train_round()  # state 1: train
+        self.__process_round_result(result)
+
+        if not result.status:
+            logging.warning("train stage failed: %s", result.reason)
+            return
+
+        metrics = await self.__run_evaluate_round()  # state 2: evaluate
+        metrics, max_metric = self._convert_to_list(metrics)
+        ckpt_file = self.__save_ckpts(max_metric)
+
+        await self.__run_deploy_round(ckpt_file, metrics)  # state 3: deploy
         self.__calculate_statistics(result.status, result.statistics)
+
+        wait_time = self.__config.get("deploy_time", 600)
+        logging.info("waiting for next sub task, sleep time %s(s)", wait_time)
+        await asyncio.sleep(wait_time)
+
+    async def __run_deploy_round(self, model_file, metrics):
+        """Deploy the new model to the inference pod in edge.
+        """
+        deploy_config = copy.deepcopy(self.__config)
+        deploy_config["model_file"] = model_file
+        deploy_config["metrics"] = metrics
+        self.__round = CustomRound(deploy_config, self.__round_id,
+                                   self.__workspace)
+        logging.info("Start execute deploy round, number %s", self.__round_id)
+        result = await self.__round.run()
+        if result.status:
+            logging.info("Deploy the new model on edge success.")
+        else:
+            logging.warning("Deploy the new model on edge failed, %s",
+                            result.reason)
+        del deploy_config
+
+    def _convert_to_list(self, data):
+        """Convert the nd.array to list.
+        """
+        if data:
+            refactor = {}
+            max_val = {}
+            for key, value in data.items():
+                tmp = value.tolist()
+                refactor[key] = tmp
+                max_val[key] = tmp
+                if isinstance(tmp, list):
+                    max_val[key] = max(tmp)
+
+            return refactor, max_val
+        return None, None
 
     def __process_round_result(self, result):
         if result.status:
@@ -360,12 +412,13 @@ class Trainer:
 
         self.__fl_model.save_model(ckpt_file)
 
-        if metrics and metrics.get("accuracy"):
+        if metrics and metrics.get("accuracy") is not None:
             self.__add_ckpt_info(metrics, ckpt_dir_name,
                                  ckpt_out_path, ckpt_file)
 
         self.__next_ckpt_id += 1
         logging.info("Saving checkpoint to %s success", ckpt_file)
+        return ckpt_file
 
     async def msg_mux(self, msg_type, msg):
         """Dispatch the message from clients to round."""
