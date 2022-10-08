@@ -114,7 +114,7 @@ The Neursafe FL migrate machine learning to federated by adding some API calling
 
 - Before loading the training data, call the get_dataset_path interface to obtain the local training data path, as NOTE 1.
 - When loading model parameters, use Nerusafe FL's load_weights to replace the original implementation, and load the model parameters delivered from the Coordinator, as  NOTE 2.
-- After completing the local training , call commit_weights to report the updated model parameters and metrics(such as accuracy, loss, etc.) to the Coordinator, as  NOTE 3.
+- After completing the local training , call commit to report the updated model parameters and metrics(such as accuracy, loss, etc.) to the Coordinator, as  NOTE 3.
 
 ```Python
 import neursafe_fl as nsfl

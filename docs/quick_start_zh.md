@@ -114,7 +114,7 @@ Neursafe FL通过在原机器学习框架（Tensorflow或Pytorch）的训练脚�
 
 - 加载训练数据前，调用get_dataset_path接口获取本地训练数据地址，代码修改参见NOTE 1。
 - 加载模型参数时，使用Nerusafe FL的load_weights替换原有模型加载实现，加载从Coordinator下发的模型参数，代码修改参见NOTE 2。
-- 完成模型的本地训练后，调用commit_weights向Coordinator上报模型参数更新值以及指标数据（精度，loss等），代码修改参见NOTE 3。
+- 完成模型的本地训练后，调用commit向Coordinator上报模型参数更新值以及指标数据（精度，loss等），代码修改参见NOTE 3。
 
 ```Python
 import neursafe_fl as nsfl
