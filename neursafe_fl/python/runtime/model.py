@@ -50,6 +50,14 @@ class Model:
             path: The file where to load model or weights
         """
 
+    @abc.abstractmethod
+    def set_raw_model(self, model):
+        """Refresh raw model
+
+        Args:
+            model: new model
+        """
+
     @property
     def weights(self):
         """

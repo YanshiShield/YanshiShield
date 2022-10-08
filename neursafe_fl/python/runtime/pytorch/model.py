@@ -71,6 +71,14 @@ class PytorchModel(Model):
 
         self.init_parameters = deepcopy(self.__model).parameters()
 
+    def set_raw_model(self, model):
+        """Refresh raw model
+
+        Args:
+            model: new model
+        """
+        self.__model = model
+
     @property
     def weights(self):
         """
