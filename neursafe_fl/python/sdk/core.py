@@ -1,6 +1,6 @@
 #  Copyright 2022 The Neursafe FL Authors. All Rights Reserved.
 #  SPDX-License-Identifier: Apache-2.0
-
+# pylint: disable=invalid-name, global-statement
 """FL SDk core function.
 """
 
@@ -12,6 +12,8 @@ import neursafe_fl.python.sdk.report as report
 import neursafe_fl.python.client.workspace.delta_weights as weights
 from neursafe_fl.python.utils.file_io import read_json_file
 
+fl_model = None
+
 
 def load_weights(model):
     """Load weights from server into model.
@@ -21,7 +23,9 @@ def load_weights(model):
     """
     task_workspace = utils.get_task_workspace()
     runtime = utils.get_runtime()
-    return weights.load_init_weights(model, runtime, task_workspace)
+
+    global fl_model
+    fl_model = weights.load_init_weights(model, runtime, task_workspace)
 
 
 def __is_chief_worker():
@@ -53,15 +57,18 @@ def _protect_weights(weights_, metrics):
 
 def _commit_trained_results(metrics, model, optimizer=None):
     def do_optional_works():
+        global fl_model
+        fl_model.set_raw_model(model)
+
         if os.getenv(utils.TASK_OPTIMIZER) == "scaffold" and optimizer:
-            optimizer.update(model)
+            optimizer.update(fl_model)
 
     if __is_chief_worker():
         # STEP 1: Do optional works
         do_optional_works()
 
         # STEP 2: Calculate delta weights.
-        delta_weights = _calc_delta_weights(model)
+        delta_weights = _calc_delta_weights(fl_model)
 
         # STEP 3: Protect delta weights if needed
         delta_weights = _protect_weights(delta_weights, metrics)
@@ -89,7 +96,7 @@ def commit(metrics, model=None, optimizer=None):
                 precision float,
                 recall_rate float,
             all is optional.
-        model: Will commit the weights in model to framework.
+        model: trained model.
         optimizer: the optimizer instance used in training.
     """
     if model:

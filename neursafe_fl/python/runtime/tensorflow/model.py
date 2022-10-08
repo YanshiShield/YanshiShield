@@ -82,6 +82,14 @@ class TensorflowModel(Model):
             raise LoadWeightsError(
                 'Cache init weights failed, not have base model.')
 
+    def set_raw_model(self, model):
+        """Refresh raw model
+
+        Args:
+            model: new model
+        """
+        self.__model = model
+
     @property
     def weights(self):
         """
