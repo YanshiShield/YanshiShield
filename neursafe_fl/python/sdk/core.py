@@ -82,7 +82,7 @@ def _commit_evaluated_results(metrics):
     report.submit(metrics)
 
 
-def commit(metrics, model=None, optimizer=None):
+def commit(metrics, trained_model=None, optimizer=None):
     """Commit trained weights to framework, and the framework will
     calculate delta weights and send it to server.
 
@@ -96,11 +96,11 @@ def commit(metrics, model=None, optimizer=None):
                 precision float,
                 recall_rate float,
             all is optional.
-        model: trained model.
+        trained_model: trained model.
         optimizer: the optimizer instance used in training.
     """
-    if model:
-        _commit_trained_results(metrics, model, optimizer=optimizer)
+    if trained_model:
+        _commit_trained_results(metrics, trained_model, optimizer=optimizer)
     else:
         _commit_evaluated_results(metrics)
 
