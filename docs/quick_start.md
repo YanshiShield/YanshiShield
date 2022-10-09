@@ -69,7 +69,7 @@ The generated configuration is in the form of json and stored in the location sp
 
 
 
-### Dataset configuration:
+### Dataset configuration description:
 
 The dataset configuration file is named datasets.json, which describes the relationship between dataset name and dataset path, such as:
 
@@ -80,7 +80,9 @@ The dataset configuration file is named datasets.json, which describes the relat
 }
 ```
 
-### Job script configuration:
+
+
+### Job script configuration description:
 
 Job script configuration, which describes the path of the training script executed by the client, the path of the evaluation script, and the corresponding script parameters, such as:
 
@@ -112,10 +114,7 @@ The Neursafe FL migrate machine learning to federated by adding some API calling
 
 - Before loading the training data, call the get_dataset_path interface to obtain the local training data path, as NOTE 1.
 - When loading model parameters, use Nerusafe FL's load_weights to replace the original implementation, and load the model parameters delivered from the Coordinator, as  NOTE 2.
-- After completing the local training , call commit_weights to report the updated model parameters to the Coordinator, as  NOTE 3.
-- Call the commit_metrics interface to submit some statistical data of federated training, such as accuracy, loss, etc. , as NOTE 4.
-
-
+- After completing the local training , call commit to report the updated model parameters and metrics(such as accuracy, loss, etc.) to the Coordinator, as  NOTE 3.
 
 ```Python
 import neursafe_fl as nsfl
@@ -141,18 +140,17 @@ history = model.fit(x_train, y_train, epochs=1)
 print('loss', history.history['loss'])
 print('accuracy:', history.history['accuracy'])
 
-# [NOTE 3]
-nsfl.commit_weights(model)
-
 metrics = {
 'sample_num': len(x_train),
 'loss': history.history['loss'][-1],
 'accuracy': history.history['accuracy'][-1]
 }
 
-# [NOTE 4]
-nsfl.commit_metrics(metrics)
+# [NOTE 3]
+nsfl.commit(metrics, model)
 ```
+
+Note: The configuration generation commands in the previous section have automatically generated model training and evaluation scripts
 
 
 

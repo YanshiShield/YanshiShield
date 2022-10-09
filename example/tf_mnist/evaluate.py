@@ -62,8 +62,8 @@ def evaluate(index_range):
         'loss': fl_score[0],
         'accuracy': fl_score[1]
     }
-    # write metrics to task worksapce, and client agent will send it to server.
-    nsfl.commit_metrics(metrics)
+    # Comimit metrics. Then client agent will send it to server.
+    nsfl.commit(metrics)
 
 
 def main():

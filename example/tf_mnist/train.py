@@ -52,17 +52,13 @@ def train(index_range):
     print('loss', history.history['loss'])
     print('accuracy:', history.history['accuracy'])
 
-    # save weights to task worksapce, the client agent will compute delta
-    # weights and send it to server.
-    nsfl.commit_weights(model)
-
     metrics = {
         'sample_num': len(x_train),
         'loss': history.history['loss'][-1],
         'accuracy': history.history['accuracy'][-1]
     }
-    # write metrics to task worspace, and client agent will send it to server.
-    nsfl.commit_metrics(metrics)
+    # Commit metrics and model. Then client agent will send them to server.
+    nsfl.commit(metrics, model)
 
 
 def main():

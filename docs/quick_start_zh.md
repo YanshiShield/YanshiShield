@@ -69,7 +69,7 @@ python3 example/scripts/gen_mnist_config.py --job_name=tf_mnist \
 
 
 
-### 数据集配置：
+### 数据集配置描述：
 
 数据集配置文件命名为datasets.json，描述了数据集名称和数据集路径的关系，如：
 
@@ -80,7 +80,9 @@ python3 example/scripts/gen_mnist_config.py --job_name=tf_mnist \
 }
 ```
 
-### 作业脚本配置：
+
+
+### 作业脚本配置描述：
 
 作业脚本配置，描述了客户端执行的训练脚本的路径、评估脚本的路径以及相应的脚本参数，如
 
@@ -112,10 +114,7 @@ Neursafe FL通过在原机器学习框架（Tensorflow或Pytorch）的训练脚�
 
 - 加载训练数据前，调用get_dataset_path接口获取本地训练数据地址，代码修改参见NOTE 1。
 - 加载模型参数时，使用Nerusafe FL的load_weights替换原有模型加载实现，加载从Coordinator下发的模型参数，代码修改参见NOTE 2。
-- 完成模型的本地训练后，调用commit_weights向Coordinator上报模型参数更新值，代码修改参见NOTE 3。
-- 调用commit_metrics接口，提交联邦训练一些统计数据，例如精度，loss等，代码修改参见NOTE 4。
-
-
+- 完成模型的本地训练后，调用commit向Coordinator上报模型参数更新值以及指标数据（精度，loss等），代码修改参见NOTE 3。
 
 ```Python
 import neursafe_fl as nsfl
@@ -141,18 +140,17 @@ history = model.fit(x_train, y_train, epochs=1)
 print('loss', history.history['loss'])
 print('accuracy:', history.history['accuracy'])
 
-# [NOTE 3]
-nsfl.commit_weights(model)
-
 metrics = {
 'sample_num': len(x_train),
 'loss': history.history['loss'][-1],
 'accuracy': history.history['accuracy'][-1]
 }
 
-# [NOTE 4]
-nsfl.commit_metrics(metrics)
+# [NOTE 3]
+nsfl.commit(metrics, model)
 ```
+
+注意：上一节中的配置生成命令已经自动生成模型训练、评估脚本
 
 
 

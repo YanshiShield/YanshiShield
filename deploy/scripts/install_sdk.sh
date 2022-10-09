@@ -33,5 +33,5 @@ fi
 
 # install SDK
 python3 -m pip install $sdk_whl \
-                         --disable-pip-version-check
+                         --disable-pip-version-check --force-reinstall
 echo "Install NeurSafe SDK successfully."
