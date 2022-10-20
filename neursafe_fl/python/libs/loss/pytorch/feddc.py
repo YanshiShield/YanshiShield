@@ -116,7 +116,7 @@ class FeddcLoss(_WeightedLoss):
         self._global_weights = torch.tensor(_flatten_model_params(train_model),
                                             dtype=torch.float32, device=device)
         self._param_num = len(self._global_weights)
-        self._alpha = alpha
+        self._alpha = alpha / 2
         self._device = device
         self._forward_time = 0
         self._print_loss_per_forward = print_loss_per_forward
@@ -142,11 +142,12 @@ class FeddcLoss(_WeightedLoss):
 
         self._g_diff = torch.tensor(self._g - self._g_i,
                                     dtype=torch.float32, device=device)
+        self._h_diff = self._global_weights - self._h_i
 
     def forward(self, outputs, target):
         """Forward.
         """
-        loss_f_i = self._origin_loss_func(outputs, target.reshape(-1).long())
+        loss_f_i = self._origin_loss_func(outputs, target.reshape(-1))
         loss_f_i = loss_f_i / list(target.size())[0]
 
         local_parameter = None
@@ -158,8 +159,8 @@ class FeddcLoss(_WeightedLoss):
                                              param.reshape(-1)), 0)
 
         # R
-        temp = local_parameter - (self._global_weights - self._h_i)
-        loss_cp = self._alpha / 2 * torch.sum(temp * temp)
+        temp = local_parameter - self._h_diff
+        loss_cp = self._alpha * torch.sum(temp * temp)
         # G
         loss_cg = torch.sum(local_parameter * self._g_diff)
 
