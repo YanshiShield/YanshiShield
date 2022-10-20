@@ -54,15 +54,15 @@ def _set_model_params(model, params):
     return model
 
 
-def _flatten_model_params(exp_mdl, parmas_num=None):
+def _flatten_model_params(model, parmas_num=None):
     if parmas_num is None:
         parmas_num = 0
-        for param in exp_mdl.get_weights():
+        for param in model.get_weights():
             parmas_num += len(param.reshape(-1))
 
     param_mat = np.zeros(parmas_num).astype('float32')
     idx = 0
-    for param in exp_mdl.get_weights():
+    for param in model.get_weights():
         temp = param.reshape(-1)
         param_mat[idx:idx + len(temp)] = temp
         idx += len(temp)

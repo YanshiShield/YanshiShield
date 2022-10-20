@@ -190,12 +190,12 @@ For example, if you provide this config as follows, then the commad will be with
 
 | name   | type   | property | description                                             |
 | ------ | ------ | -------- | ------------------------------------------------------- |
-| name   | string | required | The name of the optimizer, currently supported: "feddc" |
-| params | dict   | optional | Optimizer parameters (see the table of below)           |
+| name   | string | required | The name of the loss, currently supported: "feddc" |
+| params | dict   | optional | Loss parameters (see the table of below)           |
 
 | name             | type           | property | algorithm | description                                                  |
 | ---------------- | -------------- | -------- | --------- | ------------------------------------------------------------ |
-| train_model      | tf/torch model | required | feddc     | The model will be using to train. and it already loaded init weights from coordinator. |
+| train_model      | tf/torch model | required | feddc     | The model will be using to train. and it must already loaded init weights from coordinator. |
 | origin_loss_func | loss           | optional | feddc     | Base loss function used for train. Default is CrossEntropyLoss in pytorch, the same as categorical_crossentropy in tensorflow. |
 | alpha            | float          | optional | feddc     | The hyper-parameter that controls the weight of R, The recommended setting value is 0.1、0.01、0.005. |
 | sample_num       | int            | optional | feddc     | The number of samples used in this round when training the local model |

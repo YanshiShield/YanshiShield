@@ -43,29 +43,29 @@ def _write_data(file_name, data):
     torch.save(tensor_data, file_name)
 
 
-def _set_model_params(mdl, params, device="cpu"):
-    dict_param = copy.deepcopy(dict(mdl.named_parameters()))
+def _set_model_params(model, params, device="cpu"):
+    dict_param = copy.deepcopy(dict(model.named_parameters()))
     idx = 0
-    for name, param in mdl.named_parameters():
+    for name, param in model.named_parameters():
         weights = param.data
         length = len(weights.reshape(-1))
         dict_param[name].data.copy_(torch.tensor(
             params[idx:idx + length].reshape(weights.shape)).to(device))
         idx += length
 
-    mdl.load_state_dict(dict_param)
-    return mdl
+    model.load_state_dict(dict_param)
+    return model
 
 
-def _flatten_model_params(exp_mdl, parmas_num=None):
+def _flatten_model_params(model, parmas_num=None):
     if parmas_num is None:
         parmas_num = 0
-        for _, param in exp_mdl.named_parameters():
+        for _, param in model.named_parameters():
             parmas_num += len(param.data.reshape(-1))
 
     param_mat = np.zeros(parmas_num).astype('float32')
     idx = 0
-    for _, param in exp_mdl.named_parameters():
+    for _, param in model.named_parameters():
         temp = param.data.cpu().numpy().reshape(-1)
         param_mat[idx:idx + len(temp)] = temp
         idx += len(temp)
