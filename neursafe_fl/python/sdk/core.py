@@ -5,12 +5,15 @@
 """
 
 import os
-from absl import logging
 
-import neursafe_fl.python.sdk.utils as utils
-import neursafe_fl.python.sdk.report as report
-import neursafe_fl.python.client.workspace.delta_weights as weights
+from absl import logging
+from neursafe_fl.python.sdk.loss import create_loss, FEDDC
 from neursafe_fl.python.utils.file_io import read_json_file
+
+import neursafe_fl.python.client.workspace.delta_weights as weights
+import neursafe_fl.python.sdk.report as report
+import neursafe_fl.python.sdk.utils as utils
+
 
 fl_model = None
 
@@ -62,6 +65,10 @@ def _commit_trained_results(metrics, model, optimizer=None):
 
         if os.getenv(utils.TASK_OPTIMIZER) == "scaffold" and optimizer:
             optimizer.update(fl_model)
+
+        if os.getenv(utils.TASK_LOSS) == FEDDC:
+            feddc_loss = create_loss()
+            feddc_loss.update_and_commit_param(model)
 
     if __is_chief_worker():
         # STEP 1: Do optional works

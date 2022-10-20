@@ -6,6 +6,6 @@ FL SDK interface
 """
 
 from neursafe_fl.python.sdk import load_weights, commit, get_dataset_path, \
-    create_optimizer
+    create_optimizer, create_loss
 from neursafe_fl.python.sdk import get_parameter, get_parameters, \
     put_parameter, put_parameters, get_file, put_file

@@ -62,6 +62,7 @@ py_wheel(
         "psycopg2==2.7.7",
         "pycryptodome==3.10.1",
         "pyOpenSSL==20.0.1",
+        "pandas==1.3.3"
     ],
     deps = [":client_pkg"],
 )
@@ -125,6 +126,7 @@ py_wheel(
         "psycopg2==2.7.7",
         "pycryptodome==3.10.1",
         "pyOpenSSL==20.0.1",
+        "pandas==1.3.3"
     ],
     deps = [":tensorflow_client_pkg"],
 )
@@ -190,6 +192,7 @@ py_wheel(
         "psycopg2==2.7.7",
         "pycryptodome==3.10.1",
         "pyOpenSSL==20.0.1",
+        "pandas==1.3.3"
     ],
     deps = [":pytorch_client_pkg"],
 )

@@ -1,6 +1,7 @@
 #  Copyright 2022 The Neursafe FL Authors. All Rights Reserved.
 #  SPDX-License-Identifier: Apache-2.0
 
+# pylint:disable=no-member
 """Base Round Module."""
 
 import abc
@@ -8,9 +9,11 @@ from os.path import basename
 
 from absl import logging
 
+from neursafe_fl.proto.message_pb2 import Loss
 from neursafe_fl.python.coordinator.common.utils import join
 from neursafe_fl.python.coordinator.common.workspace import Files
 from neursafe_fl.python.coordinator.round_controller import RoundController
+
 
 PACKAGE_IO_NAME = "package.zip"
 
@@ -110,3 +113,12 @@ class BaseRound:
         self._model.save_weights(file_path)
         logging.info("Save round init weights to %s", file_path)
         return file_path
+
+    def _gen_loss_config(self):
+        loss = Loss()
+        if self._config.get("loss"):
+            loss_config = self._config["loss"]
+            loss = Loss(name=loss_config.get("name"))
+            if loss_config.get("params"):
+                loss.params.update(loss_config["params"])
+        return loss

@@ -41,7 +41,7 @@ def aggregate_control_variates(data, previous):
         if file == "delta_control_variates.npy":
             file_path = os.path.join(data["custom_files"], file)
             local_c = np.load(file_path, allow_pickle=True)
-            if control_variates == 0:
+            if isinstance(control_variates, int) and control_variates == 0:
                 control_variates = multiply(local_c, weight)
             else:
                 control_variates = np.add(control_variates,

@@ -22,6 +22,7 @@ import neursafe_fl.python.coordinator.common.const as const
 from neursafe_fl.python.libs.secure.secure_aggregate.ssa import \
     create_ssa_server
 from neursafe_fl.python.libs.optimizer import optimizer_config
+from neursafe_fl.python.libs.loss import loss_config
 from neursafe_fl.python.coordinator.extenders import support_extenders
 
 
@@ -106,6 +107,7 @@ class Trainer:
         self.__fl_model.load()  # load init model
         self.__load_extenders()
         self.__load_optimizer()
+        self.__load_loss()
 
         self.__state = State.RUNNING
         for round_id in range(1, self.__max_rounds + 1):
@@ -216,6 +218,30 @@ class Trainer:
                 logging.warning("Optimizer %s not implement.", optimizer_name)
         else:
             logging.info("No config optimizer.")
+
+    def __load_loss(self):
+        """Load custom extended loss.
+
+        The loss should be implemented through the extension mechanism.
+
+        Then config in file with:
+            "loss": {
+                "name": "feddc",
+                "params": {}
+            }
+        """
+        if self.__config.get("loss"):
+            loss_name = self.__config["loss"].get("name")
+            loss_name = "%s_%s" % (self.__runtime, loss_name)
+            if loss_name in loss_config:
+                loss = self.__load(loss_config[loss_name])
+                if loss:
+                    self.__config["extenders"].append(loss)
+                    logging.info("Load loss %s success.", loss_name)
+            else:
+                logging.warning("loss %s not implement.", loss_name)
+        else:
+            logging.info("No config loss.")
 
     def __is_training_stop(self):
         """Judge whether federate training needs to be terminated early.

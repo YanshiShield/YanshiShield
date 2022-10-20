@@ -264,3 +264,23 @@ We provide the following SDK interfaces.
 
   return an instance of optimizer object.
 
+### create_loss(*args, **kwargs)
+
+- Description: Create an loss specific to Federated Learning
+
+  ```
+  Here are some losses for federated learning. And it could be more helpful than tranditonal losses in some specific areas.
+  Current we support FedDC, which is able to converge under Non-IID circumstances.
+  ```
+
+- inputs:
+
+  | name   | type | required | description                                              |
+  | ------ | ---- | -------- | -------------------------------------------------------- |
+  | args   | list | no       | parameters that need to pass the loss for initialization |
+  | kwargs | dict | no       | parameters that need to pass the loss for initialization |
+
+- outputs:
+
+  return an instance of loss object.
+

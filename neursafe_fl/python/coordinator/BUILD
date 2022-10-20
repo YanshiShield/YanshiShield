@@ -13,6 +13,7 @@ py_binary(
         "//neursafe_fl/python/utils",
         "//neursafe_fl/python/libs/secure",
         "//neursafe_fl/python/libs/optimizer",
+        "//neursafe_fl/python/libs/loss",
     ],
     python_version = "PY3",
 )
@@ -26,7 +27,8 @@ py_package(
         "neursafe_fl.python.trans",
         "neursafe_fl.python.utils",
         "neursafe_fl.python.libs.secure",
-        "neursafe_fl.python.libs.optimizer"
+        "neursafe_fl.python.libs.optimizer",
+        "neursafe_fl.python.libs.loss"
         ],
     deps = [":coordinator_main"],
 )

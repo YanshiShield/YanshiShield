@@ -16,9 +16,14 @@ from neursafe_fl.python.libs.secure.secure_aggregate.ssa_protector import \
     SSAProtector
 
 
+WORKER_ID = "NSFL_WORKER_ID"
+ROUND_NUM = "NSFL_ROUND_NUM"
 TASK_WORKSPACE = "NSFL_TASK_WORKSPACE"
 TASK_RUNTIME = "NSFL_TASK_RUNTIME"
 TASK_OPTIMIZER = "NSFL_TASK_OPTIMIZER"
+TASK_OPTIMIZER_PARAM = "NSFL_TASK_OPTIMIZER_PARAM"
+TASK_LOSS = "NSFL_TASK_LOSS"
+TASK_LOSS_PARAM = "NSFL_TASK_LOSS_PARAM"
 DATASETS = "NSFL_DATASETS"
 GRPC_METADATA = "NSFL_GRPC_METADATA"
 CERTIFICATION_PATH = "NSFL_CERTIFICATE_PATH"
@@ -51,6 +56,18 @@ def get_datasets():
     When start task, the client will set DATASETS to env.
     """
     return os.getenv(DATASETS)
+
+
+def get_worker_id():
+    """Get worker id.
+    """
+    return os.getenv(WORKER_ID)
+
+
+def get_round_num():
+    """Get round num.
+    """
+    return int(os.getenv(ROUND_NUM))
 
 
 def get_grpc_metadata():

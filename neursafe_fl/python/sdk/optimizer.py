@@ -6,11 +6,9 @@
 """
 import os
 from absl import logging
-from neursafe_fl.python.sdk.utils import get_runtime, TASK_OPTIMIZER
+from neursafe_fl.python.sdk.utils import get_runtime, TASK_OPTIMIZER, \
+    TASK_OPTIMIZER_PARAM
 
-
-OPTIMIZER_NAME = TASK_OPTIMIZER
-OPTIMIZER_PARAMS = "OPTIMIZER_PARAMS"
 
 FEDPROX = "fedprox"
 SCAFFOLD = "scaffold"
@@ -52,7 +50,7 @@ def _create_scaffold(params):
 
 
 def _parse_params():
-    optimizer_params = os.getenv(OPTIMIZER_PARAMS)
+    optimizer_params = os.getenv(TASK_OPTIMIZER_PARAM)
     params = {}
     if optimizer_params:
         for item in optimizer_params.split(","):
@@ -64,7 +62,7 @@ def _parse_params():
 def create_optimizer(**kwargs):
     """Create optimizer for train script.
     """
-    optimizer_name = os.getenv(OPTIMIZER_NAME)
+    optimizer_name = os.getenv(TASK_OPTIMIZER)
     optimizer_params = _parse_params()
     optimizers = {"fedprox": _create_fedprox,
                   "scaffold": _create_scaffold}
