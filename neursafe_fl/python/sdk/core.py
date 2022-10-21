@@ -7,7 +7,7 @@
 import os
 
 from absl import logging
-from neursafe_fl.python.sdk.loss import create_loss, FEDDC
+from neursafe_fl.python.sdk.loss import get_loss_instance, FEDDC
 from neursafe_fl.python.utils.file_io import read_json_file
 
 import neursafe_fl.python.client.workspace.delta_weights as weights
@@ -67,7 +67,7 @@ def _commit_trained_results(metrics, model, optimizer=None):
             optimizer.update(fl_model)
 
         if os.getenv(utils.TASK_LOSS) == FEDDC:
-            feddc_loss = create_loss()
+            feddc_loss = get_loss_instance()
             feddc_loss.update_and_commit_param(model)
 
     if __is_chief_worker():

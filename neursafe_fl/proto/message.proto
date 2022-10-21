@@ -33,7 +33,6 @@ message TaskSpec {
 
 message Loss {
     string name = 1;
-    google.protobuf.Struct params = 2;
 }
 
 message Optimizer {

@@ -87,10 +87,6 @@ class Worker:
             env_vars[utils.TASK_OPTIMIZER_PARAM] = self._gen_str_params(
                 self._worker_info.spec.optimizer.params)
 
-        if self._worker_info.spec.loss.params:
-            env_vars[utils.TASK_LOSS_PARAM] = self._gen_str_params(
-                self._worker_info.spec.loss.params)
-
         return env_vars
 
     def _gen_str_params(self, params):

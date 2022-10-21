@@ -119,6 +119,4 @@ class BaseRound:
         if self._config.get("loss"):
             loss_config = self._config["loss"]
             loss = Loss(name=loss_config.get("name"))
-            if loss_config.get("params"):
-                loss.params.update(loss_config["params"])
         return loss

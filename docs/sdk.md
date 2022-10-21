@@ -29,6 +29,7 @@ We provide the following SDK interfaces.
   - [get_file(filename, dserialize_func=None, **kwargs)](#get_filefilename-dserialize_funcnone-kwargs)
   - [put_file(filename, content, serialize_func=None, **kwargs)](#put_filefilename-content-serialize_funcnone-kwargs)
   - [create_optimizer(**kwargs)](#create_optimizerkwargs)
+  - [feddc_loss(train_model, sample_num, batch_size, lr, epoch, alpha=0.01, **kwargs)](#feddc_losstrain_model-sample_num-batch_size-lr-epoch-alpha_0.01-kwargs)
 
 
 ## SDK
@@ -264,16 +265,17 @@ We provide the following SDK interfaces.
 
   return an instance of optimizer object.
 
-### create_loss(*args, **kwargs)
+### feddc_loss(train_model, sample_num, batch_size, lr, epoch, alpha=0.01, **kwargs)
 
-- Description: Create an loss specific to Federated Learning
+- Description: Get an feddc loss to Federated Learning
 
   ```
-  Here are some losses for federated learning. And it could be more helpful than tranditonal losses in some specific areas.
-  Current we support FedDC, which is able to converge under Non-IID circumstances.
+  FedDC is able to converge under Non-IID circumstances.
   ```
 
 - inputs:
+
+  
 
   | name   | type | required | description                                              |
   | ------ | ---- | -------- | -------------------------------------------------------- |
@@ -282,5 +284,5 @@ We provide the following SDK interfaces.
 
 - outputs:
 
-  return an instance of loss object.
+  return an instance of feddc object.
 

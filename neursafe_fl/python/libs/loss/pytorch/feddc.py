@@ -94,7 +94,7 @@ class FeddcLoss(_WeightedLoss):
         alpha: The hyper-parameter that controls the weight of R, The
                recommended setting value is 0.1/0.01/0.005.
         device: Use cpu or gpu when run training.
-        print_loss_per_forward: Printing detail loss per forward.
+        print_loss: Printing detail loss per forward.
     """
     _instance = None
 
@@ -109,7 +109,7 @@ class FeddcLoss(_WeightedLoss):
     def __init__(self, train_model,
                  origin_loss_func=CrossEntropyLoss(reduction='sum'),
                  sample_num=1, batch_size=32, lr=0.01, epoch=1, alpha=0.01,
-                 device="cpu", print_loss_per_forward=20):
+                 device="cpu", print_loss=20):
         super().__init__()
         self._train_model = train_model.to(device)
         self._origin_loss_func = origin_loss_func.to(device)
@@ -119,7 +119,7 @@ class FeddcLoss(_WeightedLoss):
         self._alpha = alpha / 2
         self._device = device
         self._forward_time = 0
-        self._print_loss_per_forward = print_loss_per_forward
+        self._print_loss_per_forward = print_loss
 
         self._param_a = 1 / (math.ceil(sample_num / batch_size) * epoch) / lr
 
@@ -167,7 +167,6 @@ class FeddcLoss(_WeightedLoss):
         loss = loss_f_i + loss_cp + loss_cg
         if (self._print_loss_per_forward
                 and self._forward_time % self._print_loss_per_forward == 0):
-            print(loss_f_i)
             logging.info("origin: %s, R: %s, G: %s, total: %s.",
                          loss_f_i, loss_cp, loss_cg, loss)
         self._forward_time += 1

@@ -110,7 +110,7 @@ class FeddcLoss(Loss):
     def __init__(self, train_model,
                  origin_loss_func=K.categorical_crossentropy,
                  sample_num=1, batch_size=32, lr=0.01, epoch=1, alpha=0.01,
-                 print_loss_per_call=20):
+                 print_loss=20):
         super().__init__()
         self._train_model = train_model
         self._origin_loss_func = origin_loss_func
@@ -119,7 +119,7 @@ class FeddcLoss(Loss):
         self._param_num = len(self._global_weights)
         self._alpha = alpha / 2
         self._call_time = 0
-        self._print_loss_per_call = print_loss_per_call
+        self._print_loss_per_call = print_loss
 
         self._param_a = 1 / (math.ceil(sample_num / batch_size) * epoch) / lr
 
