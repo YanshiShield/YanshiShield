@@ -275,12 +275,22 @@ We provide the following SDK interfaces.
 
 - inputs:
 
-  
+  | name        | type           | property | algorithm | description                                                  |
+  | ----------- | -------------- | -------- | --------- | ------------------------------------------------------------ |
+  | train_model | tf/torch model | required | feddc     | The model will be using to train. and it already loaded init weights from coordinator. |
+  | sample_num  | int            | optional | feddc     | The number of samples used in this round when training the local model |
+  | batch_size  | int            | optional | feddc     | The batch size used when training the local model            |
+  | lr          | float          | optional | feddc     | Local training learning rate                                 |
+  | epoch       | int            | optional | feddc     | The epoch used when training the local model                 |
+  | alpha       | float          | optional | feddc     | The hyper-parameter that controls the weight of R, The recommended setting value is 0.1、0.01、0.005. |
 
-  | name   | type | required | description                                              |
-  | ------ | ---- | -------- | -------------------------------------------------------- |
-  | args   | list | no       | parameters that need to pass the loss for initialization |
-  | kwargs | dict | no       | parameters that need to pass the loss for initialization |
+  kwargs:
+
+  | name             | type | property | algorithm | description                                                  |
+  | ---------------- | ---- | -------- | --------- | ------------------------------------------------------------ |
+  | origin_loss_func | func | optional | feddc     | Base loss function used for train. Default is CrossEntropyLoss in pytorch, the same as categorical_crossentropy in tensorflow. |
+  | device           | str  | optional | feddc     | Use cpu or gpu when run training, only used in pytorch.      |
+  | print_loss       | int  | optional | feddc     | Printing detail loss per forward or per call.                |
 
 - outputs:
 
