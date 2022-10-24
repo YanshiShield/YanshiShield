@@ -65,6 +65,15 @@ class RuntimeFactory:
         return cls._get_obj(model_name, class_name)
 
     @classmethod
+    def create_weights_converter(cls, runtime):
+        """Create different weights converter according to runtime.
+        """
+        _check_runtime(runtime)
+        model_name = 'neursafe_fl.python.runtime.%s.weights' % runtime.lower()
+        class_name = '%sWeightsConverter' % runtime.capitalize()
+        return cls._get_obj(model_name, class_name)
+
+    @classmethod
     def create_security_algorithm(cls, runtime, **kwargs):
         """Create different security algorithm to protect weights
         according to runtime.

@@ -26,6 +26,7 @@ message TaskSpec {
     google.protobuf.Struct params = 4;
     google.protobuf.Struct custom_params = 5;
     google.protobuf.Struct secure_algorithm = 6;
+    google.protobuf.Struct compression = 10;
     Optimizer optimizer = 9;
     string datasets = 8;
 }

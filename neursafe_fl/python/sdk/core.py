@@ -11,6 +11,8 @@ import neursafe_fl.python.sdk.utils as utils
 import neursafe_fl.python.sdk.report as report
 import neursafe_fl.python.client.workspace.delta_weights as weights
 from neursafe_fl.python.utils.file_io import read_json_file
+from neursafe_fl.python.runtime.runtime_factory import RuntimeFactory
+from neursafe_fl.python.libs.compression.factory import create_compression
 
 fl_model = None
 
@@ -55,6 +57,20 @@ def _protect_weights(weights_, metrics):
     return weights_
 
 
+def _compress_weights(weights_):
+    compression_algorithm = utils.get_compression_algorithm()
+
+    if compression_algorithm:
+        runtime = utils.get_runtime()
+        compression = create_compression(compression_algorithm["type"],
+                                         **compression_algorithm)
+        weight_converter = RuntimeFactory.create_weights_converter(runtime)
+
+        return weight_converter.encode(weights_, compression)
+
+    return weights_
+
+
 def _commit_trained_results(metrics, model, optimizer=None):
     def do_optional_works():
         global fl_model
@@ -70,10 +86,13 @@ def _commit_trained_results(metrics, model, optimizer=None):
         # STEP 2: Calculate delta weights.
         delta_weights = _calc_delta_weights(fl_model)
 
-        # STEP 3: Protect delta weights if needed
+        # STEP 3: Compress delta weights if needed
+        delta_weights = _compress_weights(delta_weights)
+
+        # STEP 4: Protect delta weights if needed
         delta_weights = _protect_weights(delta_weights, metrics)
 
-        # STEP 4: Report to coordinator.
+        # STEP 5: Report to coordinator.
         report.submit(metrics, delta_weights)
 
 

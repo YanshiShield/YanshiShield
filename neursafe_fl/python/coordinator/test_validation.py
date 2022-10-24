@@ -199,6 +199,21 @@ class TestValidation(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_config(config)
 
+    def test_should_raise_exception_if_quantization_not_correct(self):
+        config = job_config()
+
+        # Compression type not correct
+        config["compression"] = {"type": "error"}
+
+        with self.assertRaises(ValueError):
+            validate_config(config)
+
+        # Quantization bits not exist
+        config["compression"] = {"type": "quantization"}
+
+        with self.assertRaises(ValueError):
+            validate_config(config)
+
     CASE_NAME = (
         'TestValidation.'
         'test_validate_secure_algorithm_if_noise_multiplier_not_given')

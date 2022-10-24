@@ -20,3 +20,5 @@ min-similarity-lines=6
 function-rgx=(([a-z][a-z0-9_]{2,80})|(_[a-z0-9_]*))$
 method-rgx=(([a-z][a-z0-9_]{2,80})|(_[a-z0-9_]*))$
 
+[TYPECHECK]
+generated-members=torch.*
