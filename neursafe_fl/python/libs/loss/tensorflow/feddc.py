@@ -84,8 +84,8 @@ class FeddcLoss(Loss):
     EagerTensor in FeddcLoss.call.
 
     Args:
-        train_model: The model will be using to train. and it already loaded
-                     init weights from server.
+        model: The model will be using to train. and it already loaded
+               init weights from server.
         origin_loss_func: Base loss function used for train. Default is
                           categorical_crossentropy.
         sample_num: The number of samples used in this round when training
@@ -107,15 +107,15 @@ class FeddcLoss(Loss):
             cls._instance = FeddcLoss(*args, **kwargs)
         return cls._instance
 
-    def __init__(self, train_model,
+    def __init__(self, model,
                  origin_loss_func=K.categorical_crossentropy,
                  sample_num=1, batch_size=32, lr=0.01, epoch=1, alpha=0.01,
                  print_loss=20):
         super().__init__()
-        self._train_model = train_model
+        self._model = model
         self._origin_loss_func = origin_loss_func
         self._global_weights = tf.convert_to_tensor(
-            _flatten_model_params(train_model))
+            _flatten_model_params(model))
         self._param_num = len(self._global_weights)
         self._alpha = alpha / 2
         self._call_time = 0
@@ -147,7 +147,7 @@ class FeddcLoss(Loss):
         loss_f_i = K.mean(loss_f_i)
 
         local_parameter = tf.convert_to_tensor(
-            _flatten_model_params(self._train_model, self._param_num))
+            _flatten_model_params(self._model, self._param_num))
 
         # R
         temp = local_parameter - self._h_diff

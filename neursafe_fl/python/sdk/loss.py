@@ -10,7 +10,7 @@ from neursafe_fl.python.sdk.utils import get_runtime, TASK_LOSS
 FEDDC = "feddc"
 
 
-def feddc_loss(train_model, sample_num, batch_size, lr, epoch,
+def feddc_loss(model, origin_loss_func, sample_num, batch_size, lr, epoch,
                alpha=0.01, **kwargs):
     """
     The feddc loss, used for data heterogeneity in federated learning.
@@ -19,8 +19,11 @@ def feddc_loss(train_model, sample_num, batch_size, lr, epoch,
     https://arxiv.org/abs/2203.11751
 
     Args:
-        train_model: The model will be using to train. and it already loaded
-                     init weights from server.
+        model: The model will be using to train. and it already loaded
+               init weights from server.
+        origin_loss_func: Base loss function used for train, such as
+                          CrossEntropyLoss in pytorch, the same as
+                          categorical_crossentropy in tensorflow.
         sample_num: The number of samples used in this round when training
                     the local model.
         batch_size: The batch size used when training the local model.
@@ -29,18 +32,16 @@ def feddc_loss(train_model, sample_num, batch_size, lr, epoch,
         alpha: The hyper-parameter that controls the weight of R, The
                recommended setting value is 0.1/0.01/0.005.
         kwargs:
-            origin_loss_func: Base loss function used for train. Default is
-                              CrossEntropyLoss in pytorch, the same as
-                              categorical_crossentropy in tensorflow.
             device: Use cpu or gpu when run training, only used in pytorch.
             print_loss: Printing detail loss per forward or per call.
     """
     model_name = "neursafe_fl.python.libs.loss.%s.%s" % (
         get_runtime().lower(), FEDDC)
-    model = __import__(model_name, fromlist=True)
+    py_model = __import__(model_name, fromlist=True)
     class_name = "FeddcLoss"
-    return getattr(model, class_name).get_instance(
-        train_model, sample_num=sample_num, batch_size=batch_size, lr=lr,
+    return getattr(py_model, class_name).get_instance(
+        model, origin_loss_func=origin_loss_func, sample_num=sample_num,
+        batch_size=batch_size, lr=lr,
         epoch=epoch, alpha=alpha, **kwargs)
 
 

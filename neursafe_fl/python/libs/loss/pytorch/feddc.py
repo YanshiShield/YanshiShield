@@ -82,8 +82,8 @@ class FeddcLoss(_WeightedLoss):
     >> loss(out, target)
 
     Args:
-        train_model: The model will be using to train. and it already loaded
-                     init weights from server.
+        model: The model will be using to train. and it already loaded
+               init weights from server.
         origin_loss_func: Base loss function used for train. Default is
                           CrossEntropyLoss.
         sample_num: The number of samples used in this round when training
@@ -106,14 +106,14 @@ class FeddcLoss(_WeightedLoss):
             cls._instance = FeddcLoss(*args, **kwargs)
         return cls._instance
 
-    def __init__(self, train_model,
+    def __init__(self, model,
                  origin_loss_func=CrossEntropyLoss(reduction='sum'),
                  sample_num=1, batch_size=32, lr=0.01, epoch=1, alpha=0.01,
                  device="cpu", print_loss=20):
         super().__init__()
-        self._train_model = train_model.to(device)
+        self._model = model.to(device)
         self._origin_loss_func = origin_loss_func.to(device)
-        self._global_weights = torch.tensor(_flatten_model_params(train_model),
+        self._global_weights = torch.tensor(_flatten_model_params(model),
                                             dtype=torch.float32, device=device)
         self._param_num = len(self._global_weights)
         self._alpha = alpha / 2
@@ -151,7 +151,7 @@ class FeddcLoss(_WeightedLoss):
         loss_f_i = loss_f_i / list(target.size())[0]
 
         local_parameter = None
-        for param in self._train_model.parameters():
+        for param in self._model.parameters():
             if not isinstance(local_parameter, torch.Tensor):
                 local_parameter = param.reshape(-1)
             else:
