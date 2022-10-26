@@ -68,6 +68,9 @@ def _validate_params(config):
     _validate_basic_params(config)
     _validate_hyper_params(config["hyper_parameters"])
 
+    if "secure_algorithm" in config and "compression" in config:
+        raise ValueError("Not support secure algorithm with compression.")
+
     if "secure_algorithm" in config:
         _validate_secure_algorithm(config["secure_algorithm"])
 

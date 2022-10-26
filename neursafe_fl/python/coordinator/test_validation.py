@@ -214,6 +214,15 @@ class TestValidation(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_config(config)
 
+    def test_secure_and_compression_mutex(self):
+        config = job_config()
+
+        config["compression"] = {}
+        config["secure_algorithm"] = {}
+
+        with self.assertRaises(ValueError):
+            validate_config(config)
+
     CASE_NAME = (
         'TestValidation.'
         'test_validate_secure_algorithm_if_noise_multiplier_not_given')

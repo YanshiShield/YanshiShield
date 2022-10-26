@@ -5,7 +5,6 @@
 """
 Quantization compression algorithm class
 """
-
 import numpy as np
 
 from neursafe_fl.python.libs.compression.base import Compression
@@ -108,10 +107,25 @@ class QuantizationCompression(Compression):
         if max_ == min_ and max_ != 0:
             return np.ones_like(value, dtype=np.int32)
 
-        quantified_value = np.round(
-            (value - min_) / (max_ - min_) * (2 ** self.quantization_bits - 1))
+        def probabilistic_quantization():  # pylint: disable=unused-variable
+            """Probability quantification: assign the upper or lower bound value
+            according to a certain probability
+            """
+            ceil_value = np.ceil(split_value)
+            floor_value = np.floor(split_value)
 
-        return quantified_value.astype(np.int32)
+            probability = np.random.uniform()
+            flag = probability <= (ceil_value - split_value)
+
+            return np.where(flag, floor_value, ceil_value).astype(np.int32)
+
+        split_value = (value - min_) / (max_ - min_) * (
+            2 ** self.quantization_bits - 1)
+
+        # quantified_value = probabilistic_quantization()
+        quantified_value = np.round(split_value).astype(np.int32)
+
+        return quantified_value
 
     def unquantify(self, quantified_value: np.ndarray,
                    max_value: float, min_value: float):

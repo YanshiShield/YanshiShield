@@ -44,7 +44,7 @@ def _calc_delta_weights(model):
     return delta_weights
 
 
-def _protect_weights(weights_, metrics):
+def _protect_weights_if_needed(weights_, metrics):
     security_algorithm = utils.create_security_algorithm()
 
     if security_algorithm:
@@ -57,7 +57,7 @@ def _protect_weights(weights_, metrics):
     return weights_
 
 
-def _compress_weights(weights_):
+def _compress_weights_if_needed(weights_):
     compression_algorithm = utils.get_compression_algorithm()
 
     if compression_algorithm:
@@ -87,10 +87,10 @@ def _commit_trained_results(metrics, model, optimizer=None):
         delta_weights = _calc_delta_weights(fl_model)
 
         # STEP 3: Compress delta weights if needed
-        delta_weights = _compress_weights(delta_weights)
+        delta_weights = _compress_weights_if_needed(delta_weights)
 
         # STEP 4: Protect delta weights if needed
-        delta_weights = _protect_weights(delta_weights, metrics)
+        delta_weights = _protect_weights_if_needed(delta_weights, metrics)
 
         # STEP 5: Report to coordinator.
         report.submit(metrics, delta_weights)
