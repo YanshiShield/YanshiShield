@@ -53,7 +53,7 @@ def _set_model_params(model, params, device="cpu"):
             params[idx:idx + length].reshape(weights.shape)).to(device))
         idx += length
 
-    model.load_state_dict(dict_param)
+    model.load_state_dict(dict_param, strict=False)
     return model
 
 
@@ -70,6 +70,14 @@ def _flatten_model_params(model, parmas_num=None):
         param_mat[idx:idx + len(temp)] = temp
         idx += len(temp)
     return np.copy(param_mat)
+
+
+def _cut_list(data, num):
+    new_ = []
+    step = math.ceil(len(data) / num)
+    for i in range(0, len(data), step):
+        new_.append(torch.tensor(data[i:i + step]))
+    return new_
 
 
 class FeddcLoss(_WeightedLoss):
@@ -136,7 +144,7 @@ class FeddcLoss(_WeightedLoss):
                                    np_array=False).to(device)
             self._g_i = _read_data(G_I_FILE % self.task_id_prefix,
                                    np_array=True)
-            self._g = torch.stack(
+            self._g = torch.cat(
                 get_file(GLOBAL_G_FILE,
                          dserialize_func=torch.load)).detach().numpy()
 
@@ -201,7 +209,7 @@ class FeddcLoss(_WeightedLoss):
 
         # upload the delta g_i
         def serialize(file_obj, content):
-            content = torch.from_numpy(content)
             torch.save(content, file_obj)
-        put_file("delta_control_variates.pt", delta_g_i,
+        put_file("delta_control_variates.pt",
+                 _cut_list(delta_g_i, len(list(self._model.parameters()))),
                  serialize_func=serialize)
