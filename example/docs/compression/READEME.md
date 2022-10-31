@@ -10,7 +10,7 @@ In the whole training process of federated learning, after each round of trainin
 
 The experiments in this paper are based on CIFAR10 dataset and VGG16 model, two federated clients participate in federated training, and the sample data for federated training is split according to the IID method. In order to compare the convergence efficiency, we set the client to perform only one epoch iteration per round.
 
-All experiments are executed in local for algorithm verification. For the generation of configuration scripts related to federated training, please refer to the chapter "Prepare configuration files" in [Quick Start](quick_start.md).
+All experiments are executed in local for algorithm verification. For the generation of configuration scripts related to federated training, please refer to the chapter "Prepare configuration files" in [Quick Start](../../../docs/quick_start.md).
 
 
 
@@ -63,7 +63,7 @@ First, we perform federated training without compression, and use this convergen
 
   Note：
 
-  1. You can also refer to the "Run federated learning" chapter in [Quick Start](quick_start.md) to execute in process.
+  1. You can also refer to the "Run federated learning" chapter in [Quick Start](../../../docs/quick_start.md) to execute in process.
   2. Since the official cifar10 dataset of tensorflow does not provide a way to load from the local path, and the directory of the dataset cache is ~/.keras/datasets, so we mount this directory into the container to avoid repeated downloading of the dataset.
 
   
@@ -75,14 +75,10 @@ First, we perform federated training without compression, and use this convergen
   Suppose the updated weights are $W_t=(w^1,..., w^n)$, which represents the updated weights of  the $t$-th round of federated training, the model has $n$ layers, and the weight of the $i$-th layer is $w^i$, where $w_\max^i=max(w^i)$, $w_\min^i=min(w^i)$; According to the value of quantization_bits in the quantization compression algorithm configuration (that is, the bit length $b$-bit that needs to be quantized), we equally divide $[w_\max^i, w_\min^i]$ into $2^b$ intervals; Suppose that the value $w_j^i$ of the $j$-th element in the $i$-th layer weight falls in the interval boundary $h_\min$ and $h_\max$, We use rounding to replace $w_j^i$ with $h_\min$ or $h_\max$, The specific steps of quantization compression are as follows：
 
   1. According to the bit length $b$-bit to be quantized, quantize $w^i$ according to the following formula：
-     $$
-     \hat w^i=round((w^i - min(w^i)) / (max(w^i) - min(w^i)) * (2^b - 1))
-     $$
+     $$\hat w^i=round((w^i - min(w^i)) / (max(w^i) - min(w^i)) * (2^b - 1))$$
      
-2. $\hat w^i$ is compressed by packing the integer array into integer numbers by bits, as shown below：
-     $$
-     [00, 10, 01, 11] -> [[11100100]] -> [[228]]
-     $$
+  2. $\hat w^i$ is compressed by packing the integer array into integer numbers by bits, as shown below：
+     $$[00, 10, 01, 11] -> [[11100100]] -> [[228]]$$
   
 The client sends the updated weights after quantization compression to the Coordinator, and the Coordinator restores the weights according to the reverse operation of the compression.
   
@@ -104,8 +100,8 @@ The client sends the updated weights after quantization compression to the Coord
 
     Note：
 
-    1. Refer to the description of script parameters in the chapter "Prepare configuration files" in [Quick Start](quick_start.md) to configure the "optionals" item.
-    2. Refer to [Job Configuration Guide](apis.md), configure the compression algorithm in "optionals", such as quantization_bits is 2, 4, 8, etc.
+    1. Refer to the description of script parameters in the chapter "Prepare configuration files" in [Quick Start](../../../docs/quick_start.md) to configure the "optionals" item.
+    2. Refer to [Job Configuration Guide](../../../docs/apis.md), configure the compression algorithm in "optionals", such as quantization_bits is 2, 4, 8, etc.
 
     
 
@@ -132,7 +128,7 @@ The client sends the updated weights after quantization compression to the Coord
   | None                   | 128.32                  | 1                 | 0.7822   |
   | 2                      | 8.28                    | almost 1/16       | 0.1      |
   | 4                      | 16.56                   | almost 1/8        | 0.7566   |
-| 8                      | 33.12                   | almost 1/4        | 0.7791   |
+  | 8                      | 33.12                   | almost 1/4        | 0.7791   |
   | 16                     | 66.23                   | almost 1/2        | 0.7763   |
 
   
