@@ -6,6 +6,9 @@ Basic class for different runtime to complete weights.
 """
 
 import abc
+from collections import namedtuple
+
+WEIGHT = namedtuple("WEIGHT", ["id", "weight", "params"])
 
 
 class WeightsCalculator:
@@ -37,3 +40,21 @@ class WeightsCalculator:
     def equal(self, x_weights, y_weights):
         """compare x_weights == y_weights.
         """
+
+
+class WeightsConverter:
+    """
+    Weights converter, encode weight and encode weight.
+    """
+
+    @abc.abstractmethod
+    def encode(self, raw_weights, encoder):
+        """Encode weights.
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def decode(self, internal_weights, decoder):
+        """Decode weight.
+        """
+        raise NotImplementedError

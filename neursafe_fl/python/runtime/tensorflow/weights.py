@@ -5,7 +5,9 @@
 """
 
 import numpy as np
-from neursafe_fl.python.runtime.weights import WeightsCalculator
+from neursafe_fl.python.runtime.weights import (WeightsCalculator,
+                                                WeightsConverter, WEIGHT)
+
 
 ENOUGH_MIN_FLOAT = 0.000001
 
@@ -55,3 +57,32 @@ class TensorflowWeightsCalculator(WeightsCalculator):
             if not result.all():
                 return False
         return True
+
+
+class TensorflowWeightsConverter(WeightsConverter):
+    """Weights converter executing in tensorflow runtime.
+    """
+
+    def encode(self, raw_weights, encoder):
+        """Encode weights according to specified encoder.
+        """
+        internal_weights = []
+
+        for i, weight in enumerate(raw_weights):
+            encoded_weight, params = encoder.encode(weight)
+            internal_weight = WEIGHT(i, encoded_weight, params)
+            internal_weights.append(internal_weight)
+
+        return internal_weights
+
+    def decode(self, internal_weights, decoder):
+        """Decode weights according to specified decoder.
+        """
+        raw_weights = []
+
+        for internal_weight in internal_weights:
+            raw_weight = decoder.decode(internal_weight.weight,
+                                        **internal_weight.params)
+            raw_weights.append(raw_weight)
+
+        return raw_weights

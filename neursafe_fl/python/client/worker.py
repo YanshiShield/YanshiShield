@@ -73,6 +73,8 @@ class Worker:
             utils.CERTIFICATION_PATH: self._client_config.get("ssl", ""),
             utils.SECURITY_ALGORITHM: str(pickle.dumps(
                 self._worker_info.spec.secure_algorithm)),
+            utils.COMPRESSION_ALGORITHM: str(pickle.dumps(
+                self._worker_info.spec.compression)),
             utils.SERVER_ADDRESS: self._client_config["server"],
             utils.TASK_METADATA: str(pickle.dumps(self._worker_info.metadata)),
             utils.TASK_TIMEOUT: str(

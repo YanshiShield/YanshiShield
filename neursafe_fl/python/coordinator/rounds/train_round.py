@@ -20,6 +20,7 @@ from neursafe_fl.python.coordinator.extenders import (broadcast_extender,
                                                       finish_extender)
 from neursafe_fl.python.coordinator.rounds.base_round import BaseRound, \
     PACKAGE_IO_NAME
+from neursafe_fl.python.runtime.runtime_factory import RuntimeFactory
 
 
 class TrainRound(BaseRound):
@@ -51,6 +52,8 @@ class TrainRound(BaseRound):
         self.__extend_params = None  # user custom params for extender func
 
     def on_prepare(self):
+        self.create_compression_if_needed()
+
         if not self.__broadcast_task:
             self.__broadcast_task = self.__construct_broadcast_task()
 
@@ -117,6 +120,9 @@ class TrainRound(BaseRound):
                     self._config["hyper_parameters"]["round_timeout"]
             task_spec.secure_algorithm.update(self._config["secure_algorithm"])
 
+        if self._config.get("compression"):
+            task_spec.compression.update(self._config["compression"])
+
         task = Task(metadata=metadata, spec=task_spec)
         return task
 
@@ -135,6 +141,7 @@ class TrainRound(BaseRound):
     async def on_aggregate(self, msg, number):
         """Aggregate callback."""
         data = self.__extract_training_result(msg, number)
+
         self.__aggregator.accumulate(data)
 
         # extender process: user's extend functions
@@ -160,9 +167,20 @@ class TrainRound(BaseRound):
                 files_io = files[1][1]
                 unzip(files_io, unzip_path)
 
-        parse_custom_configuration()
+        def decode_weights_if_needed():
+            if self._compression:
+                weights_converter = RuntimeFactory.create_weights_converter(
+                    self._config["runtime"])
 
-        return {"weights": parse_weights(files[0][1]),
+                return weights_converter.decode(weights, self._compression)
+
+            return weights
+
+        parse_custom_configuration()
+        weights = parse_weights(files[0][1])
+        raw_weights = decode_weights_if_needed()
+
+        return {"weights": raw_weights,
                 "custom_files": join(unzip_path, "custom/"),
                 "custom_params": params.spec.custom_params,
                 "metrics": params.spec.metrics,
