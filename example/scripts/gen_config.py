@@ -4,24 +4,28 @@
 """
 Generate all fl configs.
 """
-
+import ast
 import os
 import json
+
 from absl import app
 from absl import flags
-from shutil import copyfile
+from shutil import copyfile, move
+from subprocess import call
 
-flags.DEFINE_string('workspace', None, 'Root dir for generating config files')
-flags.DEFINE_string('coordinator_port', None, 'Coordinator service port.')
-flags.DEFINE_string('client_ports',
+flags.DEFINE_string("workspace", None, "Root dir for generating config files")
+flags.DEFINE_string("coordinator_port", None, "Coordinator service port.")
+flags.DEFINE_string("client_ports",
                     None,
-                    'Clients service port, the clients number same with ports'
-                    'number.')
-flags.DEFINE_string('runtime', None, 'FL job executing runtime.')
-flags.DEFINE_string('platform', None, 'FL job run on which platform.')
-flags.DEFINE_string('job_name', None, 'Fl job name.')
-flags.DEFINE_string('rounds', None, 'FL job rounds num.')
-flags.DEFINE_string('dataset', None, 'Dataset dir.')
+                    "Clients service port, the clients number same with ports"
+                    "number.")
+flags.DEFINE_string("runtime", None, "FL job executing runtime.")
+flags.DEFINE_string("platform", None, "FL job run on which platform.")
+flags.DEFINE_string("job_name", None, "Fl job name.")
+flags.DEFINE_string("rounds", None, "FL job rounds num.")
+flags.DEFINE_string("dataset", None, "Dataset directory or path.")
+flags.DEFINE_string("optionals", None, "Optional configs, such as: "
+                                       "secure algorithm, compression")
 
 
 FLAGS = flags.FLAGS
@@ -35,19 +39,28 @@ def _gen_client_addresses():
     for port in FLAGS.client_ports.split(","):
         addresses.append("127.0.0.1:%s" % port)
 
-    return ','.join(addresses), len(addresses)
+    return ",".join(addresses), len(addresses)
 
 
 def _gen_init_model_path(coordinator_root_dir):
-    job_dir = os.path.join(current_dir, "example/%s" % FLAGS.job_name)
+    job_dir = os.path.join(current_dir, "example/jobs/%s" % FLAGS.job_name)
+
+    def gen_init_model():
+        script_file = os.path.join(job_dir, "gen_init_model.py")
+        os.chdir(job_dir)
+        call(["python3", script_file])
+        os.chdir(current_dir)
+
+    gen_init_model()
 
     for file_name in os.listdir(job_dir):
-        if file_name.endswith("h5") or file_name.endswith("pth"):
+        if file_name.startswith(FLAGS.job_name) and (
+                file_name.endswith("h5") or file_name.endswith("pth")):
             model_path = os.path.join(
                 coordinator_root_dir,
                 "%s%s" % (FLAGS.job_name, os.path.splitext(file_name)[-1]))
-            copyfile(os.path.join(job_dir, file_name),
-                     model_path)
+            move(os.path.join(job_dir, file_name), model_path)
+
             return model_path
 
     return None
@@ -73,7 +86,7 @@ def _gen_coordinator_setup_config():
     with open(config_template_path) as f:
         config = json.load(f)
 
-    config["job_name"] = FLAGS.job_name.replace('_', "-")
+    config["job_name"] = FLAGS.job_name.replace("_", "-")
     config["port"] = int(FLAGS.coordinator_port)
     config["clients"], client_nums = _gen_client_addresses()
     config["model_path"] = _gen_init_model_path(coordinator_root_dir)
@@ -83,6 +96,9 @@ def _gen_coordinator_setup_config():
     config["hyper_parameters"]["max_round_num"] = int(FLAGS.rounds)
     config["hyper_parameters"]["client_num"] = client_nums
     config["hyper_parameters"]["threshold_client_num"] = client_nums
+
+    if FLAGS.optionals:
+        config.update(ast.literal_eval(FLAGS.optionals))
 
     # write new setup config
     with open(os.path.join(coordinator_root_dir,
@@ -129,17 +145,27 @@ def _gen_client_workspace(client_root_dir):
     return workspace
 
 
+def _get_dataset_size():
+    with open(os.path.join(
+            current_dir,
+            "example/jobs/%s/dataset_size.json" % FLAGS.job_name)) as f:
+        dataset_size = json.load(f)
+
+    return dataset_size["train"], dataset_size["evaluate"]
+
+
 def _gen_task_entry_config(client_root_dir, index):
     entry_dir = os.path.join(client_root_dir, "task_entrys")
     _create_dir(entry_dir)
 
     client_nums = len(FLAGS.client_ports.split(","))
-    train_index_interval = int(60000 / client_nums)
-    test_index_interval = int(10000 / client_nums)
+    train_size, test_size = _get_dataset_size()
+    train_index_interval = int(train_size / client_nums)
+    test_index_interval = int(test_size / client_nums)
 
-    with open(os.path.join(current_dir,
-                           "example/%s/%s.json" % (FLAGS.job_name,
-                                                   FLAGS.job_name))) as f:
+    with open(os.path.join(
+            current_dir,
+            "example/jobs/%s/%s.json" % (FLAGS.job_name, FLAGS.job_name))) as f:
         template_config = json.load(f)
 
     script_dir = os.path.join(entry_dir, FLAGS.job_name)
@@ -168,7 +194,9 @@ def _gen_datasets_config(client_root_dir):
             datasets.update(previous_datasets)
 
     with open(datasets_config_path, "w") as f:
-        datasets[FLAGS.job_name] = FLAGS.dataset
+        if FLAGS.dataset:
+            datasets[FLAGS.job_name] = FLAGS.dataset
+
         json.dump(datasets, f)
 
     return datasets_config_path
@@ -181,13 +209,15 @@ def _gen_scripts(client_root_dir):
 
 def _gen_train_script(client_root_dir):
     script_dir = os.path.join(client_root_dir, "task_entrys", FLAGS.job_name)
-    copyfile(os.path.join(current_dir, "example/%s/train.py" % FLAGS.job_name),
+    copyfile(os.path.join(current_dir,
+                          "example/jobs/%s/train.py" % FLAGS.job_name),
              os.path.join(script_dir, "train.py"))
 
 
 def _gen_eval_script(client_root_dir):
     script_dir = os.path.join(client_root_dir, "task_entrys", FLAGS.job_name)
-    copyfile(os.path.join(current_dir, "example/%s/evaluate.py" % FLAGS.job_name),
+    copyfile(os.path.join(current_dir,
+                          "example/jobs/%s/evaluate.py" % FLAGS.job_name),
              os.path.join(script_dir, "evaluate.py"))
 
 
@@ -207,5 +237,5 @@ def main(argv):
     _gen_clients_config()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(main)

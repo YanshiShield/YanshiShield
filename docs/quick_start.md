@@ -41,7 +41,7 @@ python3 example/data/mnist/prepare_torch_data.py --path /tmp/nsfl/data/mnist/tor
 Run the following command to generate the configuration for the Coordinator and Clients of the federated learning job:
 
 ```shell
-python3 example/scripts/gen_mnist_config.py --job_name=tf_mnist \
+python3 example/scripts/gen_config.py --job_name=tf_mnist \
 --workspace=/tmp/nsfl/ \
 --coordinator_port=8090 \
 --client_ports=9091,9092 \
@@ -53,15 +53,17 @@ python3 example/scripts/gen_mnist_config.py --job_name=tf_mnist \
 
 Parameter description:：
 
-| parameter name   | description                                                  |
-| ---------------- | ------------------------------------------------------------ |
-| workspace        | Specify the workspace directory of the federated job to store the configuration files and training scripts required by the federated job and the intermediate data produced in federated training |
-| coordinator_port | Specify port of the coordinator                              |
-| client_ports     | Specify multiple client ports separated by ",", how many ports are configured means that how many clients required configuration files will be generated |
-| runtime          | Specify the deep learning framework used by the federated job, supporting tensorflow or pytorch |
-| platform         | Specify the running platform of the federated learning job, supports linux (running in local process mode) and k8s (running in cluster mode) |
-| rounds           | Specify the number of training epochs for federated learning jobs |
-| dataset          | Specify the dataset path for federated learning job          |
+| parameter name   | must | default    | description                                                  |
+| ---------------- | ---- | ---------- | ------------------------------------------------------------ |
+| job_name         | Yes  | -          | The name of the federated job. There will be folders for different jobs in the "federated-learning/example/jobs directory". Use the corresponding folder name as the name of the federated job, such as tf_mnist, tf_vgg16, etc. |
+| workspace        | Yes  |            | Specify the workspace directory of the federated job to store the configuration files and training scripts required by the federated job and the intermediate data produced in federated training |
+| coordinator_port | Yes  | -          | Specify port of the coordinator                              |
+| client_ports     | Yes  | -          | Specify multiple client ports separated by ",", how many ports are configured means that how many clients required configuration files will be generated |
+| runtime          | No   | tensorflow | Specify the deep learning framework used by the federated job, supporting tensorflow or pytorch |
+| platform         | No   | linux      | Specify the running platform of the federated learning job, supports linux (running in local process mode) and k8s (running in cluster mode) |
+| rounds           | Yes  | -          | Specify the number of training epochs for federated learning jobs |
+| dataset          | No   | None       | Specify the dataset path for federated learning job          |
+| optionals        | No   | None       | Specify optional configuration items for federated jobs, such as security algorithms, compression algorithms, etc. (refer to [the job configuration guide](apis.md)), and describe dictionary parameters in the form of strings, such as "{'compression':{'type':'quantization','quantization_bits':2}}" (note: the use of ' and ") |
 
 The generated configuration is in the form of json and stored in the location specified by the workspace parameter, as follows:
 

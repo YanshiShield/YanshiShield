@@ -36,26 +36,26 @@ def train(index_range):
 
     model = tf.keras.models.Sequential([
         tf.keras.layers.Flatten(input_shape=(28, 28)),
-        tf.keras.layers.Dense(128, activation='relu'),
+        tf.keras.layers.Dense(128, activation="relu"),
         tf.keras.layers.Dropout(0.2),
-        tf.keras.layers.Dense(10, activation='softmax')
+        tf.keras.layers.Dense(10, activation="softmax")
     ])
 
     optimizer = ks.optimizers.SGD(lr=learning_rate)
     model.compile(optimizer=optimizer,
-                  loss='sparse_categorical_crossentropy',
-                  metrics=['accuracy'])
+                  loss="sparse_categorical_crossentropy",
+                  metrics=["accuracy"])
 
     # Load weights from server.
     nsfl.load_weights(model)
     history = model.fit(x_train, y_train, epochs=1)
-    print('loss', history.history['loss'])
-    print('accuracy:', history.history['accuracy'])
+    print("loss", history.history["loss"])
+    print("accuracy:", history.history["accuracy"])
 
     metrics = {
-        'sample_num': len(x_train),
-        'loss': history.history['loss'][-1],
-        'accuracy': history.history['accuracy'][-1]
+        "sample_num": len(x_train),
+        "loss": history.history["loss"][-1],
+        "accuracy": history.history["accuracy"][-1]
     }
     # Commit metrics and model. Then client agent will send them to server.
     nsfl.commit(metrics, model)
@@ -65,12 +65,12 @@ def main():
     """Train entry.
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument('--index_range', required=False,
-                        help='Train data index range')
+    parser.add_argument("--index_range", required=False,
+                        help="Train data index range")
     args = parser.parse_args()
 
     train(args.index_range)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
