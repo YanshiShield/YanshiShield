@@ -134,23 +134,31 @@ class FeddcLoss(_WeightedLoss):
         self.task_id_prefix = _get_worker_id_prefix()
         round_num = get_round_num()
         if round_num == 1:
-            n_par = len(self._global_weights)
-
-            self._g_i = np.zeros(n_par).astype('float32')
-            self._g = np.zeros(n_par).astype('float32')
-            self._h_i = torch.zeros(n_par, dtype=torch.float32).to(device)
+            self._init_params()
         else:
-            self._h_i = _read_data(H_I_FILE % self.task_id_prefix,
-                                   np_array=False).to(device)
-            self._g_i = _read_data(G_I_FILE % self.task_id_prefix,
-                                   np_array=True)
-            self._g = torch.cat(
-                get_file(GLOBAL_G_FILE,
-                         dserialize_func=torch.load)).detach().numpy()
+            try:
+                self._h_i = _read_data(H_I_FILE % self.task_id_prefix,
+                                       np_array=False).to(device)
+                self._g_i = _read_data(G_I_FILE % self.task_id_prefix,
+                                       np_array=True)
+                self._g = torch.cat(
+                    get_file(GLOBAL_G_FILE,
+                             dserialize_func=torch.load)).detach().numpy()
+            except FileNotFoundError:
+                # If the client is partially involved in the FL, the initial
+                # value needs to be given when not find the param file.
+                self._init_params()
 
         self._g_diff = torch.tensor(self._g - self._g_i,
                                     dtype=torch.float32, device=device)
         self._h_diff = self._global_weights - self._h_i
+
+    def _init_params(self):
+        n_par = len(self._global_weights)
+
+        self._g_i = np.zeros(n_par).astype('float32')
+        self._g = np.zeros(n_par).astype('float32')
+        self._h_i = torch.zeros(n_par, dtype=torch.float32).to(self._device)
 
     def forward(self, outputs, target):
         """Forward.

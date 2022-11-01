@@ -126,21 +126,29 @@ class FeddcLoss(Loss):
         self._task_id_prefix = _get_worker_id_prefix()
         round_num = get_round_num()
         if round_num == 1:
-            n_par = len(self._global_weights)
-
-            self._g_i = np.zeros(n_par).astype('float32')
-            self._g = np.zeros(n_par).astype('float32')
-            self._h_i = tf.zeros(n_par)
+            self._init_params()
         else:
-            self._h_i = _read_data(H_I_FILE % self._task_id_prefix,
-                                   np_array=False)
-            self._g_i = _read_data(G_I_FILE % self._task_id_prefix,
-                                   np_array=True)
-            self._g = get_file(GLOBAL_G_FILE,
-                               dserialize_func=np.load)
+            try:
+                self._h_i = _read_data(H_I_FILE % self._task_id_prefix,
+                                       np_array=False)
+                self._g_i = _read_data(G_I_FILE % self._task_id_prefix,
+                                       np_array=True)
+                self._g = get_file(GLOBAL_G_FILE,
+                                   dserialize_func=np.load)
+            except FileNotFoundError:
+                # If the client is partially involved in the FL, the initial
+                # value needs to be given when not find the param file.
+                self._init_params()
 
         self._g_diff = tf.convert_to_tensor(self._g - self._g_i)
         self._h_diff = self._global_weights - self._h_i
+
+    def _init_params(self):
+        n_par = len(self._global_weights)
+
+        self._g_i = np.zeros(n_par).astype('float32')
+        self._g = np.zeros(n_par).astype('float32')
+        self._h_i = tf.zeros(n_par)
 
     def call(self, y_true, y_pred):
         loss_f_i = self._origin_loss_func(y_true, y_pred)
