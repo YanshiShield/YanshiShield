@@ -42,8 +42,27 @@ The client sends the updated weights after quantization compression to the Coord
   2. Refer to [Job Configuration Guide](../../../docs/apis.md), configure the compression algorithm in "optionals", such as quantization_bits is 2, 4, 8, etc.
 
   
+- Run first Client:
 
-- Refer to how to run Federated Training in the experiment chapter of the [guidance document](../README.md) to run the Clients and Coordinator.
+  ```shell
+  nvidia-docker run --net host -v /tmp/nsfl/compression:/tmp/nsfl/compression -v ~/.keras/datasets:/root/.keras/datasets nsfl-client-gpu --config_file /tmp/nsfl/compression/client_0/tf_vgg16.json
+  ```
+
+
+
+- Run second Client:
+
+  ```shell
+  nvidia-docker run --net host -v /tmp/nsfl/compression:/tmp/nsfl/compression -v ~/.keras/datasets:/root/.keras/datasets nsfl-client-gpu --config_file /tmp/nsfl/compression/client_0/tf_vgg16.json
+  ```
+
+
+
+- Run Coordinator to start federated training:
+
+  ```
+  docker run --net host -v /tmp/nsfl/compression:/tmp/nsfl/compression nsfl-coordinator --config_file /tmp/nsfl/compression/coordinator/tf_vgg16.json
+  ```
 
 
 

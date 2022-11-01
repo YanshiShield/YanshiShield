@@ -2,7 +2,7 @@
 
 ## Background
 
-In the whole training process of federated learning, after each round of training, each client needs to upload the delta weights to the Coordinator. The communication overhead will lead to relatively low efficiency of federated training. Therefore, compressing the transmitted data will effectively improve the efficiency of federated training. This paper introduces the theory and usage of the relevant compression algorithms, as well as the relevant experiments to compare and verify the feasibility of the compression algorithms.
+In the whole training process of federated learning, after each round of training, each client needs to upload the delta weights to the Coordinator. The communication overhead will lead to relatively low efficiency of federated training. Therefore, compressing the transmitted data will effectively improve the efficiency of federated training. The documents in this directory introduces the theory and usage of the relevant compression algorithms, as well as the relevant experiments to compare and verify the feasibility of the compression algorithms.
 
 
 
