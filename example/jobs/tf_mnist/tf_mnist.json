@@ -1,0 +1,15 @@
+{
+	"script_path": "",
+	"train": {
+		"timeout": 30,
+		"command": "python3",
+		"entry": "train.py",
+		"params": null
+	},
+	"evaluate": {
+		"timeout": 30,
+		"command": "python3",
+		"entry": "evaluate.py",
+		"params": null
+	}
+}
