@@ -93,14 +93,14 @@ The above experiments are summarized as follows:
 
 | sampling rate | updated weights size(M) | compression ratio | accuracy |
 | ------------- | ----------------------- | ----------------- | -------- |
-| None          | 128.32                  | 1                 |          |
-| 0.8           | 102.68                  | almost 80%        |          |
-| 0.5           | 64.15                   | almost 50%        |          |
-| 0.3           | 38.48                   | almost 30%        |          |
-| 0.2           | 25.66                   | almost 20%        |          |
-| 0.15          | 19.25                   | almost 15%        |          |
-| 0.1           | 12.83                   | almost 10%        |          |
-| 0.05          | 6.42                    | almost 5%         |          |
+| None          | 128.32                  | 1                 | 0.798    |
+| 0.8           | 102.68                  | almost 80%        | 0.7992   |
+| 0.5           | 64.15                   | almost 50%        | 0.7778   |
+| 0.3           | 38.48                   | almost 30%        | 0.806    |
+| 0.2           | 25.66                   | almost 20%        | 0.7974   |
+| 0.15          | 19.25                   | almost 15%        | 0.7938   |
+| 0.1           | 12.83                   | almost 10%        | 0.7755   |
+| 0.05          | 6.42                    | almost 5%         | 0.7841   |
 
 It can be seen from the experimental data that the sampling_rate becomes smaller, the compression ratio and the compressed weights are smaller. As the compression rate decreases, the convergence rate becomes slower, because the effective updated weights are less, which affects convergence efficiency, but the convergence results are not significantly affected. However, when the sampling rate is 0.05, although the transmission weight is significantly reduced, more training rounds are required to converge, but the overall transmission volume is still significantly reduced. Of course, as the number of training rounds increases, additional training overhead is required, so you need to consider comprehensively and select appropriate parameters. Therefore, sampling can effectively reduce the communication overhead and improve the performance of federated learning without affecting the convergence results.
 
