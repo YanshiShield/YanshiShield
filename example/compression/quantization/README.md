@@ -32,7 +32,7 @@ The client sends the updated weights after quantization compression to the Coord
   --client_ports=9091,9092 \
   --runtime=tensorflow \
   --platform=linux \
-  --rounds=20
+  --rounds=100 \
   --optionals="{'compression':{'type':'quantization','quantization_bits':2}}"
   ```
 

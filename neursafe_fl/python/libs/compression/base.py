@@ -16,10 +16,8 @@ class Compression:
     def encode(self, *args, **kwargs):
         """Encode data(compress data).
         """
-        raise NotImplementedError
 
     @abc.abstractmethod
     def decode(self, *args, **kwargs):
         """Decode data(recover from compressed data).
         """
-        raise NotImplementedError

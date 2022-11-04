@@ -9,6 +9,7 @@ from neursafe_fl.python.utils.file_io import read_json_file
 from neursafe_fl.python.libs.secure.const import SUPPORTED_SECURE_ALGORITHM
 from neursafe_fl.python.libs.compression.quantization import \
     check_quantization_bits
+from neursafe_fl.python.libs.compression.subsampling import check_sampling_rate
 from neursafe_fl.python.libs.compression.const import \
     SUPPORTED_COMPRESSION_ALGORITHM
 
@@ -128,6 +129,13 @@ def __validate_quantization_algorithm(config):
     check_quantization_bits(config["quantization_bits"])
 
 
+def __validate_subsampling_algorithm(config):
+    required_rules = {"sampling_rate": float}
+    _validate_required(required_rules, config)
+
+    check_sampling_rate(config["sampling_rate"])
+
+
 def _validate_compression_algorithm(config):
     required_rules = {"type": str}
     _validate_required(required_rules, config)
@@ -139,6 +147,9 @@ def _validate_compression_algorithm(config):
 
     if config["type"].upper() == SUPPORTED_COMPRESSION_ALGORITHM[0]:
         __validate_quantization_algorithm(config)
+
+    if config["type"].upper() == SUPPORTED_COMPRESSION_ALGORITHM[1]:
+        __validate_subsampling_algorithm(config)
 
 
 def _validate_secure_algorithm(config):

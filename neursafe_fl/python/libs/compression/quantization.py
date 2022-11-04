@@ -143,7 +143,8 @@ class QuantizationCompression(Compression):
     def encode(self, value: np.ndarray):
         """Compress value.
 
-        Args: numpy array
+        Args:
+            value: numpy array.
         """
         quantified_value = self.quantify(value)
 
