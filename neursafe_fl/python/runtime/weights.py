@@ -51,10 +51,8 @@ class WeightsConverter:
     def encode(self, raw_weights, encoder):
         """Encode weights.
         """
-        raise NotImplementedError
 
     @abc.abstractmethod
     def decode(self, internal_weights, decoder):
         """Decode weight.
         """
-        raise NotImplementedError

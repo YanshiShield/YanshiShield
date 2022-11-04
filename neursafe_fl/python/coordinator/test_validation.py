@@ -214,6 +214,49 @@ class TestValidation(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_config(config)
 
+        # Quantization bit not correct
+        config["compression"] = {"type": "quantization",
+                                 "quantization_bits": 2.1}
+
+        with self.assertRaises(TypeError):
+            validate_config(config)
+
+        # Quantization bit not correct
+        config["compression"] = {"type": "quantization",
+                                 "quantization_bits": 1}
+
+        with self.assertRaises(ValueError):
+            validate_config(config)
+
+    def test_should_raise_exception_if_subsampling_not_correct(self):
+        config = job_config()
+
+        # Compression type not correct
+        config["compression"] = {"type": 111}
+
+        with self.assertRaises(TypeError):
+            validate_config(config)
+
+        # Sampling rate not exist
+        config["compression"] = {"type": "subsampling"}
+
+        with self.assertRaises(ValueError):
+            validate_config(config)
+
+        # Sampling rate not correct
+        config["compression"] = {"type": "subsampling",
+                                 "sampling_rate": 0}
+
+        with self.assertRaises(TypeError):
+            validate_config(config)
+
+        # Sampling rate not correct
+        config["compression"] = {"type": "subsampling",
+                                 "sampling_rate": 0.0}
+
+        with self.assertRaises(ValueError):
+            validate_config(config)
+
     def test_secure_and_compression_mutex(self):
         config = job_config()
 

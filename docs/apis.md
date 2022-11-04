@@ -177,8 +177,9 @@ For example, if you provide this config as follows, then the commad will be with
 
 | name              | type   | property | algorithm    | description                                                  |
 | ----------------- | ------ | -------- | ------------ | ------------------------------------------------------------ |
-| type              | string | required | --           | Type of compression algorithm, currently supported: "quantization". |
+| type              | string | required | --           | Type of compression algorithm, currently supported: "quantization", "subsampling". |
 | quantization_bits | int    | optional | quantization | A integer specifying the quantization bitwidth               |
+| sampling_rate     | float  | optional | subsampling  | Specify the sampling ratio, how much data needs to be sampled from the original data, which can be simply understood as the compression ratio |
 
 #### Optimizer
 
