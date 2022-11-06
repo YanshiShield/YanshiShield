@@ -48,7 +48,8 @@ py_wheel(
         "secret-sharing==0.2.7",
         "cryptography==3.3.1",
         "tornado==6.1",
-        "pymongo==3.11.3"
+        "pymongo==3.11.3",
+        "numpy"
     ],
     deps = [":coordinator_pkg"],
 )

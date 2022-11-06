@@ -207,10 +207,6 @@ class FeddcLoss(_WeightedLoss):
         h_i = self._h_i.cpu().detach().numpy()
         new_h_i = h_i + delta_weights
 
-        # update local weights
-        new_trained_params = trained_params + new_h_i
-        _set_model_params(commiting_model, new_trained_params)
-
         # save new_g_i and new_h_i
         _write_data(G_I_FILE % self.task_id_prefix, new_g_i)
         _write_data(H_I_FILE % self.task_id_prefix, new_h_i)
@@ -221,3 +217,4 @@ class FeddcLoss(_WeightedLoss):
         put_file("delta_control_variates.pt",
                  _cut_list(delta_g_i, len(list(self._model.parameters()))),
                  serialize_func=serialize)
+        put_file("h_i.npy", new_h_i, serialize_func=np.save)

@@ -277,7 +277,8 @@ We provide the following SDK interfaces.
 
   | name        | type           | property | algorithm | description                                                  |
   | ----------- | -------------- | -------- | --------- | ------------------------------------------------------------ |
-  | train_model | tf/torch model | required | feddc     | The model will be using to train. and it already loaded init weights from coordinator. |
+  | model | tf/torch model | required | feddc     | The model will be using to train. and it already loaded init weights from coordinator. |
+  | origin_loss_func | func | optional | feddc     | Base loss function used for train. Default is CrossEntropyLoss in pytorch, the same as categorical_crossentropy in tensorflow. |
   | sample_num  | int            | optional | feddc     | The number of samples used in this round when training the local model |
   | batch_size  | int            | optional | feddc     | The batch size used when training the local model            |
   | lr          | float          | optional | feddc     | Local training learning rate                                 |
@@ -288,7 +289,6 @@ We provide the following SDK interfaces.
 
   | name             | type | property | algorithm | description                                                  |
   | ---------------- | ---- | -------- | --------- | ------------------------------------------------------------ |
-  | origin_loss_func | func | optional | feddc     | Base loss function used for train. Default is CrossEntropyLoss in pytorch, the same as categorical_crossentropy in tensorflow. |
   | device           | str  | optional | feddc     | Use cpu or gpu when run training, only used in pytorch.      |
   | print_loss       | int  | optional | feddc     | Printing detail loss per forward or per call.                |
 

@@ -95,7 +95,7 @@ class FeddcLoss(Loss):
         epoch: The epoch used when training the local model.
         alpha: The hyper-parameter that controls the weight of R, The
                recommended setting value is 0.1/0.01/0.005.
-        print_loss_per_call: Printing detail loss per call.
+        print_loss: Printing detail loss per call.
     """
     _instance = None
 
@@ -188,10 +188,6 @@ class FeddcLoss(Loss):
         # h_i=h_i+\Delta\theta_i
         new_h_i = self._h_i.numpy() + delta_weights
 
-        # update local weights
-        new_trained_params = trained_params + new_h_i
-        _set_model_params(commiting_model, new_trained_params)
-
         # save new_g_i and new_h_i
         _write_data(G_I_FILE % self._task_id_prefix, new_g_i)
         _write_data(H_I_FILE % self._task_id_prefix, new_h_i)
@@ -199,3 +195,4 @@ class FeddcLoss(Loss):
         # upload the delta g_i
         put_file("delta_control_variates.npy", delta_g_i,
                  serialize_func=np.save)
+        put_file("h_i.npy", new_h_i, serialize_func=np.save)

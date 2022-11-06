@@ -179,7 +179,7 @@ class TrainRound(BaseRound):
         if self.__extender_process:
             for extender in self.__extenders:
                 func = extender.get("finish")
-                finish_extender(func, self.__extend_params)
+                finish_extender(func, self.__extend_params, result)
 
         return result
 

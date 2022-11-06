@@ -1,7 +1,7 @@
 #  Copyright 2022 The Neursafe FL Authors. All Rights Reserved.
 #  SPDX-License-Identifier: Apache-2.0
 
-# pylint:disable=no-member, invalid-name, too-many-arguments
+# pylint:disable=no-member, invalid-name, too-many-arguments, unused-argument
 """Scaffold computation in server.
 """
 import os
@@ -64,7 +64,7 @@ def broadcast_control_variates(params):  # pylint:disable=unused-argument
     return custom_files, custom_params
 
 
-def save_control_variates(params):
+def save_control_variates(params, aggregated_weights=None):
     """Save the server control variates to file, for next round."""
     # decay_lr = global_lr * max(0.1, pow(0.5, round_num))
     aggregated_c = params.get("control_variates", 0)
