@@ -41,7 +41,7 @@ python3 example/data/mnist/prepare_torch_data.py --path /tmp/nsfl/data/mnist/tor
 运行如下命令，为作业的Coordinator和Clients生成配置：
 
 ```shell
-python3 example/scripts/gen_mnist_config.py --job_name=tf_mnist \
+python3 example/scripts/gen_config.py --job_name=tf_mnist \
 --workspace=/tmp/nsfl/ \
 --coordinator_port=8090 \
 --client_ports=9091,9092 \
@@ -53,15 +53,17 @@ python3 example/scripts/gen_mnist_config.py --job_name=tf_mnist \
 
 参数意义：
 
-| 参数名           | 描述                                                         |
-| ---------------- | ------------------------------------------------------------ |
-| workspace        | 指定联邦作业的workspace目录，存放联邦作业需要的配置文件、训练脚本以及联邦训练中产生的中间数据 |
-| coordinator_port | 指定coordinator的端口                                        |
-| client_ports     | 指定多个client的端口，用“,”隔开，配置多少个端口，就会生成多少个客户端需要的配置 |
-| runtime          | 指定联邦作业的使用的深度学习框架，支持tensorflow或pytorch    |
-| platform         | 指定联邦作业的运行平台，支持linux（本地进程方式运行）、k8s（集群方式运行） |
-| rounds           | 指定联邦作业的训练轮数                                       |
-| dataset          | 指定联邦作业训练的数据集地址                                 |
+| 参数名           | 必须 | 默认值     | 描述                                                         |
+| ---------------- | ---- | ---------- | ------------------------------------------------------------ |
+| job_name         | 是   | -          | 联邦作业的名称，在federated-learning/example/jobs目录下会有不同作业的文件夹，以对应文件夹名字作为联邦作业的名称，如tf_mnist、tf_vgg16等 |
+| workspace        | 是   | -          | 指定联邦作业的workspace目录，存放联邦作业需要的配置文件、训练脚本以及联邦训练中产生的中间数据 |
+| coordinator_port | 是   | -          | 指定coordinator的端口                                        |
+| client_ports     | 是   | -          | 指定多个client的端口，用“,”隔开，配置多少个端口，就会生成多少个客户端需要的配置 |
+| runtime          | 否   | tensorflow | 指定联邦作业的使用的深度学习框架，支持tensorflow或pytorch    |
+| platform         | 否   | linux      | 指定联邦作业的运行平台，支持linux（本地进程方式运行）、k8s（集群方式运行） |
+| rounds           | 是   | -          | 指定联邦作业的训练轮数                                       |
+| dataset          | 否   | None       | 指定联邦作业训练的数据集地址                                 |
+| optionals        | 否   | None       | 指定联邦作业可选的配置项，如安全算法、压缩算法等（参考[作业配置指导](apis.md)），以字符串的形式描述字典参数，如"{'compression':{'type':'quantization','quantization_bits':2}}"（注意：‘与“的使用） |
 
 生成的配置以json文件的形式，存在在workspace参数指定的位置，如下：
 

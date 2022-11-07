@@ -16,14 +16,6 @@ import neursafe_fl as nsfl
 _LOG = logging.getLogger(__name__)
 
 
-def write_metrics(task_workspace, context):
-    """Wirite metrics result
-    """
-    metrics_file = os.path.join(task_workspace, 'metrics.json')
-    with open(metrics_file, 'w') as cfg_file:
-        cfg_file.write(json.dumps(context))
-
-
 def evaluate(index_range):
     """Do evaluate
     """
@@ -45,23 +37,27 @@ def evaluate(index_range):
 
     model = tf.keras.models.Sequential([
         tf.keras.layers.Flatten(input_shape=(28, 28)),
-        tf.keras.layers.Dense(128, activation='relu'),
+        tf.keras.layers.Dense(128, activation="relu"),
         tf.keras.layers.Dropout(0.2),
-        tf.keras.layers.Dense(10, activation='softmax')
+        tf.keras.layers.Dense(10, activation="softmax")
     ])
 
-    model.compile(optimizer='sgd',
-                  loss='sparse_categorical_crossentropy',
-                  metrics=['accuracy'])
+    model.compile(optimizer="sgd",
+                  loss="sparse_categorical_crossentropy",
+                  metrics=["accuracy"])
 
     # load weights from server.
     nsfl.load_weights(model)
 
     fl_score = model.evaluate(x_test, y_test)
     metrics = {
-        'loss': fl_score[0],
-        'accuracy': fl_score[1]
+        "sample_num": len(x_test),
+        "loss": fl_score[0],
+        "accuracy": fl_score[1]
     }
+
+    print("Evaluate metrics: ", metrics)
+
     # Comimit metrics. Then client agent will send it to server.
     nsfl.commit(metrics)
 
@@ -70,11 +66,11 @@ def main():
     """main
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument('--index_range', required=False,
-                        help='Train data index range')
+    parser.add_argument("--index_range", required=False,
+                        help="Train data index range")
     args = parser.parse_args()
     evaluate(args.index_range)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

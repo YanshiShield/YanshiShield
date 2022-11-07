@@ -27,6 +27,7 @@ DATASETS = "NSFL_DATASETS"
 GRPC_METADATA = "NSFL_GRPC_METADATA"
 CERTIFICATION_PATH = "NSFL_CERTIFICATE_PATH"
 SECURITY_ALGORITHM = "NSFL_SECURITY_ALGORITHM"
+COMPRESSION_ALGORITHM = "NSFL_COMPRESSION_ALGORITHM"
 SERVER_ADDRESS = "NSFL_SERVER_ADDRESS"
 TASK_METADATA = "NSFL_TASK_METADATA"
 TASK_TIMEOUT = "NSFL_TASK_TIMEOUT"
@@ -87,6 +88,17 @@ def get_security_algorithm():
 
     if security_algorithm:
         return pickle.loads(eval(security_algorithm))
+
+    return {}
+
+
+def get_compression_algorithm():
+    """Get compress algorithm parameters from env.
+    """
+    compression_algorithm = os.getenv(COMPRESSION_ALGORITHM)
+
+    if compression_algorithm:
+        return pickle.loads(eval(compression_algorithm))
 
     return {}
 

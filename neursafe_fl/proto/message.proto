@@ -26,9 +26,10 @@ message TaskSpec {
     google.protobuf.Struct params = 4;
     google.protobuf.Struct custom_params = 5;
     google.protobuf.Struct secure_algorithm = 6;
+    google.protobuf.Struct compression = 10;
     string datasets = 8;
     Optimizer optimizer = 9;
-    Loss loss = 10;
+    Loss loss = 11;
 }
 
 message Loss {

@@ -13,6 +13,7 @@ from neursafe_fl.proto.message_pb2 import Loss
 from neursafe_fl.python.coordinator.common.utils import join
 from neursafe_fl.python.coordinator.common.workspace import Files
 from neursafe_fl.python.coordinator.round_controller import RoundController
+from neursafe_fl.python.libs.compression.factory import create_compression
 
 
 PACKAGE_IO_NAME = "package.zip"
@@ -31,6 +32,15 @@ class BaseRound:
         self._workspace = workspace
         self._model = model
         self._round_controller = None
+        self._compression = None
+
+    def create_compression_if_needed(self):
+        """Create compress instance for encoding and decoding weights.
+        """
+        if "compression" in self._config:
+            type_ = self._config["compression"]["type"]
+            self._compression = create_compression(
+                type_, **self._config["compression"])
 
     async def run(self):
         """Start the round execution."""
@@ -110,6 +120,7 @@ class BaseRound:
                                                        self._model.runtime)
         file_path = join(self._workspace.get_round_dir(self._round_id),
                          filename)
+
         self._model.save_weights(file_path)
         logging.info("Save round init weights to %s", file_path)
         return file_path

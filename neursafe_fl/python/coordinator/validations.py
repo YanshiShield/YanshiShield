@@ -7,6 +7,10 @@ import re
 
 from neursafe_fl.python.utils.file_io import read_json_file
 from neursafe_fl.python.libs.secure.const import SUPPORTED_SECURE_ALGORITHM
+from neursafe_fl.python.libs.compression.quantization import \
+    check_quantization_bits
+from neursafe_fl.python.libs.compression.const import \
+    SUPPORTED_COMPRESSION_ALGORITHM
 
 
 DEFAULT_HYPER_CONFIG = {
@@ -64,6 +68,9 @@ def _validate_params(config):
     _validate_basic_params(config)
     _validate_hyper_params(config["hyper_parameters"])
 
+    if "secure_algorithm" in config and "compression" in config:
+        raise ValueError("Not support secure algorithm with compression.")
+
     if "secure_algorithm" in config:
         _validate_secure_algorithm(config["secure_algorithm"])
 
@@ -73,6 +80,9 @@ def _validate_params(config):
                 config["secure_algorithm"],
                 config["hyper_parameters"]['client_num'],
                 config["hyper_parameters"]['threshold_client_num'])
+
+    if "compression" in config:
+        _validate_compression_algorithm(config["compression"])
 
 
 def _validate_basic_params(config):
@@ -109,6 +119,26 @@ def _validate_hyper_params(config):
                       "save_interval": int,
                       "learning_rate": float}
     _validate_optional(optional_rules, config)
+
+
+def __validate_quantization_algorithm(config):
+    required_rules = {"quantization_bits": int}
+    _validate_required(required_rules, config)
+
+    check_quantization_bits(config["quantization_bits"])
+
+
+def _validate_compression_algorithm(config):
+    required_rules = {"type": str}
+    _validate_required(required_rules, config)
+
+    if config["type"].upper() not in SUPPORTED_COMPRESSION_ALGORITHM:
+        raise ValueError("Compression algorithm: %s is not supported, support "
+                         "algorithm is %s" % (config["type"],
+                                              SUPPORTED_COMPRESSION_ALGORITHM))
+
+    if config["type"].upper() == SUPPORTED_COMPRESSION_ALGORITHM[0]:
+        __validate_quantization_algorithm(config)
 
 
 def _validate_secure_algorithm(config):

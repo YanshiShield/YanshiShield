@@ -22,6 +22,7 @@ py_library(
         "//neursafe_fl/python/runtime:pytorch_runtime",
         "//neursafe_fl/python/libs/optimizer:optimizer",
         "//neursafe_fl/python/libs/loss:loss",
+        "//neursafe_fl/python/libs/compression:compression",
     ],
     visibility = ["//visibility:public"],
 )
@@ -34,7 +35,8 @@ py_package(
         "neursafe_fl.python.runtime",
         "neursafe_fl",
         "neursafe_fl.python.libs.optimizer",
-        "neursafe_fl.python.libs.loss"
+        "neursafe_fl.python.libs.loss",
+        "neursafe_fl.python.libs.compression",
         ],
     deps = [":fl_sdk_lib"],
 )
@@ -61,6 +63,7 @@ py_library(
         "//neursafe_fl/python/runtime:tensorflow_runtime",
         "//neursafe_fl/python/libs/optimizer:optimizer",
         "//neursafe_fl/python/libs/loss:loss",
+        "//neursafe_fl/python/libs/compression:compression",
     ],
     visibility = ["//visibility:public"],
 )
@@ -74,6 +77,7 @@ py_package(
         "neursafe_fl",
         "neursafe_fl.python.libs.optimizer",
         "neursafe_fl.python.libs.loss",
+        "neursafe_fl.python.libs.compression",
         ],
     deps = [":fl_tensorflow_sdk_lib"],
 )
@@ -99,6 +103,7 @@ py_library(
         "//neursafe_fl/python/runtime:pytorch_runtime",
         "//neursafe_fl/python/libs/optimizer:optimizer",
         "//neursafe_fl/python/libs/loss:loss",
+        "//neursafe_fl/python/libs/compression:compression",
     ],
     visibility = ["//visibility:public"],
 )
@@ -112,6 +117,7 @@ py_package(
         "neursafe_fl",
         "neursafe_fl.python.libs.optimizer",
         "neursafe_fl.python.libs.loss",
+        "neursafe_fl.python.libs.compression",
         ],
     deps = [":fl_pytorch_sdk_lib"],
 )

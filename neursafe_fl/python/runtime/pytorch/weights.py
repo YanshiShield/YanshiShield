@@ -7,8 +7,10 @@ Used to compute pytorch weights.
 
 from collections import OrderedDict
 import numpy as np
+import torch
 
-from neursafe_fl.python.runtime.weights import WeightsCalculator
+from neursafe_fl.python.runtime.weights import (WeightsCalculator,
+                                                WeightsConverter, WEIGHT)
 
 ENOUGH_MIN_FLOAT = 0.000001
 
@@ -61,3 +63,32 @@ class PytorchWeightsCalculator(WeightsCalculator):
             if not result.all():
                 return False
         return True
+
+
+class PytorchWeightsConverter(WeightsConverter):
+    """Weights converter executing in pytorch runtime.
+    """
+
+    def encode(self, raw_weights, encoder):
+        """Encode weights according to specified encoder.
+        """
+        internal_weights = []
+
+        for name, weight in raw_weights.items():
+            encoded_weight, params = encoder.encode(weight.numpy())
+            internal_weight = WEIGHT(name, encoded_weight, params)
+            internal_weights.append(internal_weight)
+
+        return internal_weights
+
+    def decode(self, internal_weights, decoder):
+        """Decode weights according to specified decoder.
+        """
+        raw_weights = OrderedDict()
+
+        for internal_weight in internal_weights:
+            raw_weight = decoder.decode(internal_weight.weight,
+                                        **internal_weight.params)
+            raw_weights[internal_weight.id] = torch.from_numpy(raw_weight)
+
+        return raw_weights

@@ -18,6 +18,7 @@ We provide APIs to access job scheduler and model manager components to manage f
       - [CheckPoint](#checkpoint)
       - [Extenders](#extenders)
       - [SecureAlgorithm](#securealgorithm)
+      - [Compression](#compression)
       - [Optimizer](#optimizer)
       - [Loss](#loss)
       - [JobList](#joblist)
@@ -79,6 +80,7 @@ APIs used to manage federated jobs, the objects definition as follows:
 | parameters       | `Parameters`      | optional    | The parameters that need to be passed to all training clients, need to be customized by the user |
 | extenders        | `Extenders`       | optional    | The extender interface configuration, through this interface, the custom extended interface scripts and functions can be injected into the federation process |
 | secure_algorithm | `SecureAlgorithm` | optional    | Federal job security algorithm configuration. If configured, the job will protect the intermediate data of the job under the corresponding secure computing method. |
+| compression      | `Compression`     | optional    | Federal job compression algorithm configuration. If configured, client will compress updated weights before sending to coordinator. |
 | checkpoints      | `CheckpointsList` | optional    | The checkpoints generated during the federated job training process, are convenient for users to select the checkpoint for next running corresponding to the checkpoint_id |
 | datasets         | string            | optional    | The dataset to use for the job, when there are multiple datasets, seperated by ',', for example: "dataset1, dataset2" |
 | output           | string            | required    | The output path of the checkpoint and metrics after job finished |
@@ -171,6 +173,13 @@ For example, if you provide this config as follows, then the commad will be with
 | threshold         | int    | optional | SSA       | The minimum threshold for the number of clients participating in secret sharing, the minimum value is 2, the maximum value is threshold_num defined in HyperParameters |
 | mode              | string | optional | SSA       | onemask or doublemask mode in ssa。onemask mode is more suitable for cross-slio scenarios and does not support client disconnection;<br>doublemask is more suitable for cross-device scenarios, supports client disconnection, and is more secure |
 | use_same_mask     | bool   | optional | SSA       | When use_same_mask is True, each layer will use the same encryption mask. When the weight of the model is very regular, the attacker is easy to crack; otherwise, each layer uses a different encryption mask, which is more secure, and the default is false. |
+
+#### Compression
+
+| name              | type   | property | algorithm    | description                                                  |
+| ----------------- | ------ | -------- | ------------ | ------------------------------------------------------------ |
+| type              | string | required | --           | Type of compression algorithm, currently supported: "quantization". |
+| quantization_bits | int    | optional | quantization | A integer specifying the quantization bitwidth               |
 
 #### Optimizer
 

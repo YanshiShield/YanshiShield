@@ -8,6 +8,7 @@ RUN apt-get install -y python3.7 python3.7-dev &&\
     apt-get install -y python3-pip
 
 RUN ln -s -f /usr/bin/python3.7 /usr/bin/python
+RUN ln -s -f /usr/bin/python3.7 /usr/bin/python3
 
 COPY deploy/scripts/install_bazel.sh /tmp/install_bazel.sh
 
