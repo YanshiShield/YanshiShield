@@ -8,33 +8,21 @@ import numpy as np
 
 from neursafe_fl.python.libs.loss.feddc_util import save_h_i, \
     compute_avg_h, save_all_h_i
-import neursafe_fl.python.libs.optimizer.pytorch.scaffold_compute as scaffold
 
 
-def process_parameter(data, previous):
-    """Aggregate scaffold's control variates and save feddc's h_i.
+def save_h_parameter(data, previous):
+    """Save feddc's h_i in result.
     """
-    result = scaffold.aggregate_control_variates(data, previous)
-    save_h_i(data, previous, result)
+    result = save_h_i(data, previous)
     return result
 
 
-def broadcast_paramters(params):
-    """Broadcast scaffold's control variates.
+def mean_h_paramters(params, aggregated_weights):
+    """Mean h_i, and add avg_h to weights for feddc.
     """
-    return scaffold.broadcast_control_variates(params)
-
-
-def save_paramters(params, aggregated_weights):
-    """Save the server control variates to file for scaffold, and add avg_h to
-    weights for feddc.
-    """
-    result = scaffold.save_control_variates(params)
-
     avg_h = compute_avg_h(params)
     _add_avg_h_to_weights(aggregated_weights, avg_h)
     save_all_h_i(params["h_i_s"])
-    return result
 
 
 def _add_avg_h_to_weights(aggregated_weights, avg_h):

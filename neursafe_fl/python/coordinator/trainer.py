@@ -193,6 +193,20 @@ class Trainer:
                                          extender_config.get(func))
         return extender
 
+    def __load_extenders_for_extender_name(self, extender_name,
+                                           extender_config):
+        if isinstance(extender_config, list):
+            for e_config in extender_config:
+                extender = self.__load(e_config)
+                if extender:
+                    self.__config["extenders"].append(extender)
+                    logging.info("Load %s success.", extender_name)
+        else:  # else extender_config is a json
+            extender = self.__load(extender_config)
+            if extender:
+                self.__config["extenders"].append(extender)
+                logging.info("Load %s success.", extender_name)
+
     def __load_extenders_for_optimizer_and_loss(self):
         """Load custom extender for optimizer and loss config.
 
@@ -220,10 +234,9 @@ class Trainer:
                 extender_name = self.__config[type_].get("name")
                 extender_name = "%s_%s" % (self.__runtime, extender_name)
                 if extender_name in config_map[type_]:
-                    extender = self.__load(config_map[type_][extender_name])
-                    if extender:
-                        self.__config["extenders"].append(extender)
-                        logging.info("Load %s success.", extender_name)
+                    extender_config = config_map[type_][extender_name]
+                    self.__load_extenders_for_extender_name(extender_name,
+                                                            extender_config)
                 else:
                     logging.warning("%s not implement.", extender_name)
             else:

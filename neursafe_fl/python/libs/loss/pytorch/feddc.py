@@ -72,11 +72,13 @@ def _flatten_model_params(model, parmas_num=None):
     return np.copy(param_mat)
 
 
-def _cut_list(data, num):
+def _de_flatten(data, model):
     new_ = []
-    step = math.ceil(len(data) / num)
-    for i in range(0, len(data), step):
-        new_.append(torch.tensor(data[i:i + step]))
+    idx = 0
+    for _, weights in model.named_parameters():
+        length = len(weights.reshape(-1))
+        new_.append(torch.tensor(data[idx:idx + length]))
+        idx += length
     return new_
 
 
@@ -215,6 +217,6 @@ class FeddcLoss(_WeightedLoss):
         def serialize(file_obj, content):
             torch.save(content, file_obj)
         put_file("delta_control_variates.pt",
-                 _cut_list(delta_g_i, len(list(self._model.parameters()))),
+                 _de_flatten(delta_g_i, self._model),
                  serialize_func=serialize)
         put_file("h_i.npy", new_h_i, serialize_func=np.save)

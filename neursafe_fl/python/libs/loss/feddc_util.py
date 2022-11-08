@@ -9,9 +9,10 @@ import numpy as np
 AVG_H_FILE = "/tmp/nsfl_avg_h.file"
 
 
-def save_h_i(data, previous, result):
+def save_h_i(data, previous):
     """Save one client's h_i.
     """
+    result = {}
     # previous is none when the first client reporte in a round.
     if previous is None:
         if os.path.exists(AVG_H_FILE):
@@ -27,6 +28,8 @@ def save_h_i(data, previous, result):
             h_i = np.load(file_path)
             result["h_i_s"][data["client_id"]] = h_i
 
+    return result
+
 
 def compute_avg_h(params):
     """Compute for h_i average.
@@ -40,11 +43,11 @@ def compute_avg_h(params):
     return avg_h
 
 
-def save_all_h_i(avg_h):
+def save_all_h_i(all_h_i):
     """Save all client's h_i in server.
     """
     with open(AVG_H_FILE, "wb") as file_w:
-        pickle.dump(avg_h, file_w)
+        pickle.dump(all_h_i, file_w)
 
 
 def load_all_h_i():
