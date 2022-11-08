@@ -12,6 +12,9 @@ from absl import flags
 
 FLAGS = flags.FLAGS
 
+flags.DEFINE_string(
+    'dataset_name', "mnist",
+    'The dataset will be download, current support [mnist, cifar10].')
 flags.DEFINE_string('path', None, 'Path for storing dataset.')
 
 
@@ -22,9 +25,13 @@ def main(argv):
     if not os.path.exists(data_path):
         os.makedirs(data_path)
 
-    mnist = tf.keras.datasets.mnist
-    mnist.load_data(
-        os.path.join(data_path, "mnist.npz"))
+    if FLAGS.dataset_name == "mnist":
+        mnist = tf.keras.datasets.mnist
+        mnist.load_data(
+            os.path.join(data_path, "mnist.npz"))
+    elif FLAGS.dataset_name == "cifar10":
+        cifar10 = tf.keras.datasets.cifar10
+        cifar10.load_data()
 
 
 if __name__ == '__main__':

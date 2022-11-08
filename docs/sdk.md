@@ -265,7 +265,7 @@ We provide the following SDK interfaces.
 
   return an instance of optimizer object.
 
-### feddc_loss(train_model, sample_num, batch_size, lr, epoch, alpha=0.01, **kwargs)
+### feddc_loss(model, origin_loss_func, sample_num, batch_size, lr, epoch, alpha=0.01, **kwargs)
 
 - Description: Get an feddc loss to Federated Learning
 
