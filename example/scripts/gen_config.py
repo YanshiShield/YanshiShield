@@ -14,6 +14,8 @@ from absl import flags
 from shutil import copyfile, move
 from subprocess import call
 
+from data_util import gen_drichlet_distribution_data
+
 FORMAT = ("[%(asctime)s] %(filename)s"
           "[line:%(lineno)d] %(levelname)s: %(message)s")
 logging.basicConfig(format=(FORMAT), level="INFO")
@@ -30,11 +32,21 @@ flags.DEFINE_string("platform", None, "FL job run on which platform.")
 flags.DEFINE_string("job_name", None, "Fl job name.")
 flags.DEFINE_string("rounds", None, "FL job rounds num.")
 flags.DEFINE_string("dataset", None, "Dataset directory or path.")
+flags.DEFINE_string("dataset_name", "cifar10",
+                    "The Dataset for drichlet sample. It's effective when "
+                    "data_split set drichlet.")
 flags.DEFINE_string("data_split", "index",
-                    "Split the data by index or class. The index, data will be"
-                    "evenly divided into each client. The class, data will be "
-                    "divided into each client according to the category, and "
-                    "this data is non-iid.")
+                    "Split the data by [index, class, drichlet]. The index, "
+                    "data will be venly divided into each client. The class, "
+                    "data will be divided into each client according to the "
+                    "category. The drichlet, data will be sampled from the "
+                    "drichlet distribution.")
+flags.DEFINE_float("drichlet_arg", 0.3,
+                   "The parameter for drichlet distribution, lower drichlet_arg "
+                   "and higher heterogeneity.")
+flags.DEFINE_integer("drichlet_seed", 20,
+                     "The random seed for drichlet distribution. When use same "
+                     "seed, The generated data distribution is the same.")
 flags.DEFINE_string("optionals", None, "Optional configs, such as: "
                                        "secure algorithm, compression")
 
@@ -179,9 +191,11 @@ def _gen_task_entry_config(client_root_dir, client_index):
         _split_data_with_index(template_config, client_index)
     elif FLAGS.data_split == "class":
         _split_data_with_class(template_config, client_index)
+    elif FLAGS.data_split == "drichlet":
+        _split_data_with_drichlet(template_config, client_index)
     else:
         logging.warning("Not support data_split with %s, the support is index"
-                        "or class", FLAGS.data_split)
+                        "/class/drichlet", FLAGS.data_split)
 
     script_dir = os.path.join(entry_dir, FLAGS.job_name)
     template_config["script_path"] = script_dir
@@ -224,6 +238,18 @@ def _split_data_with_class(template_config, client_index):
     template_config["train"]["params"] = params
     params = {"--class_num": "%s" % used_classes_str}
     template_config["evaluate"]["params"] = params
+
+
+def _split_data_with_drichlet(template_config, client_index):
+    n_client = len(FLAGS.client_ports.split(","))
+    saved_path, _, _, _, _ = gen_drichlet_distribution_data(
+        FLAGS.dataset, FLAGS.dataset_name, n_client, FLAGS.drichlet_seed,
+        FLAGS.drichlet_arg)
+    params = {"--client_index": str(client_index),
+              "--data_path": saved_path}
+    template_config["train"]["params"] = params
+    template_config["evaluate"]["params"] = params
+
 
 def _gen_datasets_config(client_root_dir):
     datasets_config_path = os.path.join(client_root_dir, "datasets.json")
