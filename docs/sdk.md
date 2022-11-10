@@ -29,7 +29,7 @@ We provide the following SDK interfaces.
   - [get_file(filename, dserialize_func=None, **kwargs)](#get_filefilename-dserialize_funcnone-kwargs)
   - [put_file(filename, content, serialize_func=None, **kwargs)](#put_filefilename-content-serialize_funcnone-kwargs)
   - [create_optimizer(**kwargs)](#create_optimizerkwargs)
-  - [feddc_loss(train_model, sample_num, batch_size, lr, epoch, alpha=0.01, **kwargs)](#feddc_losstrain_model-sample_num-batch_size-lr-epoch-alpha_0.01-kwargs)
+  - [feddc_loss(model, origin_loss_func, sample_num, batch_size, lr, epoch, alpha=0.01, **kwargs)](#feddc_lossmodel-origin_loss_func-sample_num-batch_size-lr-epoch-alpha_0.01-kwargs)
 
 
 ## SDK

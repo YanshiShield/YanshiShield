@@ -32,15 +32,15 @@ flags.DEFINE_string("platform", None, "FL job run on which platform.")
 flags.DEFINE_string("job_name", None, "Fl job name.")
 flags.DEFINE_string("rounds", None, "FL job rounds num.")
 flags.DEFINE_string("dataset", None, "Dataset directory or path.")
-flags.DEFINE_string("dataset_name", "cifar10",
-                    "The Dataset for drichlet sample. It's effective when "
-                    "data_split set drichlet.")
 flags.DEFINE_string("data_split", "index",
                     "Split the data by [index, class, drichlet]. The index, "
-                    "data will be venly divided into each client. The class, "
+                    "data will be evenly divided into each client. The class, "
                     "data will be divided into each client according to the "
                     "category. The drichlet, data will be sampled from the "
                     "drichlet distribution.")
+flags.DEFINE_string("dataset_name", None,
+                    "The Dataset for drichlet sample. It's effective when "
+                    "data_split set drichlet.")
 flags.DEFINE_float("drichlet_arg", 0.3,
                    "The parameter for drichlet distribution, lower drichlet_arg "
                    "and higher heterogeneity.")

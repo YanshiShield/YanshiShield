@@ -13,7 +13,7 @@ def save_h_i(data, previous):
     """Save one client's h_i.
     """
     result = {}
-    # previous is none when the first client reporte in a round.
+    # previous is none when the first client report in a round.
     if previous is None:
         if os.path.exists(AVG_H_FILE):
             result["h_i_s"] = load_all_h_i()

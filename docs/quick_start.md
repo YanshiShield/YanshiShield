@@ -28,10 +28,10 @@ Download the MNIST dataset according to  the underlying machine learning framewo
 
 ```shell
 #for tensoflow
-python3 example/data/mnist/prepare_tf_data.py --path /tmp/nsfl/data/mnist/tf/
+python3 example/data/prepare_tf_data.py --path /tmp/nsfl/data/mnist/tf/
 
 #for pytorch
-python3 example/data/mnist/prepare_torch_data.py --path /tmp/nsfl/data/mnist/torch/
+python3 example/data/prepare_torch_data.py --path /tmp/nsfl/data/mnist/torch/
 ```
 
 
@@ -63,6 +63,10 @@ Parameter description:：
 | platform         | No   | linux      | Specify the running platform of the federated learning job, supports linux (running in local process mode) and k8s (running in cluster mode) |
 | rounds           | Yes  | -          | Specify the number of training epochs for federated learning jobs |
 | dataset          | No   | None       | Specify the dataset path for federated learning job          |
+| data_split       | No   | index      | Split the data by [index, class, drichlet]. The index, data will be evenly divided into each client. The class, data will be divided into each client according to the category. The drichlet, data will be sampled from the drichlet distribution |
+| dataset_name     | No   | None       | The dataset name [mnist, cifar10]，it's effective when data_split set drichlet |
+| drichlet_arg     | No   | 0.3        | The parameter for drichlet distribution, lower drichlet_arg and higher heterogeneity |
+| drichlet_seed    | No   | 20         | The random seed for drichlet distribution. When use same seed, The generated data distribution is the same |
 | optionals        | No   | None       | Specify optional configuration items for federated jobs, such as security algorithms, compression algorithms, etc. (refer to [the job configuration guide](apis.md)), and describe dictionary parameters in the form of strings, such as "{'compression':{'type':'quantization','quantization_bits':2}}" (note: the use of ' and ") |
 
 The generated configuration is in the form of json and stored in the location specified by the workspace parameter, as follows:
