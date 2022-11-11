@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This article mainly introduces the theory of FedDC, how to use it and the experimental summary.
+This part mainly introduces FedDC. how to use it and the experimental summary.
 
 
 
@@ -29,20 +29,20 @@ python3 example/data/prepare_torch_data.py \
 - Run the following command to generate the configuration for the Coordinator and Clients of the federated training:
 
   ```shell
- python3 example/scripts/gen_config.py \
---job_name=torch_cifar10_feddc \
---workspace=/tmp/nsfl/feddc \
---coordinator_port=8090 \
---client_ports=9380,9381,9382,9383,9384,9385,9386,9387,9388,9389,9390,9391,9392,9393,9394,9395,9396,9397,9398,9399 \
---runtime=pytorch \
---platform=linux \
---rounds=60\
---dataset=/tmp/nsfl/cifar10/ \
---dataset_name=cifar10 \
---data_split=drichlet \
---drichlet_arg=0.3 \
---drichlet_seed=20 \
---optionals="{'loss':{'name':'feddc'}}"
+   python3 example/scripts/gen_config.py \
+  --job_name=torch_cifar10_feddc \
+  --workspace=/tmp/nsfl/feddc \
+  --coordinator_port=8090 \
+  --client_ports=9380,9381,9382,9383,9384,9385,9386,9387,9388,9389,9390,9391,9392,9393,9394,9395,9396,9397,9398,9399 \
+  --runtime=pytorch \
+  --platform=linux \
+  --rounds=60\
+  --dataset=/tmp/nsfl/cifar10/ \
+  --dataset_name=cifar10 \
+  --data_split=drichlet \
+  --drichlet_arg=0.3 \
+  --drichlet_seed=20 \
+  --optionals="{'loss':{'name':'feddc'}}"
   ```
 
 
@@ -65,7 +65,7 @@ nvidia-docker run --net host -v /tmp/nsfl/feddc:/tmp/nsfl/feddc -v /tmp/nsfl/cif
 - Run second Client:
 
   ```shell
-nvidia-docker run --net host -v /tmp/nsfl/feddc:/tmp/nsfl/feddc -v /tmp/nsfl/cifar10://tmp/nsfl/cifar10 nsfl-client-gpu --config_file /tmp/nsfl/feddc/client_1/torch_cifar10_feddc.json
+  nvidia-docker run --net host -v /tmp/nsfl/feddc:/tmp/nsfl/feddc -v /tmp/nsfl/cifar10://tmp/nsfl/cifar10 nsfl-client-gpu --config_file /tmp/nsfl/feddc/client_1/torch_cifar10_feddc.json
   ```
 
 other clients started as same.
@@ -73,7 +73,7 @@ other clients started as same.
 - Run Coordinator to start federated training:
 
   ```shell
-docker run --net host -v /tmp/nsfl/feddc:/tmp/nsfl/feddc nsfl-coordinator --config_file /tmp/nsfl/feddc/coordinator/torch_cifar10_feddc.json
+  docker run --net host -v /tmp/nsfl/feddc:/tmp/nsfl/feddc nsfl-coordinator --config_file /tmp/nsfl/feddc/coordinator/torch_cifar10_feddc.json
   ```
 
 

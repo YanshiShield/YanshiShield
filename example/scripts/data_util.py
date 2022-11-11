@@ -49,7 +49,7 @@ def gen_drichlet_distribution_data(data_path, dataset_name, n_client,
         # Save data
         _save_data(saved_path, clnt_x, clnt_y, tst_x, tst_y)
     else:
-        print("Data is already downloaded")
+        print("Data is already sampled.")
         if dataset_name == 'mnist':
             num_cls = 10
         if dataset_name == 'cifar10':

@@ -19,8 +19,7 @@ We provide the following SDK interfaces.
 
 - [SDK](#sdk)
   - [load_weights(model)](#load_weightsmodel)
-  - [commit_weights(model, optimizer=None)](#commit_weightsmodel-optimizernone)
-  - [commit_metrics(metrics)](#commit_metricsmetrics)
+  - [commit(metrics, trained_model=None, optimizer=None)](#commitmetrics-trained_modelnone-optimizernone)
   - [get_dataset_path(name)](#get_dataset_pathname)
   - [get_parameter(key)](#get_parameterkey)
   - [get_parameters()](#get_parameters)
@@ -55,44 +54,27 @@ We provide the following SDK interfaces.
 
 
 
-### commit_weights(model, optimizer=None)
+### commit(metrics, trained_model=None, optimizer=None)
 
-- Description: Commit trained weights to server.
+- Description: Commit delta weights and metrics  to server.
 
   ```
-  Commit local trained weights to federated framework by this interface, and the framework will calculate delta weights(the difference between local weights and the global weights) before send it to server.
+  Commit local trained weights to federated framework by this interface, and the framework will calculate delta weights(the difference between local weights and the global weights) before send it to server. And after local training or evaluating finished, typically there will be some metrics for server to analysis, such as loss, acccury. You can use this interface to directly send the metrics to server.
   ```
 
 - inputs:
 
-  | name      | type                    | required | description                                                  |
-  | --------- | ----------------------- | -------- | ------------------------------------------------------------ |
-  | model     | tf model<br>torch model | yes      | the local training model, supporting tf or torch model       |
-  | optimizer | object(optimizer)       | no       | the optimizer object instance used in local training, supporting tf or torch optimizer |
+  | name          | type                    | required | description                                                  |
+  | ------------- | ----------------------- | -------- | ------------------------------------------------------------ |
+  | metrics       | dict                    | yes      | A dictionary stored the metrics data after train or evaluate. For example, the dict keys could include:<br>- sample_num int32,<br/>- spend_time int32,<br/>- loss float,<br/>- accuracy float,<br/>- precision float,<br/>- recall_rate float<br>or other values. |
+  | trained_model | tf model<br>torch model | no       | the local training model, supporting tf or torch model. It's not must set in evaluate round. |
+  | optimizer     | object(optimizer)       | no       | the optimizer object instance used in local training, supporting tf or torch optimizer |
 
 - outputs:
 
   None
 
 
-### commit_metrics(metrics)
-
-- Description: Commit metrics to server.
-
-  ```
-  After local training or evaluating finished, typically there will be some metrics for server to analysis, such as loss, acccury. You can use this interface to directly send the metrics to server.
-  Note the metrics should be organized as a dict.
-  ```
-
-- inputs:
-
-  | name    | type | required | description                                                  |
-  | ------- | ---- | -------- | ------------------------------------------------------------ |
-  | metrics | dict | yes      | A dictionary stored the metrics data after train or evaluate. For example, the dict keys could include:<br>- sample_num int32,<br/>- spend_time int32,<br/>- loss float,<br/>- accuracy float,<br/>- precision float,<br/>- recall_rate float<br>or other values. |
-
-- outputs:
-
-  None
 
 
 ### get_dataset_path(name)

@@ -35,11 +35,11 @@ def feddc_loss(model, origin_loss_func, sample_num, batch_size, lr, epoch,
             device: Use cpu or gpu when run training, only used in pytorch.
             print_loss: Printing detail loss per forward or per call.
     """
-    model_name = "neursafe_fl.python.libs.loss.%s.%s" % (
+    module_name = "neursafe_fl.python.libs.loss.%s.%s" % (
         get_runtime().lower(), FEDDC)
-    py_model = __import__(model_name, fromlist=True)
+    module = __import__(module_name, fromlist=True)
     class_name = "FeddcLoss"
-    return getattr(py_model, class_name).get_instance(
+    return getattr(module, class_name).get_instance(
         model, origin_loss_func=origin_loss_func, sample_num=sample_num,
         batch_size=batch_size, lr=lr,
         epoch=epoch, alpha=alpha, **kwargs)
@@ -53,8 +53,8 @@ def get_loss_instance():
     }
 
     loss_name = os.getenv(TASK_LOSS)
-    model_name = "neursafe_fl.python.libs.loss.%s.%s" % (
+    module_name = "neursafe_fl.python.libs.loss.%s.%s" % (
         get_runtime().lower(), loss_name)
-    model = __import__(model_name, fromlist=True)
+    module = __import__(module_name, fromlist=True)
     class_name = loss_map[loss_name]
-    return getattr(model, class_name).get_instance()
+    return getattr(module, class_name).get_instance()

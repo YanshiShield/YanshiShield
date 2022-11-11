@@ -82,7 +82,14 @@ def _commit_trained_results(metrics, model, optimizer=None):
             optimizer.update(fl_model)
 
         if os.getenv(utils.TASK_LOSS) == FEDDC:
-            feddc_loss = get_loss_instance()
+            try:
+                feddc_loss = get_loss_instance()
+            except TypeError as err:
+                raise RuntimeError(
+                    "feddc is configured in jobs's loss config, but it does not"
+                    " use nsfl.feddc_loss loss function in local training. "
+                    "These two need to be configured at the same time or "
+                    "not to use.") from err
             feddc_loss.update_and_commit_param(model)
 
     if __is_chief_worker():

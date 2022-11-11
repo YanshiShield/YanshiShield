@@ -28,10 +28,10 @@ Download the MNIST dataset according to  the underlying machine learning framewo
 
 ```shell
 #for tensoflow
-python3 example/data/prepare_tf_data.py --path /tmp/nsfl/data/mnist/tf/
+python3 example/data/prepare_tf_data.py --path /tmp/nsfl/data/mnist/tf/ --dataset_name mnist
 
 #for pytorch
-python3 example/data/prepare_torch_data.py --path /tmp/nsfl/data/mnist/torch/
+python3 example/data/prepare_torch_data.py --path /tmp/nsfl/data/mnist/torch/ --dataset_name mnist
 ```
 
 
