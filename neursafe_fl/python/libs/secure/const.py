@@ -5,5 +5,15 @@
 const variable in secure algorithm.
 """
 
+from enum import Enum
 
-SUPPORTED_SECURE_ALGORITHM = ["DP", "SSA"]
+
+class SecureAlgorithm(Enum):
+    """Supported secure algorithms"""
+
+    dp = "DP"
+    ssa = "SSA"
+
+
+SUPPORTED_SECURE_ALGORITHM = [
+    algorithm.value for algorithm in SecureAlgorithm]
