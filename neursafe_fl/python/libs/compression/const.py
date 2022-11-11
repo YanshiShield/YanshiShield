@@ -4,6 +4,15 @@
 """
 const variable in compression algorithm.
 """
+from enum import Enum
 
 
-SUPPORTED_COMPRESSION_ALGORITHM = ["QUANTIZATION", "SUBSAMPLING"]
+class CompressionAlgorithm(Enum):
+    """Suppport compress algorithms"""
+
+    quantization = "QUANTIZATION"
+    subsampling = "SUBSAMPLING"
+
+
+SUPPORTED_COMPRESSION_ALGORITHM = [
+    algorithm.value for algorithm in CompressionAlgorithm]

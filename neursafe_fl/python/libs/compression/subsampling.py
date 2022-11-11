@@ -5,7 +5,7 @@
 """
 Subsampling compression algorithm class
 """
-import time
+import random
 
 import numpy as np
 
@@ -27,7 +27,7 @@ def check_sampling_rate(sampling_rate):
 def gen_seed():
     """Generate random seed.
     """
-    return int(time.time() % 10000)
+    return random.randint(0, 999999)
 
 
 class SubsamplingCompression(Compression):
@@ -37,7 +37,7 @@ class SubsamplingCompression(Compression):
 
     1. Generate a seed and generate a random 0,1 mask matrix, in which the
        proportion of 0 is the same as the set parameter sampling_rate, because 0
-       means to be reserved, 1 means it will be masked.
+       means to be reserved, 1 means it will be deleted.
 
         original data: [[1, 2], [3, 4]]
         mask matrix: [[0, 1], [1, 0]]

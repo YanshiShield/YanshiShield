@@ -6,12 +6,13 @@
 import re
 
 from neursafe_fl.python.utils.file_io import read_json_file
-from neursafe_fl.python.libs.secure.const import SUPPORTED_SECURE_ALGORITHM
+from neursafe_fl.python.libs.secure.const import \
+    SUPPORTED_SECURE_ALGORITHM, SecureAlgorithm
 from neursafe_fl.python.libs.compression.quantization import \
     check_quantization_bits
 from neursafe_fl.python.libs.compression.subsampling import check_sampling_rate
 from neursafe_fl.python.libs.compression.const import \
-    SUPPORTED_COMPRESSION_ALGORITHM
+    CompressionAlgorithm, SUPPORTED_COMPRESSION_ALGORITHM
 
 
 DEFAULT_HYPER_CONFIG = {
@@ -145,10 +146,10 @@ def _validate_compression_algorithm(config):
                          "algorithm is %s" % (config["type"],
                                               SUPPORTED_COMPRESSION_ALGORITHM))
 
-    if config["type"].upper() == SUPPORTED_COMPRESSION_ALGORITHM[0]:
+    if config["type"].upper() == CompressionAlgorithm.quantization.value:
         __validate_quantization_algorithm(config)
 
-    if config["type"].upper() == SUPPORTED_COMPRESSION_ALGORITHM[1]:
+    if config["type"].upper() == CompressionAlgorithm.subsampling.value:
         __validate_subsampling_algorithm(config)
 
 
@@ -162,9 +163,9 @@ def _validate_secure_algorithm(config):
                          "algorithm is %s" % (config["type"],
                                               SUPPORTED_SECURE_ALGORITHM))
 
-    if config["type"].upper() == SUPPORTED_SECURE_ALGORITHM[0]:
+    if config["type"].upper() == SecureAlgorithm.dp.value:
         __validate_secure_algorithm_with_dp(config)
-    elif config["type"].upper() == SUPPORTED_SECURE_ALGORITHM[1]:
+    elif config["type"].upper() == SecureAlgorithm.ssa.value:
         __validate_secure_algorithm_with_ssa(config)
 
 
