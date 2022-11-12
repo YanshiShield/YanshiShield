@@ -63,7 +63,7 @@ Parameter description:：
 | platform         | No   | linux      | Specify the running platform of the federated learning job, supports linux (running in local process mode) and k8s (running in cluster mode) |
 | rounds           | Yes  | -          | Specify the number of training epochs for federated learning jobs |
 | dataset          | No   | None       | Specify the dataset path for federated learning job          |
-| data_split       | No   | index      | Split the data by [index, class, drichlet]. The index, data will be evenly divided into each client. The class, data will be divided into each client according to the category. The drichlet, data will be sampled from the drichlet distribution |
+| data_split       | No   | index      | Split the data by [index, class, drichlet]. When set index, data will be evenly divided into each client. When set class, data will be divided into each client according to the category. When set drichlet, data will be sampled from the drichlet distribution |
 | dataset_name     | No   | None       | The dataset name [mnist, cifar10]，it's effective when data_split set drichlet |
 | drichlet_arg     | No   | 0.3        | The parameter for drichlet distribution, lower drichlet_arg and higher heterogeneity |
 | drichlet_seed    | No   | 20         | The random seed for drichlet distribution. When use same seed, The generated data distribution is the same |
