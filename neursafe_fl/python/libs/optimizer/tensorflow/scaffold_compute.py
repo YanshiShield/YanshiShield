@@ -1,7 +1,6 @@
 #  Copyright 2022 The Neursafe FL Authors. All Rights Reserved.
 #  SPDX-License-Identifier: Apache-2.0
 
-# pylint:disable=unused-argument
 """Scaffold computation in server.
 """
 
@@ -42,7 +41,7 @@ def aggregate_control_variates(data, previous):
         if file == "delta_control_variates.npy":
             file_path = os.path.join(data["custom_files"], file)
             local_c = np.load(file_path, allow_pickle=True)
-            if isinstance(control_variates, int) and control_variates == 0:
+            if control_variates == 0:
                 control_variates = multiply(local_c, weight)
             else:
                 control_variates = np.add(control_variates,
@@ -68,7 +67,7 @@ def broadcast_control_variates(params):  # pylint:disable=unused-argument
     return custom_files, custom_params
 
 
-def save_control_variates(params, aggregated_weights=None):
+def save_control_variates(params):
     """Save the server control variates to file, for next round."""
     # decay_lr = global_lr * max(0.1, pow(0.5, round_num))
     aggregated_c = params.get("control_variates", 0)

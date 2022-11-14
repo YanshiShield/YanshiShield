@@ -5,16 +5,14 @@
 """
 
 import os
-
 from absl import logging
-from neursafe_fl.python.sdk.loss import get_loss_instance, FEDDC
-import neursafe_fl.python.client.workspace.delta_weights as weights
-import neursafe_fl.python.sdk.report as report
+
 import neursafe_fl.python.sdk.utils as utils
+import neursafe_fl.python.sdk.report as report
+import neursafe_fl.python.client.workspace.delta_weights as weights
 from neursafe_fl.python.utils.file_io import read_json_file
 from neursafe_fl.python.runtime.runtime_factory import RuntimeFactory
 from neursafe_fl.python.libs.compression.factory import create_compression
-
 
 fl_model = None
 
@@ -80,17 +78,6 @@ def _commit_trained_results(metrics, model, optimizer=None):
 
         if os.getenv(utils.TASK_OPTIMIZER) == "scaffold" and optimizer:
             optimizer.update(fl_model)
-
-        if os.getenv(utils.TASK_LOSS) == FEDDC:
-            try:
-                feddc_loss = get_loss_instance()
-            except TypeError as err:
-                raise RuntimeError(
-                    "feddc is configured in jobs's loss config, but it does not"
-                    " use nsfl.feddc_loss loss function in local training. "
-                    "These two need to be configured at the same time or "
-                    "not to use.") from err
-            feddc_loss.update_and_commit_param(model)
 
     if __is_chief_worker():
         # STEP 1: Do optional works

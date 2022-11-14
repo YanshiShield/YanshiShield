@@ -67,7 +67,7 @@ def aggregate_extender(func, updates, previous=None):
         raise ExtendExecutionFailed from err
 
 
-def finish_extender(func, params, aggregated_weights):
+def finish_extender(func, params):
     """Process the aggregated result after all the client's updates.
 
     Mainly calculate the aggregated result of all updates.
@@ -85,7 +85,7 @@ def finish_extender(func, params, aggregated_weights):
     if not func:
         return None
     try:
-        result = func(params, aggregated_weights)
+        result = func(params)
         logging.info("Finish extend func: %s exec success.", func.__name__)
         return result
     except Exception as err:

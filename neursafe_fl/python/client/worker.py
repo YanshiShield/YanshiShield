@@ -66,12 +66,9 @@ class Worker:
 
     def _gen_basic_envs(self):
         env_vars = {
-            utils.WORKER_ID: self.id,
-            utils.ROUND_NUM: str(self._worker_info.metadata.round),
             utils.TASK_RUNTIME: self._worker_info.spec.runtime,
             utils.TASK_WORKSPACE: self._workspace,
             utils.TASK_OPTIMIZER: self._worker_info.spec.optimizer.name,
-            utils.TASK_LOSS: self._worker_info.spec.loss.name,
             utils.GRPC_METADATA: str(pickle.dumps(self._grpc_metadata)),
             utils.CERTIFICATION_PATH: self._client_config.get("ssl", ""),
             utils.SECURITY_ALGORITHM: str(pickle.dumps(
@@ -85,17 +82,7 @@ class Worker:
             utils.SSA_SECRET_PATH: gen_secret_file_path(self._workspace)
         }
 
-        if self._worker_info.spec.optimizer.params:
-            env_vars[utils.TASK_OPTIMIZER_PARAM] = self._gen_str_params(
-                self._worker_info.spec.optimizer.params)
-
         return env_vars
-
-    def _gen_str_params(self, params):
-        params_list = []
-        for key in params:
-            params_list.append("%s::%s" % (key, params[key]))
-        return ",".join(params_list)
 
     async def delete(self):
         """

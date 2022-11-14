@@ -9,4 +9,3 @@ from neursafe_fl.python.sdk.custom import get_parameter, get_parameters, \
     put_parameter, put_parameters, get_file, put_file
 
 from neursafe_fl.python.sdk.optimizer import create_optimizer
-from neursafe_fl.python.sdk.loss import feddc_loss

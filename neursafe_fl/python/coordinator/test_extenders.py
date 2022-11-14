@@ -1,7 +1,7 @@
 #  Copyright 2022 The Neursafe FL Authors. All Rights Reserved.
 #  SPDX-License-Identifier: Apache-2.0
 
-# pylint:disable=missing-function-docstring, unused-argument
+# pylint:disable=missing-function-docstring
 """Extender UnitTest."""
 import unittest
 
@@ -56,20 +56,20 @@ class TestExtenders(unittest.TestCase):
     def test_should_return_result_when_finish_extender_execute_success(self):
         test_params = [1, 2, 3]
 
-        def finish_func(params, aggregated_weights):
+        def finish_func(params):
             res = sum(params)
             self.assertEqual(res, 6)
 
-        finish_extender(finish_func, test_params, None)
+        finish_extender(finish_func, test_params)
 
     def test_should_return_empty_when_finish_extender_execute_failed(self):
         test_params = [1, 2, 3]
 
-        def finish_func(params, aggregated_weights):
+        def finish_func(params):
             raise NotImplementedError
 
         with self.assertRaises(Exception):
-            finish_extender(finish_func, test_params, None)
+            finish_extender(finish_func, test_params)
 
 
 if __name__ == "__main__":

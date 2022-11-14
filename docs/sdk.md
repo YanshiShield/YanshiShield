@@ -19,7 +19,8 @@ We provide the following SDK interfaces.
 
 - [SDK](#sdk)
   - [load_weights(model)](#load_weightsmodel)
-  - [commit(metrics, trained_model=None, optimizer=None)](#commitmetrics-trained_modelnone-optimizernone)
+  - [commit_weights(model, optimizer=None)](#commit_weightsmodel-optimizernone)
+  - [commit_metrics(metrics)](#commit_metricsmetrics)
   - [get_dataset_path(name)](#get_dataset_pathname)
   - [get_parameter(key)](#get_parameterkey)
   - [get_parameters()](#get_parameters)
@@ -28,7 +29,6 @@ We provide the following SDK interfaces.
   - [get_file(filename, dserialize_func=None, **kwargs)](#get_filefilename-dserialize_funcnone-kwargs)
   - [put_file(filename, content, serialize_func=None, **kwargs)](#put_filefilename-content-serialize_funcnone-kwargs)
   - [create_optimizer(**kwargs)](#create_optimizerkwargs)
-  - [feddc_loss(model, origin_loss_func, sample_num, batch_size, lr, epoch, alpha=0.01, **kwargs)](#feddc_lossmodel-origin_loss_func-sample_num-batch_size-lr-epoch-alpha_0.01-kwargs)
 
 
 ## SDK
@@ -54,27 +54,44 @@ We provide the following SDK interfaces.
 
 
 
-### commit(metrics, trained_model=None, optimizer=None)
+### commit_weights(model, optimizer=None)
 
-- Description: Commit delta weights and metrics  to server.
+- Description: Commit trained weights to server.
 
   ```
-  Commit local trained weights to federated framework by this interface, and the framework will calculate delta weights(the difference between local weights and the global weights) before send it to server. And after local training or evaluating finished, typically there will be some metrics for server to analysis, such as loss, acccury. You can use this interface to directly send the metrics to server.
+  Commit local trained weights to federated framework by this interface, and the framework will calculate delta weights(the difference between local weights and the global weights) before send it to server.
   ```
 
 - inputs:
 
-  | name          | type                    | required | description                                                  |
-  | ------------- | ----------------------- | -------- | ------------------------------------------------------------ |
-  | metrics       | dict                    | yes      | A dictionary stored the metrics data after train or evaluate. For example, the dict keys could include:<br>- sample_num int32,<br/>- spend_time int32,<br/>- loss float,<br/>- accuracy float,<br/>- precision float,<br/>- recall_rate float<br>or other values. |
-  | trained_model | tf model<br>torch model | no       | the local training model, supporting tf or torch model. It's not must set in evaluate round. |
-  | optimizer     | object(optimizer)       | no       | the optimizer object instance used in local training, supporting tf or torch optimizer |
+  | name      | type                    | required | description                                                  |
+  | --------- | ----------------------- | -------- | ------------------------------------------------------------ |
+  | model     | tf model<br>torch model | yes      | the local training model, supporting tf or torch model       |
+  | optimizer | object(optimizer)       | no       | the optimizer object instance used in local training, supporting tf or torch optimizer |
 
 - outputs:
 
   None
 
 
+### commit_metrics(metrics)
+
+- Description: Commit metrics to server.
+
+  ```
+  After local training or evaluating finished, typically there will be some metrics for server to analysis, such as loss, acccury. You can use this interface to directly send the metrics to server.
+  Note the metrics should be organized as a dict.
+  ```
+
+- inputs:
+
+  | name    | type | required | description                                                  |
+  | ------- | ---- | -------- | ------------------------------------------------------------ |
+  | metrics | dict | yes      | A dictionary stored the metrics data after train or evaluate. For example, the dict keys could include:<br>- sample_num int32,<br/>- spend_time int32,<br/>- loss float,<br/>- accuracy float,<br/>- precision float,<br/>- recall_rate float<br>or other values. |
+
+- outputs:
+
+  None
 
 
 ### get_dataset_path(name)
@@ -246,35 +263,4 @@ We provide the following SDK interfaces.
 - outputs:
 
   return an instance of optimizer object.
-
-### feddc_loss(model, origin_loss_func, sample_num, batch_size, lr, epoch, alpha=0.01, **kwargs)
-
-- Description: Get an feddc loss to Federated Learning
-
-  ```
-  FedDC is able to converge under Non-IID circumstances.
-  ```
-
-- inputs:
-
-  | name        | type           | property | algorithm | description                                                  |
-  | ----------- | -------------- | -------- | --------- | ------------------------------------------------------------ |
-  | model | tf/torch model | required | feddc     | The model will be using to train. and it already loaded init weights from coordinator. |
-  | origin_loss_func | func | optional | feddc     | Base loss function used for train. Default is CrossEntropyLoss in pytorch, the same as categorical_crossentropy in tensorflow. |
-  | sample_num  | int            | optional | feddc     | The number of samples used in this round when training the local model |
-  | batch_size  | int            | optional | feddc     | The batch size used when training the local model            |
-  | lr          | float          | optional | feddc     | Local training learning rate                                 |
-  | epoch       | int            | optional | feddc     | The epoch used when training the local model                 |
-  | alpha       | float          | optional | feddc     | The hyper-parameter that controls the weight of R, The recommended setting value is 0.1、0.01、0.005. |
-
-  kwargs:
-
-  | name             | type | property | algorithm | description                                                  |
-  | ---------------- | ---- | -------- | --------- | ------------------------------------------------------------ |
-  | device           | str  | optional | feddc     | Use cpu or gpu when run training, only used in pytorch.      |
-  | print_loss       | int  | optional | feddc     | Printing detail loss per forward or per call.                |
-
-- outputs:
-
-  return an instance of feddc object.
 

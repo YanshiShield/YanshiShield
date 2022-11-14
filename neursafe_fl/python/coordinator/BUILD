@@ -13,7 +13,6 @@ py_binary(
         "//neursafe_fl/python/utils",
         "//neursafe_fl/python/libs/secure",
         "//neursafe_fl/python/libs/optimizer",
-        "//neursafe_fl/python/libs/loss",
         "//neursafe_fl/python/libs/compression",
     ],
     python_version = "PY3",
@@ -29,7 +28,6 @@ py_package(
         "neursafe_fl.python.utils",
         "neursafe_fl.python.libs.secure",
         "neursafe_fl.python.libs.optimizer",
-        "neursafe_fl.python.libs.loss",
         "neursafe_fl.python.libs.compression",
         ],
     deps = [":coordinator_main"],
@@ -50,8 +48,7 @@ py_wheel(
         "secret-sharing==0.2.7",
         "cryptography==3.3.1",
         "tornado==6.1",
-        "pymongo==3.11.3",
-        "numpy"
+        "pymongo==3.11.3"
     ],
     deps = [":coordinator_pkg"],
 )
