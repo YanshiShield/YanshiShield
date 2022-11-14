@@ -22,6 +22,7 @@ import neursafe_fl.python.coordinator.common.const as const
 from neursafe_fl.python.libs.secure.secure_aggregate.ssa import \
     create_ssa_server
 from neursafe_fl.python.libs.optimizer import optimizer_config
+from neursafe_fl.python.libs.loss import loss_config
 from neursafe_fl.python.coordinator.extenders import support_extenders
 
 
@@ -105,7 +106,7 @@ class Trainer:
 
         self.__fl_model.load()  # load init model
         self.__load_extenders()
-        self.__load_optimizer()
+        self.__load_extenders_for_optimizer_and_loss()
 
         self.__state = State.RUNNING
         for round_id in range(1, self.__max_rounds + 1):
@@ -192,30 +193,54 @@ class Trainer:
                                          extender_config.get(func))
         return extender
 
-    def __load_optimizer(self):
-        """Load custom extended optimizer.
+    def __load_extenders_for_extender_name(self, extender_name,
+                                           extender_config):
+        if isinstance(extender_config, list):
+            for e_config in extender_config:
+                extender = self.__load(e_config)
+                if extender:
+                    self.__config["extenders"].append(extender)
+                    logging.info("Load %s success.", extender_name)
+        else:  # else extender_config is a json
+            extender = self.__load(extender_config)
+            if extender:
+                self.__config["extenders"].append(extender)
+                logging.info("Load %s success.", extender_name)
 
-        The optimizer should be implemented through the extension mechanism.
-        Default we implement scaffold as example.
+    def __load_extenders_for_optimizer_and_loss(self):
+        """Load custom extender for optimizer and loss config.
+
+        The optimizer or loss should be implemented through the extension
+        mechanism. Currently, We implement scaffold in optimizer and feddc
+        in loss.
 
         Then config in file with:
             "optimizer": {
                 "name": "scaffold",
                 "params": {}
             }
+        or:
+            "loss": {
+                "name": "feddc",
+                "params": {}
+            }
         """
-        if self.__config.get("optimizer"):
-            optimizer_name = self.__config["optimizer"].get("name")
-            optimizer_name = "%s_%s" % (self.__runtime, optimizer_name)
-            if optimizer_name in optimizer_config:
-                optimizer = self.__load(optimizer_config[optimizer_name])
-                if optimizer:
-                    self.__config["extenders"].append(optimizer)
-                    logging.info("Load optimizer %s success.", optimizer_name)
+        config_map = {
+            "optimizer": optimizer_config,
+            "loss": loss_config
+        }
+        for type_ in config_map:
+            if self.__config.get(type_):
+                extender_name = self.__config[type_].get("name")
+                extender_name = "%s_%s" % (self.__runtime, extender_name)
+                if extender_name in config_map[type_]:
+                    extender_config = config_map[type_][extender_name]
+                    self.__load_extenders_for_extender_name(extender_name,
+                                                            extender_config)
+                else:
+                    logging.warning("%s not implement.", extender_name)
             else:
-                logging.warning("Optimizer %s not implement.", optimizer_name)
-        else:
-            logging.info("No config optimizer.")
+                logging.info("No config for extender.")
 
     def __is_training_stop(self):
         """Judge whether federate training needs to be terminated early.

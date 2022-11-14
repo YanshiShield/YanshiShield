@@ -28,10 +28,10 @@ mkdir -p /tmp/nsfl
 
 ```shell
 #for tensoflow
-python3 example/data/mnist/prepare_tf_data.py --path /tmp/nsfl/data/mnist/tf/
+python3 example/data/prepare_tf_data.py --path /tmp/nsfl/data/mnist/tf/ --dataset_name mnist
 
 #for pytorch
-python3 example/data/mnist/prepare_torch_data.py --path /tmp/nsfl/data/mnist/torch/
+python3 example/data/prepare_torch_data.py --path /tmp/nsfl/data/mnist/torch/ --dataset_name mnist
 ```
 
 
@@ -63,6 +63,10 @@ python3 example/scripts/gen_config.py --job_name=tf_mnist \
 | platform         | 否   | linux      | 指定联邦作业的运行平台，支持linux（本地进程方式运行）、k8s（集群方式运行） |
 | rounds           | 是   | -          | 指定联邦作业的训练轮数                                       |
 | dataset          | 否   | None       | 指定联邦作业训练的数据集地址                                 |
+| data_split       | 否   | index      | 使用的数据切分方式，有[index,calss,drichlet]三种。当设置为index时，数据按数据索引进行均匀切分，设置为class时，数据是按数据类别分到各个client，设置为drichlet时，数据按drichlet分布取样的方式拆分到各个client |
+| dataset_name     | 否   | None       | 使用的数据集名称, [mnist, cifar10]，data_split设置为drichlet有效 |
+| drichlet_arg     | 否   | 0.3        | drichlet分布的参数，数值越小，数据越异质                     |
+| drichlet_seed    | 否   | 20         | drichlet分布的随机种子，在设置种子相同时，生成的数据分布也相同 |
 | optionals        | 否   | None       | 指定联邦作业可选的配置项，如安全算法、压缩算法等（参考[作业配置指导](apis.md)），以字符串的形式描述字典参数，如"{'compression':{'type':'quantization','quantization_bits':2}}"（注意：‘与“的使用） |
 
 生成的配置以json文件的形式，存在在workspace参数指定的位置，如下：

@@ -1,0 +1,5 @@
+{
+	"train": 60000,
+	"evaluate": 10000,
+	"class_count": 10
+}

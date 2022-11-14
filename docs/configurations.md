@@ -79,6 +79,7 @@ we highly recommand to use the configuration file.
 | secure_algorithm | `SecureAlgorithm` | no       | Federated security algorithm configuration. If configured, the training process will protect the intermediate data of the job under the corresponding secure computing method. |
 | scripts          | `ScriptConfig`    | no       | The training scripts to broadcast to all the clients. This configuration is suitable for the scene that clients has no scripts in local |
 | optimizer        | `Optimizer`       | no       | Optimizer cofiguration, currently for non iid datasets, you can use fedprox, scaffold two optimizers |
+| loss             | Loss              | no       | Loss cofiguration, currently   you can use feddc loss for non iid datasets. |
 
 
 

@@ -20,6 +20,7 @@ We provide APIs to access job scheduler and model manager components to manage f
       - [SecureAlgorithm](#securealgorithm)
       - [Compression](#compression)
       - [Optimizer](#optimizer)
+      - [Loss](#loss)
       - [JobList](#joblist)
       - [HttpResponse](#httpresponse)
   - [Operations](#operations)
@@ -194,6 +195,14 @@ For example, if you provide this config as follows, then the commad will be with
 | learning_rate | float | optional | --        | Local training learning rate                                 |
 | batch_size    | int   | optional | scaffold  | The batch size used when training the local model            |
 | sample_num    | int   | optional | scaffold  | The number of samples used in this round when training the local model |
+
+#### Loss
+
+| name   | type   | property | description                                             |
+| ------ | ------ | -------- | ------------------------------------------------------- |
+| name   | string | required | The name of the loss, currently supported: "feddc" |
+
+
 
 #### JobList
 

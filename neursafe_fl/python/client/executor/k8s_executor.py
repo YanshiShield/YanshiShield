@@ -164,15 +164,6 @@ class K8sExecutor(Executor):
         }
         env_vars.update(self._basic_envs)
 
-        if self._executor_info.spec.optimizer.params:
-            params = []
-            for key in self._executor_info.spec.optimizer.params:
-                params.append("%s::%s" %
-                              (key,
-                               self._executor_info.spec.optimizer.params[key]))
-            env = ",".join(params)
-            env_vars["OPTIMIZER_PARAMS"] = env
-
         if self._datasets:
             env_vars[DATASETS] = self._datasets
 

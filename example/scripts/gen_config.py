@@ -4,6 +4,7 @@
 """
 Generate all fl configs.
 """
+import logging
 import ast
 import os
 import json
@@ -12,6 +13,13 @@ from absl import app
 from absl import flags
 from shutil import copyfile, move
 from subprocess import call
+
+from data_util import gen_drichlet_distribution_data
+
+FORMAT = ("[%(asctime)s] %(filename)s"
+          "[line:%(lineno)d] %(levelname)s: %(message)s")
+logging.basicConfig(format=(FORMAT), level="INFO")
+
 
 flags.DEFINE_string("workspace", None, "Root dir for generating config files")
 flags.DEFINE_string("coordinator_port", None, "Coordinator service port.")
@@ -24,6 +32,21 @@ flags.DEFINE_string("platform", None, "FL job run on which platform.")
 flags.DEFINE_string("job_name", None, "Fl job name.")
 flags.DEFINE_string("rounds", None, "FL job rounds num.")
 flags.DEFINE_string("dataset", None, "Dataset directory or path.")
+flags.DEFINE_string("data_split", "index",
+                    "Split the data by [index, class, drichlet]. The index, "
+                    "data will be evenly divided into each client. The class, "
+                    "data will be divided into each client according to the "
+                    "category. The drichlet, data will be sampled from the "
+                    "drichlet distribution.")
+flags.DEFINE_string("dataset_name", None,
+                    "The Dataset for drichlet sample. It's effective when "
+                    "data_split set drichlet.")
+flags.DEFINE_float("drichlet_arg", 0.3,
+                   "The parameter for drichlet distribution, lower drichlet_arg "
+                   "and higher heterogeneity.")
+flags.DEFINE_integer("drichlet_seed", 20,
+                     "The random seed for drichlet distribution. When use same "
+                     "seed, The generated data distribution is the same.")
 flags.DEFINE_string("optionals", None, "Optional configs, such as: "
                                        "secure algorithm, compression")
 
@@ -145,43 +168,87 @@ def _gen_client_workspace(client_root_dir):
     return workspace
 
 
-def _get_dataset_size():
+def _get_dataset_info():
     with open(os.path.join(
             current_dir,
-            "example/jobs/%s/dataset_size.json" % FLAGS.job_name)) as f:
-        dataset_size = json.load(f)
+            "example/jobs/%s/dataset_info.json" % FLAGS.job_name)) as f:
+        dataset_info = json.load(f)
 
-    return dataset_size["train"], dataset_size["evaluate"]
+    return (dataset_info["train"], dataset_info["evaluate"],
+            dataset_info["class_count"])
 
 
-def _gen_task_entry_config(client_root_dir, index):
+def _gen_task_entry_config(client_root_dir, client_index):
     entry_dir = os.path.join(client_root_dir, "task_entrys")
     _create_dir(entry_dir)
-
-    client_nums = len(FLAGS.client_ports.split(","))
-    train_size, test_size = _get_dataset_size()
-    train_index_interval = int(train_size / client_nums)
-    test_index_interval = int(test_size / client_nums)
 
     with open(os.path.join(
             current_dir,
             "example/jobs/%s/%s.json" % (FLAGS.job_name, FLAGS.job_name))) as f:
         template_config = json.load(f)
 
+    if FLAGS.data_split == "index":
+        _split_data_with_index(template_config, client_index)
+    elif FLAGS.data_split == "class":
+        _split_data_with_class(template_config, client_index)
+    elif FLAGS.data_split == "drichlet":
+        _split_data_with_drichlet(template_config, client_index)
+    else:
+        logging.warning("Not support data_split with %s, the support is index"
+                        "/class/drichlet", FLAGS.data_split)
+
     script_dir = os.path.join(entry_dir, FLAGS.job_name)
     template_config["script_path"] = script_dir
-    params = {"--index_range": "%s,%s" % (
-        train_index_interval * index, train_index_interval * (index+1))}
-    template_config["train"]["params"] = params
-    params = {"--index_range": "%s,%s" % (
-        test_index_interval * index, test_index_interval * (index + 1))}
-    template_config["evaluate"]["params"] = params
     _create_dir(script_dir)
 
     with open(os.path.join(entry_dir, "%s.json" % FLAGS.job_name), "w") as f:
         json.dump(template_config, f)
 
     return entry_dir
+
+
+def _split_data_with_index(template_config, client_index):
+    client_nums = len(FLAGS.client_ports.split(","))
+    train_size, test_size, _ = _get_dataset_info()
+
+    train_index_interval = int(train_size / client_nums)
+    test_index_interval = int(test_size / client_nums)
+
+    params = {"--index_range": "%s,%s" % (
+        train_index_interval * client_index,
+        train_index_interval * (client_index+1))}
+    template_config["train"]["params"] = params
+    params = {"--index_range": "%s,%s" % (
+        test_index_interval * client_index,
+        test_index_interval * (client_index + 1))}
+    template_config["evaluate"]["params"] = params
+
+
+def _split_data_with_class(template_config, client_index):
+    client_nums = len(FLAGS.client_ports.split(","))
+    _, _, class_count = _get_dataset_info()
+
+    used_classes = []
+    for class_num in range(class_count):
+        if class_num % client_nums == client_index:
+            used_classes.append(str(class_num))
+
+    used_classes_str = ",".join(used_classes)
+    params = {"--class_num": "%s" % used_classes_str}
+    template_config["train"]["params"] = params
+    params = {"--class_num": "%s" % used_classes_str}
+    template_config["evaluate"]["params"] = params
+
+
+def _split_data_with_drichlet(template_config, client_index):
+    n_client = len(FLAGS.client_ports.split(","))
+    saved_path, _, _, _, _ = gen_drichlet_distribution_data(
+        FLAGS.dataset, FLAGS.dataset_name, n_client, FLAGS.drichlet_seed,
+        FLAGS.drichlet_arg)
+    params = {"--client_index": str(client_index),
+              "--data_path": saved_path}
+    template_config["train"]["params"] = params
+    template_config["evaluate"]["params"] = params
 
 
 def _gen_datasets_config(client_root_dir):

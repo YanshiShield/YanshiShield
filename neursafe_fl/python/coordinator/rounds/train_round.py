@@ -87,6 +87,8 @@ class TrainRound(BaseRound):
             if optimizer_config.get("params"):
                 optimizer.params.update(optimizer_config["params"])
 
+        loss = self._gen_loss_config()
+
         resource = self._config.get("resource", {})
         resource = {"cpu": resource.get("cpu", 1.0),
                     "memory": resource.get("memory", 1000),
@@ -97,6 +99,7 @@ class TrainRound(BaseRound):
             task_spec = TaskSpec(entry_name=self._config["task_entry"],
                                  runtime=self._config["runtime"],
                                  resource=resource, optimizer=optimizer,
+                                 loss=loss,
                                  datasets=self._config.get("datasets",
                                                            None))
         if self._config.get("scripts"):
@@ -106,6 +109,7 @@ class TrainRound(BaseRound):
             task_spec = TaskSpec(scripts=scripts,
                                  runtime=self._config["runtime"],
                                  resource=resource, optimizer=optimizer,
+                                 loss=loss,
                                  datasets=self._config.get("datasets",
                                                            None))
 
@@ -193,7 +197,7 @@ class TrainRound(BaseRound):
         if self.__extender_process:
             for extender in self.__extenders:
                 func = extender.get("finish")
-                finish_extender(func, self.__extend_params)
+                finish_extender(func, self.__extend_params, result)
 
         return result
 
