@@ -34,6 +34,8 @@ class TestSelectiveMasking(unittest.TestCase):
 
         masked_value, params = compression.encode(self.value)
 
+        value = compression.decode(masked_value, **params)
+
         self.assertEqual(np.sort(masked_value)[::-1].tolist(),
                          np.sort(self.value.flatten())[::-1][:6].tolist())
 
@@ -41,8 +43,6 @@ class TestSelectiveMasking(unittest.TestCase):
         self.assertEqual(params["ind"].sort(),
                          self.value.flatten().argsort()[-6:].tolist().sort())
         self.assertEqual(len(params["ind"]), 6)
-
-        value = compression.decode(masked_value, **params)
 
         self.assertEqual(np.sort(value.flatten())[::-1][:6].tolist(),
                          np.sort(self.value.flatten())[::-1][:6].tolist())

@@ -56,8 +56,7 @@ class SelectiveMasking(Compression):
         abs_value_ = np.abs(value_)
         top_k_length = int(self.top_k_ratio * value_.size)
 
-        top_k_ind = np.sort(
-            np.argpartition(abs_value_, -top_k_length)[-top_k_length:])
+        top_k_ind = np.argpartition(abs_value_, -top_k_length)[-top_k_length:]
 
         masked_value = value_[top_k_ind]
 
@@ -75,8 +74,7 @@ class SelectiveMasking(Compression):
             shape: the shape of raw numpy array(uncompressed array).
         """
         raw_value = np.zeros(np.prod(shape))
-        raw_value[ind] = 1
 
-        np.place(raw_value, raw_value == 1, masked_value)
+        np.put(raw_value, ind, masked_value)
 
         return np.reshape(raw_value, shape)
