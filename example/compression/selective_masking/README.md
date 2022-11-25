@@ -18,19 +18,19 @@ Suppose the updated weights are $W_t=(w^1,..., w^n)$, which represents the updat
 
    $$flatten\ above\ weight: [1.0,\ 2.0,\ 3.0,\ 4.0]$$
 
-   $$top\_k\_ratio: 0.5$$
+   $$top\\_k\\_ratio: 0.5$$
 
-   $$selected\ values: [3.0,\ 4.0]$$
+   $$chosen\ values: [3.0,\ 4.0]$$
 
-   $$indexes\ of\ selected\ values: [2,\ 3]$$
+   $$indexes\ of\ chosen\ values: [2,\ 3]$$
 
 2. Then clients send selected values, indexes of selected values and shape of raw shape to coordinator.
 
 3. After the coordinator receives the above values, restore updated weight. Of course, the recovery weight is lossy, for example:
 
-   $$selected\ values: [3.0,\ 4.0]$$
+   $$chosen\ values: [3.0,\ 4.0]$$
 
-   $$indexes\ of\ selected\ values: [2,\ 3]$$
+   $$indexes\ of\ chosen\ values: [2,\ 3]$$
 
    $$restore\ flattened\ weight: [0.0,\ 0.0,\ 3.0,\ 4.0]$$
 
