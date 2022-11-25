@@ -257,6 +257,40 @@ class TestValidation(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_config(config)
 
+    def test_should_raise_exception_if_selective_masking_not_correct(self):
+        config = job_config()
+
+        # Compression type not correct
+        config["compression"] = {"type": 111}
+
+        with self.assertRaises(TypeError):
+            validate_config(config)
+
+        # Sampling rate not exist
+        config["compression"] = {"type": "selective_masking"}
+
+        with self.assertRaises(ValueError):
+            validate_config(config)
+
+        # Sampling rate not correct
+        config["compression"] = {"type": "selective_masking",
+                                 "top_k_ratio": 0}
+
+        with self.assertRaises(TypeError):
+            validate_config(config)
+
+        # Sampling rate not correct
+        config["compression"] = {"type": "selective_masking",
+                                 "top_k_ratio": 0.0}
+
+        with self.assertRaises(ValueError):
+            validate_config(config)
+
+        # Check successfully
+        config["compression"] = {"type": "selective_masking",
+                                 "top_k_ratio": 0.5}
+        validate_config(config)
+
     def test_secure_and_compression_mutex(self):
         config = job_config()
 

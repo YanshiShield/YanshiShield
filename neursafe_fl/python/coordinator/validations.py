@@ -11,6 +11,8 @@ from neursafe_fl.python.libs.secure.const import \
 from neursafe_fl.python.libs.compression.quantization import \
     check_quantization_bits
 from neursafe_fl.python.libs.compression.subsampling import check_sampling_rate
+from neursafe_fl.python.libs.compression.selective_masking import \
+    check_top_k_ratio
 from neursafe_fl.python.libs.compression.const import \
     CompressionAlgorithm, SUPPORTED_COMPRESSION_ALGORITHM
 
@@ -137,6 +139,13 @@ def __validate_subsampling_algorithm(config):
     check_sampling_rate(config["sampling_rate"])
 
 
+def __validate_selective_masking_algorithm(config):
+    required_rules = {"top_k_ratio": float}
+    _validate_required(required_rules, config)
+
+    check_top_k_ratio(config["top_k_ratio"])
+
+
 def _validate_compression_algorithm(config):
     required_rules = {"type": str}
     _validate_required(required_rules, config)
@@ -151,6 +160,9 @@ def _validate_compression_algorithm(config):
 
     if config["type"].upper() == CompressionAlgorithm.subsampling.value:
         __validate_subsampling_algorithm(config)
+
+    if config["type"].upper() == CompressionAlgorithm.selectivemasking.value:
+        __validate_selective_masking_algorithm(config)
 
 
 def _validate_secure_algorithm(config):

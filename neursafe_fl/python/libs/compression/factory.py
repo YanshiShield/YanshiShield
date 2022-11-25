@@ -8,6 +8,8 @@ from neursafe_fl.python.libs.compression.quantization import \
     QuantizationCompression
 from neursafe_fl.python.libs.compression.subsampling import \
     SubsamplingCompression
+from neursafe_fl.python.libs.compression.selective_masking import \
+    SelectiveMasking
 
 
 def create_compression(name, **kwargs):
@@ -15,6 +17,7 @@ def create_compression(name, **kwargs):
     Create specified compression algorithm instance.
     """
     compression_map = {"quantization": QuantizationCompression,
-                       "subsampling": SubsamplingCompression}
+                       "subsampling": SubsamplingCompression,
+                       "selective_masking": SelectiveMasking}
 
     return compression_map[name](**kwargs)
