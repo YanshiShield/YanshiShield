@@ -11,6 +11,8 @@ from neursafe_fl.python.libs.compression.quantization import \
     QuantizationCompression
 from neursafe_fl.python.libs.compression.subsampling import \
     SubsamplingCompression
+from neursafe_fl.python.libs.compression.selective_masking import \
+    SelectiveMasking
 from neursafe_fl.python.libs.compression.factory import create_compression
 
 
@@ -27,6 +29,12 @@ class TestFactory(unittest.TestCase):
                                          **{"sampling_rate": 0.5})
 
         self.assertTrue(isinstance(compression, SubsamplingCompression))
+
+    def test_create_selective_masking_compression_successfully(self):
+        compression = create_compression("selective_masking",
+                                         **{"top_k_ratio": 0.5})
+
+        self.assertTrue(isinstance(compression, SelectiveMasking))
 
 
 if __name__ == '__main__':

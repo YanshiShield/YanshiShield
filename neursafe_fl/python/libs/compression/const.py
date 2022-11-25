@@ -12,6 +12,7 @@ class CompressionAlgorithm(Enum):
 
     quantization = "QUANTIZATION"
     subsampling = "SUBSAMPLING"
+    selectivemasking = "SELECTIVE_MASKING"
 
 
 SUPPORTED_COMPRESSION_ALGORITHM = [
