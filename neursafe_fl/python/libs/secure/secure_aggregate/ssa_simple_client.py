@@ -32,9 +32,6 @@ class SSASimpleClient(SSABaseClient):
         client_id: the client id.
         min_client_num: Minimum number of clients required.
         client_num: Number of participating clients.
-        use_same_mask: Whether to use the same mask. True mean all weights
-            use a ame mask, False mean use different mask in different
-            layers in weights.
         grpc_metadata: the metadata which will set in grpc hearder.
         ready_timer_interval: the timeout wait for mask generated.
         server_aggregate_interval:  the time to wait for server to use decrypt.
@@ -42,11 +39,11 @@ class SSASimpleClient(SSABaseClient):
             stage_time_interval: the time to wait a stage timeout.
     """
     def __init__(self, handle, server_addr, ssl_key, client_id,
-                 min_client_num, client_num, use_same_mask, workspace,
+                 min_client_num, client_num, workspace,
                  grpc_metadata=None,
                  ready_timer_interval=60, **kwargs):
         super().__init__(handle, server_addr, ssl_key, client_id,
-                         min_client_num, client_num, use_same_mask,
+                         min_client_num, client_num,
                          grpc_metadata, workspace)
 
         self.__ready_timer_interval = ready_timer_interval

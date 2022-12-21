@@ -146,7 +146,6 @@ class Task:
                 client_id=self.grpc_metadata["client_id"],
                 min_client_num=int(algorithm_parameters['threshold']),
                 client_num=int(algorithm_parameters['clients_num']),
-                use_same_mask=algorithm_parameters['use_same_mask'],
                 workspace=self.workspace,
                 grpc_metadata=self.grpc_metadata,
                 ready_timer_interval=task_timeout,

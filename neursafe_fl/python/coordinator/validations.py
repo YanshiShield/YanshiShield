@@ -193,8 +193,7 @@ def __validate_secure_algorithm_with_dp(config):
 def __validate_secure_algorithm_with_ssa(config):
     required_rules = {"type": str}
     optional_rules = {"threshold": int,
-                      "mode": str,
-                      "use_same_mask": bool}
+                      "mode": str}
 
     _validate_required(required_rules, config)
     _validate_optional(optional_rules, config)
@@ -210,9 +209,6 @@ def __set_and_validate_mode_with_ssa(config):
         raise ValueError("Mode for SSA must be in (onemask, doublemask), "
                          "recommend onemask used in cross-silo, "
                          "doublemask used in cross-device.")
-
-    if "use_same_mask" not in config:
-        config["use_same_mask"] = False
 
 
 def __set_and_validate_ssa_config(config, client_num, threshold_client_num):
