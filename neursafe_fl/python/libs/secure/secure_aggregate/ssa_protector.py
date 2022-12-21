@@ -11,12 +11,11 @@ import fcntl
 import pickle
 
 from collections import OrderedDict
-from absl import logging
 
 import numpy as np
 
 from neursafe_fl.python.libs.secure.secure_aggregate.common import \
-    PseudorandomGenerator, can_be_added
+    PseudorandomGenerator, can_be_added, get_shape
 from neursafe_fl.python.libs.secure.secure_aggregate.aes import decrypt_with_gcm
 from neursafe_fl.python.client.executor.errors import FLError
 
@@ -28,8 +27,7 @@ class SSAProtector:
     """Protect data according SSA algorithm
     """
 
-    def __init__(self, secret_file_path, use_same_mask, timeout=WAIT_TIMEOUT):
-        self.use_same_mask = use_same_mask
+    def __init__(self, secret_file_path, timeout=WAIT_TIMEOUT):
         self.secret_file_path = secret_file_path
         self.wait_timeout = timeout
 
@@ -37,50 +35,38 @@ class SSAProtector:
         self.s_uv_s = []
         self.id_ = None
 
-    def _generate_masks(self, data_size):
+    def __generate_mask(self, shape):
+        mask = np.zeros(shape)
+        for (v_id, s_uv_prg) in self.s_uv_s:
+            if self.id_ > v_id:
+                mask = np.add(mask, s_uv_prg.next_value(shape))
+            else:
+                mask = np.subtract(mask, s_uv_prg.next_value(shape))
+
         if self.b:
             b_prg = PseudorandomGenerator(self.b)
-        else:
-            b_prg = None
+            mask = np.add(mask, b_prg.next_value(shape))
 
-        masks = []
-        for _ in range(data_size):
-            s_total = 0
-            for (v_id, s_uv_prg) in self.s_uv_s:
-                if self.id_ > v_id:
-                    s_total += s_uv_prg.next_number()
-                else:
-                    s_total -= s_uv_prg.next_number()
-
-            if b_prg:
-                masks.append(b_prg.next_number() + s_total)
-            else:
-                masks.append(s_total)
-        logging.debug('masks %s', masks)
-        return masks
+        return mask if shape != (1,) else mask[0]
 
     def __encrypt_list(self, data):
         new_data = []
-        if not self.use_same_mask:
-            masks = self._generate_masks(len(data))
-            for index, item in enumerate(data):
-                new_data.append(np.add(item, masks[index]))
-        else:
-            masks = self._generate_masks(1)
-            for item in data:
-                new_data.append(np.add(item, masks[0]))
+
+        for item in data:
+            shape = get_shape(item)
+            mask = self.__generate_mask(shape)
+            new_data.append(item + mask)
+
         return new_data
 
     def __encrypt_ordered_dict(self, data):
         new_data = OrderedDict()
-        if not self.use_same_mask:
-            masks = self._generate_masks(len(data))
-            for index, (name, value) in enumerate(data.items()):
-                new_data[name] = np.add(value, masks[index])
-        else:
-            masks = self._generate_masks(1)
-            for name, value in data.items():
-                new_data[name] = np.add(value, masks[0])
+
+        for name, value in data.items():
+            shape = get_shape(value)
+            mask = self.__generate_mask(shape)
+            new_data[name] = np.add(value, mask)
+
         return new_data
 
     async def wait_ready(self):
@@ -124,8 +110,9 @@ class SSAProtector:
             # pytorch's value in OrderedDict, the value is torch.Tensor
             new_data = self.__encrypt_ordered_dict(data)
         elif can_be_added(data):
-            masks = self._generate_masks(1)
-            new_data = np.add(data, masks[0])
+            shape = get_shape(data)
+            mask = self.__generate_mask(shape)
+            new_data = np.add(data, mask)
         else:
             raise TypeError('Not support data type %s' % type(data))
 

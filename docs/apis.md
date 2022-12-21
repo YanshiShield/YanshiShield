@@ -172,7 +172,6 @@ For example, if you provide this config as follows, then the commad will be with
 | adding_same_noise | bool   | optional | DP        | When adding noise to the model, whether to add the same noise to all weights |
 | threshold         | int    | optional | SSA       | The minimum threshold for the number of clients participating in secret sharing, the minimum value is 2, the maximum value is threshold_num defined in HyperParameters |
 | mode              | string | optional | SSA       | onemask or doublemask mode in ssa。onemask mode is more suitable for cross-slio scenarios and does not support client disconnection;<br>doublemask is more suitable for cross-device scenarios, supports client disconnection, and is more secure |
-| use_same_mask     | bool   | optional | SSA       | When use_same_mask is True, each layer will use the same encryption mask. When the weight of the model is very regular, the attacker is easy to crack; otherwise, each layer uses a different encryption mask, which is more secure, and the default is false. |
 
 #### Compression
 

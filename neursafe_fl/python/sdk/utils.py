@@ -157,7 +157,6 @@ def create_security_algorithm():
 
     if algorithm_parameters["type"].lower() == "ssa":
         ssa_protector = SSAProtector(ssa_secret_path,
-                                     algorithm_parameters["use_same_mask"],
                                      task_timeout)
 
     security_algorithm = RuntimeFactory.create_security_algorithm(

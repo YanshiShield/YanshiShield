@@ -306,8 +306,6 @@ class Trainer:
                 handle=handle,
                 min_client_num=self.__config["secure_algorithm"]["threshold"],
                 client_num=self.__hyper_params['client_num'],
-                use_same_mask=self.__config[
-                    "secure_algorithm"]["use_same_mask"],
                 wait_aggregate_interval=self.__hyper_params["round_timeout"],
                 ssl_key=self.__config['ssl'])
             ssa_server.initialize()

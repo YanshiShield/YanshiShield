@@ -27,19 +27,15 @@ class SSASimpleServer(SSABaseServer):
         handle: The unique string represents this encryption and decryption.
         min_client_num: Minimum number of clients required.
         client_num: Number of participating clients.
-        use_same_mask: Whether to use the same mask. True mean all weights
-            use a ame mask, False mean use different mask in different
-            layers in weights
         wait_aggregate_interval: the time to wait for use descrypt.
         ssl_key:
         kwargs:
             stage_time_interval: the time to wait a stage timeout.
     """
-    def __init__(self, handle, min_client_num, client_num, use_same_mask,
+    def __init__(self, handle, min_client_num, client_num,
                  wait_aggregate_interval,
                  ssl_key=None, **kwargs):
-        super().__init__(handle, min_client_num, client_num,
-                         use_same_mask, ssl_key)
+        super().__init__(handle, min_client_num, client_num, ssl_key)
 
         self.__stage_time_interval = kwargs.get("stage_time_interval",
                                                 STAGE_TIME_INTERVAL)

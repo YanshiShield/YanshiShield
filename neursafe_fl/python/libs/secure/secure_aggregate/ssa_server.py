@@ -14,7 +14,7 @@ from absl import logging
 from secretsharing import SecretSharer
 
 from neursafe_fl.python.libs.secure.secure_aggregate.common import \
-    ProtocolStage, can_be_added, PseudorandomGenerator
+    ProtocolStage, can_be_added, PseudorandomGenerator, get_shape
 from neursafe_fl.python.libs.secure.secure_aggregate.dh import DiffieHellman
 from neursafe_fl.python.libs.secure.secure_aggregate.ssa_controller import \
     ssa_controller
@@ -30,12 +30,10 @@ SERVER = 'server'
 
 class SSABaseServer:
     """Secret Share Aggregate, base server"""
-    def __init__(self, handle, min_client_num, client_num, use_same_mask,
-                 ssl_key):
+    def __init__(self, handle, min_client_num, client_num, ssl_key):
         self._handle = handle
         self._min_client_num = min_client_num
         self._client_num = client_num
-        self._use_same_mask = use_same_mask
         self._ssl_key = ssl_key
 
         self._total_data = 0
@@ -94,18 +92,15 @@ class SSAServer(SSABaseServer):
         handle: The unique string represents this encryption and decryption.
         min_client_num: Minimum number of clients required.
         client_num: Number of participating clients.
-        use_same_mask: Whether to use the same mask. True mean all weights
-            use a ame mask, False mean use different mask in different
-            layers in weights.
         wait_aggregate_interval: the time to wait for use descrypt.
         ssl_key: the ssl path to use GRPCS.
         kwargs:
             stage_time_interval: the time to wait a stage timeout.
     """
-    def __init__(self, handle, min_client_num, client_num, use_same_mask,
+    def __init__(self, handle, min_client_num, client_num,
                  wait_aggregate_interval,
                  ssl_key=None, **kwargs):
-        super().__init__(handle, min_client_num, client_num, use_same_mask,
+        super().__init__(handle, min_client_num, client_num,
                          ssl_key)
 
         self.__stage_time_interval = kwargs.get("stage_time_interval",
@@ -370,51 +365,43 @@ class SSAServer(SSABaseServer):
         elif isinstance(self._total_data, OrderedDict):
             self.__decrypt_ordered_dict()
         elif can_be_added(self._total_data):
-            masks = self._genernate_masks(1)
-            self._total_data = np.add(
-                self._total_data, masks[0])
+            shape = get_shape(self._total_data)
+            mask = self.__generate_mask(shape)
+            self._total_data = np.add(self._total_data, mask)
         else:
             raise TypeError('Not support data type %s' %
                             type(self._total_data))
         return self._total_data
 
     def __decrypt_list(self):
-        if not self._use_same_mask:
-            masks = self._genernate_masks(len(self._total_data))
-            for index, value in enumerate(self._total_data):
-                self._total_data[index] = np.add(value, masks[index])
-        else:
-            masks = self._genernate_masks(1)
-            for index, value in enumerate(self._total_data):
-                self._total_data[index] = np.add(value, masks[0])
+        for index, value in enumerate(self._total_data):
+            shape = get_shape(value)
+            mask = self.__generate_mask(shape)
+            self._total_data[index] = np.add(value, mask)
 
     def __decrypt_ordered_dict(self):
-        if not self._use_same_mask:
-            masks = self._genernate_masks(len(self._total_data))
-            for index, (name, value) in enumerate(self._total_data.items()):
-                self._total_data[name] = np.add(value, masks[index])
-        else:
-            masks = self._genernate_masks(1)
-            for name, value in self._total_data.items():
-                self._total_data[name] = np.add(value, masks[0])
+        for name, value in self._total_data.items():
+            shape = get_shape(value)
+            mask = self.__generate_mask(shape)
+            self._total_data[name] = np.add(value, mask)
 
-    def _genernate_masks(self, data_size):
-        masks = []
-        for _ in range(data_size):
-            b_total = 0
-            for b_prg in self._b_masks:
-                b_total += b_prg.next_number()
+    def __generate_mask(self, shape):
+        s_total = np.zeros(shape)
 
-            s_total = 0
-            for (drop_id, alive_id, s_uv_prg) in self._s_uv_masks:
-                if drop_id > alive_id:
-                    s_total += s_uv_prg.next_number()
-                else:
-                    s_total -= s_uv_prg.next_number()
+        for (drop_id, alive_id, s_uv_prg) in self._s_uv_masks:
+            if drop_id > alive_id:
+                s_total = np.add(s_total, s_uv_prg.next_value(shape))
+            else:
+                s_total = np.subtract(s_total, s_uv_prg.next_value(shape))
 
-            masks.append(s_total - b_total)
-        logging.debug('masks %s', masks)
-        return masks
+        b_total = np.zeros(shape)
+
+        for b_prg in self._b_masks:
+            b_total = np.add(b_total, b_prg.next_value(shape))
+
+        mask = np.subtract(s_total, b_total)
+
+        return mask if shape != (1,) else mask[0]
 
     async def __handle_secret_shares(self, msg):
         self.__assert_stage(ProtocolStage.DecryptResult)
