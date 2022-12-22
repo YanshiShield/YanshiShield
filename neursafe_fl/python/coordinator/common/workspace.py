@@ -52,6 +52,7 @@ class Workspace:
         self.__job_name = job_name
         self.__job_dir = None
         self.__tmp_dir = None
+        self.__job_v = 0
         self.__ckpt_root_dir = None
 
     def get_checkpoints(self):
@@ -160,21 +161,23 @@ class Workspace:
         if not self.__ckpt_root_dir:
             self.__ckpt_root_dir = self.__create_ckpt_root_dir()
 
+        name = "V%s_%s%s" % (self.__job_v, CHECKPOINT_FILE_PREFIX, ckpt_id)
         ckpt_dir = os.path.join(self.__output_dir,
                                 self.__job_dir,
                                 CKPT_ROOT_PATH,
-                                "%s%s" % (CHECKPOINT_FILE_PREFIX, ckpt_id))
+                                name)
 
         if not os.path.exists(ckpt_dir):
             os.mkdir(ckpt_dir)
 
-        return "%s%s" % (CHECKPOINT_FILE_PREFIX, ckpt_id), ckpt_dir
+        return name, ckpt_dir
 
     def _create_job_dir(self, version=0):
         job_dir = os.path.join(self.__output_dir,
                                "fl_%s_output_V%s" % (self.__job_name, version))
         if os.path.exists(job_dir):
             return self._create_job_dir(version=version + 1)
+        self.__job_v = version
         os.mkdir(job_dir)
         return job_dir
 

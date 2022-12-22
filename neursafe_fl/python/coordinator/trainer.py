@@ -124,8 +124,7 @@ class Trainer:
         self.finish()
 
     def __restore_checkpoints(self):
-        self.__checkpoints, max_ckpt_id = self.__workspace.get_checkpoints()
-        self.__next_ckpt_id = max_ckpt_id + 1
+        self.__checkpoints, _ = self.__workspace.get_checkpoints()
 
     def stop(self):
         """Stop the main process of job."""
@@ -378,9 +377,8 @@ class Trainer:
         ckpt_dir_name, ckpt_out_path = self.__workspace.create_ckpt_dir(
             self.__next_ckpt_id)
 
-        ckpt_filename = self.__workspace.get_runtime_file_by(Files.Checkpoint,
-                                                             self.__runtime,
-                                                             self.__round_id)
+        ckpt_filename = self.__workspace.get_runtime_file_by(
+            Files.Checkpoint, self.__runtime, "round%s" % self.__round_id)
         ckpt_file = join(ckpt_out_path, ckpt_filename)
 
         self.__fl_model.save_model(ckpt_file)
