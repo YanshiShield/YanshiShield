@@ -8,6 +8,7 @@ import os
 
 from absl import logging
 from neursafe_fl.python.sdk.loss import get_loss_instance, FEDDC
+from neursafe_fl.python.sdk.optimizer import SCAFFOLD, get_optimizer_single_ins
 import neursafe_fl.python.client.workspace.delta_weights as weights
 import neursafe_fl.python.sdk.report as report
 import neursafe_fl.python.sdk.utils as utils
@@ -73,12 +74,13 @@ def _compress_weights_if_needed(weights_):
     return weights_
 
 
-def _commit_trained_results(metrics, model, optimizer=None):
+def _commit_trained_results(metrics, model):
     def do_optional_works():
         global fl_model
         fl_model.set_raw_model(model)
 
-        if os.getenv(utils.TASK_OPTIMIZER) == "scaffold" and optimizer:
+        if os.getenv(utils.TASK_OPTIMIZER).lower() == SCAFFOLD:
+            optimizer = get_optimizer_single_ins(SCAFFOLD)
             optimizer.update(fl_model)
 
         if os.getenv(utils.TASK_LOSS) == FEDDC:
@@ -114,7 +116,7 @@ def _commit_evaluated_results(metrics):
     report.submit(metrics)
 
 
-def commit(metrics, trained_model=None, optimizer=None):
+def commit(metrics, trained_model=None):
     """Commit trained weights to framework, and the framework will
     calculate delta weights and send it to server.
 
@@ -129,10 +131,9 @@ def commit(metrics, trained_model=None, optimizer=None):
                 recall_rate float,
             all is optional.
         trained_model: trained model.
-        optimizer: the optimizer instance used in training.
     """
     if trained_model:
-        _commit_trained_results(metrics, trained_model, optimizer=optimizer)
+        _commit_trained_results(metrics, trained_model)
     else:
         _commit_evaluated_results(metrics)
 

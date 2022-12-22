@@ -12,10 +12,22 @@ import torch
 from absl import logging
 from torch.optim.optimizer import Optimizer
 from neursafe_fl.python.sdk.custom import get_file, put_file
+from neursafe_fl.python.sdk.utils import get_worker_id
+
+
+def _get_worker_id_prefix():
+    worker_id = get_worker_id()
+    worker_id_splited = worker_id.split("-")
+    worker_id_prefix = "-".join(worker_id_splited[:-3]) + "-"
+    return worker_id_prefix
+
 
 # The local control_variates file path
-local_control_variates_path = os.getenv("CONTROL_VARIATES",
-                                        "/tmp/local_variates.pt")
+if os.getenv("CONTROL_VARIATES"):
+    local_control_variates_path = os.getenv("CONTROL_VARIATES")
+else:
+    local_control_variates_path = "/tmp/%slocal_variates.pt" % \
+                                  _get_worker_id_prefix()
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -96,6 +108,16 @@ def update_local_variates(trained_params, zero_params, server_params,
 class Scaffold(Optimizer):
     """Scaffold optimizer.
     """
+
+    _instance = None
+
+    @classmethod
+    def get_instance(cls, *args, **kwargs):
+        """Get scaffold optimizer instance.
+        """
+        if not cls._instance:
+            cls._instance = Scaffold(*args, **kwargs)
+        return cls._instance
 
     def __init__(self, model_params=None, lr=0.01, batch_size=None,
                  sample_num=None, **kwargs):

@@ -21,15 +21,37 @@ from tensorflow.python.util.tf_export import keras_export
 from neursafe_fl.python.libs.optimizer.tensorflow.utils import \
     subtract_variables, add_variables, multiply
 from neursafe_fl.python.sdk.custom import get_file, put_file
+from neursafe_fl.python.sdk.utils import get_worker_id
+
+
+def _get_worker_id_prefix():
+    worker_id = get_worker_id()
+    worker_id_splited = worker_id.split("-")
+    worker_id_prefix = "-".join(worker_id_splited[:-3]) + "-"
+    return worker_id_prefix
+
 
 # The local control_variates file path
-local_control_variates_path = os.getenv("CONTROL_VARIATES",
-                                        "/tmp/local_variates.npy")
+if os.getenv("CONTROL_VARIATES"):
+    local_control_variates_path = os.getenv("CONTROL_VARIATES")
+else:
+    local_control_variates_path = "/tmp/%slocal_variates.npy" % \
+                                  _get_worker_id_prefix()
 
 
 @keras_export("keras.optimizers.Scaffold")
 class Scaffold(optimizer_v2.OptimizerV2):
     """Scaffold Optimizer."""
+
+    _instance = None
+
+    @classmethod
+    def get_instance(cls, *args, **kwargs):
+        """Get scaffold optimizer instance.
+        """
+        if not cls._instance:
+            cls._instance = Scaffold(*args, **kwargs)
+        return cls._instance
 
     def __init__(self, model_params=None, lr=0.01, batch_size=None,
                  sample_num=None, name="scaffold", **kwargs):
