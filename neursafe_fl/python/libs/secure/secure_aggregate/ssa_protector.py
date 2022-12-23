@@ -35,7 +35,7 @@ class SSAProtector:
         self.s_uv_s = []
         self.id_ = None
 
-    def __generate_mask(self, shape):
+    def __generate_mask(self, shape, b_prg=None):
         mask = np.zeros(shape)
         for (v_id, s_uv_prg) in self.s_uv_s:
             if self.id_ > v_id:
@@ -43,18 +43,25 @@ class SSAProtector:
             else:
                 mask = np.subtract(mask, s_uv_prg.next_value(shape))
 
-        if self.b:
-            b_prg = PseudorandomGenerator(self.b)
+        if b_prg:
             mask = np.add(mask, b_prg.next_value(shape))
 
         return mask if shape != (1,) else mask[0]
 
+    def __gen_b_prg(self):
+        if self.b:
+            return PseudorandomGenerator(self.b)
+
+        return None
+
     def __encrypt_list(self, data):
         new_data = []
 
+        b_prg = self.__gen_b_prg()
+
         for item in data:
             shape = get_shape(item)
-            mask = self.__generate_mask(shape)
+            mask = self.__generate_mask(shape, b_prg)
             new_data.append(item + mask)
 
         return new_data
@@ -62,9 +69,11 @@ class SSAProtector:
     def __encrypt_ordered_dict(self, data):
         new_data = OrderedDict()
 
+        b_prg = self.__gen_b_prg()
+
         for name, value in data.items():
             shape = get_shape(value)
-            mask = self.__generate_mask(shape)
+            mask = self.__generate_mask(shape, b_prg)
             new_data[name] = np.add(value, mask)
 
         return new_data
@@ -111,7 +120,8 @@ class SSAProtector:
             new_data = self.__encrypt_ordered_dict(data)
         elif can_be_added(data):
             shape = get_shape(data)
-            mask = self.__generate_mask(shape)
+            b_prg = self.__gen_b_prg()
+            mask = self.__generate_mask(shape, b_prg)
             new_data = np.add(data, mask)
         else:
             raise TypeError('Not support data type %s' % type(data))

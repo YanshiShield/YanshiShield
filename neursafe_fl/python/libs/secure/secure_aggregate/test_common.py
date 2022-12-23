@@ -20,27 +20,27 @@ class TestCommon(unittest.TestCase):
         def format_float(array):
             return [float("{:04.3f}".format(value)) for value in array]
 
-        self.assertEqual(format_float(prg.next_value()), [0.127])
-        self.assertEqual(format_float(prg.next_value(1)), [0.127])
+        self.assertEqual(format_float(prg.next_value()), [0.729])
+        self.assertEqual(format_float(prg.next_value(1)), [0.757])
         self.assertEqual(format_float(prg.next_value(5)),
-                         [0.127, 0.077, 0.52, 0.885, 0.084])
+                         [0.463, 0.04, 0.615, 0.413, 0.458])
         self.assertEqual(format_float(prg.next_value((5,))),
-                         [0.127, 0.077, 0.52, 0.885, 0.084])
+                         [0.701, 0.884, 0.688, 0.782, 0.14])
 
         self.assertEqual([format_float(value) for value in prg.next_value((2, 2))],
-                         [[0.127, 0.077], [0.52, 0.885]])
+                         [[0.4, 0.197], [0.405, 0.591]])
 
         prg = PseudorandomGenerator(6532444414, return_type="int")
 
-        self.assertEqual(prg.next_value().tolist(), [427])
-        self.assertEqual(prg.next_value(1).tolist(), [427])
+        self.assertEqual(prg.next_value().tolist(), [136])
+        self.assertEqual(prg.next_value(1).tolist(), [458])
         self.assertEqual(prg.next_value(5).tolist(),
-                         [427, 469, -964, -851, -756])
+                         [768, 514, -248, -75, -883])
         self.assertEqual(prg.next_value((5,)).tolist(),
-                         [427, 469, -964, -851, -756])
+                         [-920, 260, 230, -172, -174])
 
         self.assertEqual(prg.next_value((2, 2)).tolist(),
-                         [[427, 469], [-964, -851]])
+                         [[-961, -85], [-964, 402]])
 
 
 if __name__ == "__main__":
