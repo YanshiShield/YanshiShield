@@ -38,20 +38,10 @@ def get_shape(data):
     return default_shape
 
 
-def gen_valid_seed(seed):
-    """
-    Generate valid seed for numpy.
-    """
-    if seed > MAX_SEED_VALUE:
-        return seed % MAX_SEED_VALUE
-
-    return seed
-
-
 class PseudorandomGenerator:
     """A pseudorandom generator."""
     def __init__(self, seed, return_type='float'):
-        self.__seed = gen_valid_seed(seed)
+        self.__random = np.random.default_rng(seed)
         self.__return_type = return_type
 
     def next_value(self, shape=(1,)):
@@ -61,13 +51,10 @@ class PseudorandomGenerator:
         Args:
             shape: the shape of random array to be generated.
         """
-
-        np.random.seed(seed=self.__seed)
-
         if isinstance(shape, int):
             shape = (shape,)
 
         if self.__return_type == 'float':
-            return np.random.rand(*shape)
+            return self.__random.random(shape)
 
-        return np.random.randint(-1000, 1000, shape)
+        return self.__random.integers(-1000, 1000, shape)
