@@ -29,24 +29,37 @@ def _create_fedprox(params):
         origin_trainable_weights=origin_trainable_weights)
 
 
-def _create_scaffold(params):
-    model_params = params.get("params")
-    if not model_params:
-        return None
+def _create_scaffold(params=None):
+    if params:
+        model_params = params.get("params")
+        if not model_params:
+            return None
 
-    learning_rate = float(params.get("learning_rate", 0.01))
-    batch_size = int(params.get("batch_size", 32))
-    sample_num = int(params.get("sample_num", batch_size))
+        learning_rate = float(params.get("learning_rate", 0.01))
+        batch_size = int(params.get("batch_size", 32))
+        sample_num = int(params.get("sample_num", batch_size))
 
     module_name = "neursafe_fl.python.libs.optimizer.%s.%s" % (
         get_runtime().lower(), SCAFFOLD)
 
     module = __import__(module_name, fromlist=True)
     class_name = "Scaffold"
-    return getattr(module, class_name)(model_params=model_params,
-                                       lr=learning_rate,
-                                       batch_size=batch_size,
-                                       sample_num=sample_num)
+    if params:
+        return getattr(module, class_name).get_instance(
+            model_params=model_params, lr=learning_rate,
+            batch_size=batch_size, sample_num=sample_num)
+
+    return getattr(module, class_name).get_instance()
+
+
+def get_optimizer_single_ins(name):
+    """Get the single instance of optimizer.
+    """
+    if name.lower() == SCAFFOLD:
+        return _create_scaffold(params=None)
+
+    raise NotImplementedError("Not support single instance for "
+                              "optimizer %s" % name)
 
 
 def _parse_params():
