@@ -9,6 +9,7 @@ from enum import Enum
 import numpy as np
 
 MAX_SEED_VALUE = 2 ** 32 - 1
+PLAINTEXT_MULTIPLE = 10240
 
 
 class ProtocolStage(Enum):

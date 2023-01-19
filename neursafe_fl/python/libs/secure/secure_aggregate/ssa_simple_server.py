@@ -6,13 +6,15 @@
 """SSA simple Server, woth one mask, used to generate mask and decrypt data.
 """
 import asyncio
+from collections import OrderedDict
 
 from absl import logging
 
 from neursafe_fl.python.utils.timer import Timer
 from neursafe_fl.proto.secure_aggregate_grpc import SSAServiceStub
 from neursafe_fl.proto.secure_aggregate_pb2 import PublicKeys, SSAMessage
-from neursafe_fl.python.libs.secure.secure_aggregate.common import ProtocolStage
+from neursafe_fl.python.libs.secure.secure_aggregate.common import \
+    ProtocolStage, PLAINTEXT_MULTIPLE, can_be_added
 from neursafe_fl.python.libs.secure.secure_aggregate.ssa_controller import \
     ssa_controller
 from neursafe_fl.python.trans.grpc_call import unary_call
@@ -170,7 +172,27 @@ class SSASimpleServer(SSABaseServer):
 
         self.__stage = ProtocolStage.DecryptResult
 
+        return self.__do_decrypt()
+
+    def __do_decrypt(self):
+        if isinstance(self._total_data, list):
+            self.__decrypt_list()
+        elif isinstance(self._total_data, OrderedDict):
+            self.__decrypt_ordered_dict()
+        elif can_be_added(self._total_data):
+            self._total_data = self._total_data / PLAINTEXT_MULTIPLE
+        else:
+            raise TypeError('Not support data type %s' %
+                            type(self._total_data))
         return self._total_data
+
+    def __decrypt_list(self):
+        for index, value in enumerate(self._total_data):
+            self._total_data[index] = value / PLAINTEXT_MULTIPLE
+
+    def __decrypt_ordered_dict(self):
+        for name, value in self._total_data.items():
+            self._total_data[name] = value / PLAINTEXT_MULTIPLE
 
     def __assert_client_not_drop(self):
         same_values = set(self.__rpt_public_key_clients) \
