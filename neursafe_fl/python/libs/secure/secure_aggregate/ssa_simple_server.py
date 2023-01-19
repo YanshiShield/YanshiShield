@@ -14,7 +14,7 @@ from neursafe_fl.python.utils.timer import Timer
 from neursafe_fl.proto.secure_aggregate_grpc import SSAServiceStub
 from neursafe_fl.proto.secure_aggregate_pb2 import PublicKeys, SSAMessage
 from neursafe_fl.python.libs.secure.secure_aggregate.common import \
-    ProtocolStage, PLAINTEXT_MULTIPLE, can_be_added
+    ProtocolStage, can_be_added, PLAINTEXT_MULTIPLE
 from neursafe_fl.python.libs.secure.secure_aggregate.ssa_controller import \
     ssa_controller
 from neursafe_fl.python.trans.grpc_call import unary_call
