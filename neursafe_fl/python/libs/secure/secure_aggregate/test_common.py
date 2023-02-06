@@ -15,7 +15,7 @@ class TestCommon(unittest.TestCase):
     """Test some function in common.
     """
     def test_prg(self):
-        prg = PseudorandomGenerator(6532444414)
+        prg = PseudorandomGenerator(6532444414, return_type="float")
 
         def format_float(array):
             return [float("{:04.3f}".format(value)) for value in array]
@@ -32,15 +32,15 @@ class TestCommon(unittest.TestCase):
 
         prg = PseudorandomGenerator(6532444414, return_type="int")
 
-        self.assertEqual(prg.next_value().tolist(), [136])
-        self.assertEqual(prg.next_value(1).tolist(), [458])
+        self.assertEqual(prg.next_value().tolist(), [5682])
+        self.assertEqual(prg.next_value(1).tolist(), [7290])
         self.assertEqual(prg.next_value(5).tolist(),
-                         [768, 514, -248, -75, -883])
+                         [8840, 7570, 3760, 4629, 586])
         self.assertEqual(prg.next_value((5,)).tolist(),
-                         [-920, 260, 230, -172, -174])
+                         [404, 6301, 6154, 4143, 4134])
 
         self.assertEqual(prg.next_value((2, 2)).tolist(),
-                         [[-961, -85], [-964, 402]])
+                         [[197, 4576], [180, 7013]])
 
 
 if __name__ == "__main__":
