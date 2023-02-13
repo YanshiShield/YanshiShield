@@ -41,9 +41,8 @@ def get_shape(data):
 
 class PseudorandomGenerator:
     """A pseudorandom generator."""
-    def __init__(self, seed, return_type='int'):
+    def __init__(self, seed):
         self.__random = np.random.default_rng(seed)
-        self.__return_type = return_type
 
     def next_value(self, shape=(1,)):
         """
@@ -54,8 +53,5 @@ class PseudorandomGenerator:
         """
         if isinstance(shape, int):
             shape = (shape,)
-
-        if self.__return_type == 'float':
-            return self.__random.random(shape)
 
         return self.__random.integers(0, 10000, shape)

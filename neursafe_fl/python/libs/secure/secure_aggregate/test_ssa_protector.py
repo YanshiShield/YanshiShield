@@ -24,10 +24,10 @@ class TestSSAProtector(unittest.TestCase):
 
         self.protector.id_ = "my_id"
         self.protector.b = 1234
-        self.protector.s_uv_s = [("my_ia", PseudorandomGenerator(1234, "int")),
-                                 ("my_ie", PseudorandomGenerator(1234, "int"))]
+        self.protector.s_uv_s = [("my_ia", PseudorandomGenerator(1234)),
+                                 ("my_ie", PseudorandomGenerator(1234))]
 
-        self.prg = PseudorandomGenerator(1234, "int")
+        self.prg = PseudorandomGenerator(1234)
 
     def test_should_success_encrypt_int(self):
         result = self.protector.encrypt(1)
