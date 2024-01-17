@@ -1,10 +1,10 @@
-# Neursafe FL
+# 偃师盾联邦学习
 
 [![license](https://img.shields.io/github/license/ChengMingZhang-ZTE/federated-learning)](https://opensource.org/licenses/Apache-2.0)[![Neursafe_FL_C](https://github.com/neursafe/federated-learning/actions/workflows/ci.yml/badge.svg)](https://github.com/neursafe/federated-learning/actions/workflows/ci.yml)
 
 [English](README.md)
 
-**Neursafe**为关注AI安全解决方案的开源社区，其中**Neursafe FL**作为Neursafe的子项目提供联邦学习的解决方案，联邦学习为一种隐私安全的机器学习方法，利用大量驻留在客户设备上的去中心化数据协作完成机器学习模型的训练。Neursafe FL的目标是在隐私安全前提下打造可靠、高效、易用的联邦学习和联邦计算平台。Neursafe FL的特点如下：
+**偃师盾**为关注AI安全解决方案的开源社区，其中**偃师盾 FL**作为Neursafe的子项目提供联邦学习的解决方案，联邦学习为一种隐私安全的机器学习方法，利用大量驻留在客户设备上的去中心化数据协作完成机器学习模型的训练。Neursafe FL的目标是在隐私安全前提下打造可靠、高效、易用的联邦学习和联邦计算平台。Neursafe FL的特点如下：
 
 * 利用差分隐私、多方安全计算（MPC）以及同态加密等密码学算法来保证隐私安全以及联邦训练过程中中间数据的不可见。
 * 提供多种联邦聚合和优化算法来保证不同数据分布情况下模型的收敛性和收敛效率。
