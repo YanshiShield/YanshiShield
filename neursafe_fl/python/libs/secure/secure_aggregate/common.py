@@ -9,6 +9,7 @@ from enum import Enum
 import numpy as np
 
 MAX_SEED_VALUE = 2 ** 32 - 1
+PLAINTEXT_MULTIPLE = 10240
 
 
 class ProtocolStage(Enum):
@@ -40,9 +41,8 @@ def get_shape(data):
 
 class PseudorandomGenerator:
     """A pseudorandom generator."""
-    def __init__(self, seed, return_type='float'):
+    def __init__(self, seed):
         self.__random = np.random.default_rng(seed)
-        self.__return_type = return_type
 
     def next_value(self, shape=(1,)):
         """
@@ -54,7 +54,4 @@ class PseudorandomGenerator:
         if isinstance(shape, int):
             shape = (shape,)
 
-        if self.__return_type == 'float':
-            return self.__random.random(shape)
-
-        return self.__random.integers(-1000, 1000, shape)
+        return self.__random.integers(0, 10000, shape)

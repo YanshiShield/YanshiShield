@@ -10,7 +10,7 @@ import unittest
 import numpy as np
 
 from neursafe_fl.python.libs.secure.secure_aggregate.common import ProtocolStage, \
-    PseudorandomGenerator
+    PseudorandomGenerator, PLAINTEXT_MULTIPLE
 from neursafe_fl.python.libs.secure.secure_aggregate.ssa_server import SSAServer
 
 from neursafe_fl.proto.secure_aggregate_pb2 import EncryptedShares, EncryptedShare, \
@@ -47,7 +47,7 @@ class TestSSAServer(unittest.TestCase):
                          ['1', '2'])
 
         result = self.__server._SSAServer__do_decrypt()
-        self.assertEqual(result, 6 - prg.next_value())
+        self.assertEqual(result, (6 - prg.next_value()) / PLAINTEXT_MULTIPLE)
 
     def test_should_success_accumulate_and_decrypt_with_array(self):
         prg = PseudorandomGenerator(1234)
@@ -66,7 +66,11 @@ class TestSSAServer(unittest.TestCase):
                          ['1', '2'])
 
         result = self.__server._SSAServer__do_decrypt()
-        self.assertTrue(self.__equal(result, np.full((1, 2, 3), 5 - prg.next_value((1, 2, 3)))))
+        self.assertTrue(
+            self.__equal(
+                result,
+                np.full((1, 2, 3),
+                        (5 - prg.next_value((1, 2, 3)))) / PLAINTEXT_MULTIPLE))
 
     def test_should_success_accumulate_and_decrypt_with_dict(self):
         prg = PseudorandomGenerator(1234)
@@ -91,10 +95,15 @@ class TestSSAServer(unittest.TestCase):
         self.assertTrue(self.__equal(result['array'], np.full((1, 2, 3), 3)))
 
         result = self.__server._SSAServer__do_decrypt()
-        self.assertEqual(result['int'], 3 - prg.next_value())
-        self.assertEqual(result['float'], 3.2 - prg.next_value())
-        self.assertTrue(self.__equal(result['array'],
-                                     np.full((1, 2, 3), 3 - prg.next_value((1, 2, 3)))))
+        self.assertEqual(result['int'],
+                         (3 - prg.next_value()) / PLAINTEXT_MULTIPLE)
+        self.assertEqual(result['float'],
+                         (3.2 - prg.next_value()) / PLAINTEXT_MULTIPLE)
+        self.assertTrue(
+            self.__equal(
+                result['array'],
+                np.full((1, 2, 3),
+                        (3 - prg.next_value((1, 2, 3))) / PLAINTEXT_MULTIPLE)))
 
     def test_reconstruct_encrypted_shares(self):
         # no drop client

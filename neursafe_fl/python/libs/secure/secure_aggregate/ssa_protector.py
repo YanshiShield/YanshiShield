@@ -17,10 +17,19 @@ import numpy as np
 from neursafe_fl.python.libs.secure.secure_aggregate.common import \
     PseudorandomGenerator, can_be_added, get_shape
 from neursafe_fl.python.libs.secure.secure_aggregate.aes import decrypt_with_gcm
+from neursafe_fl.python.libs.secure.secure_aggregate.common import \
+    PLAINTEXT_MULTIPLE
 from neursafe_fl.python.client.executor.errors import FLError
 
 WAIT_INTERNAL = 1
 WAIT_TIMEOUT = 3600
+MAX_DATA = 1e15
+
+
+def enlarge_and_clip(value):
+    """enlarge and clip data.
+    """
+    return np.clip(value * PLAINTEXT_MULTIPLE, None, MAX_DATA)
 
 
 class SSAProtector:
@@ -62,7 +71,7 @@ class SSAProtector:
         for item in data:
             shape = get_shape(item)
             mask = self.__generate_mask(shape, b_prg)
-            new_data.append(item + mask)
+            new_data.append(enlarge_and_clip(item) + mask)
 
         return new_data
 
@@ -74,7 +83,7 @@ class SSAProtector:
         for name, value in data.items():
             shape = get_shape(value)
             mask = self.__generate_mask(shape, b_prg)
-            new_data[name] = np.add(value, mask)
+            new_data[name] = np.add(enlarge_and_clip(value), mask)
 
         return new_data
 
@@ -122,7 +131,7 @@ class SSAProtector:
             shape = get_shape(data)
             b_prg = self.__gen_b_prg()
             mask = self.__generate_mask(shape, b_prg)
-            new_data = np.add(data, mask)
+            new_data = np.add(enlarge_and_clip(data), mask)
         else:
             raise TypeError('Not support data type %s' % type(data))
 

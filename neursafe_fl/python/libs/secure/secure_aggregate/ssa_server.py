@@ -14,7 +14,8 @@ from absl import logging
 from secretsharing import SecretSharer
 
 from neursafe_fl.python.libs.secure.secure_aggregate.common import \
-    ProtocolStage, can_be_added, PseudorandomGenerator, get_shape
+    ProtocolStage, can_be_added, PseudorandomGenerator, get_shape, \
+    PLAINTEXT_MULTIPLE
 from neursafe_fl.python.libs.secure.secure_aggregate.dh import DiffieHellman
 from neursafe_fl.python.libs.secure.secure_aggregate.ssa_controller import \
     ssa_controller
@@ -367,7 +368,8 @@ class SSAServer(SSABaseServer):
         elif can_be_added(self._total_data):
             shape = get_shape(self._total_data)
             mask = self.__generate_mask(shape)
-            self._total_data = np.add(self._total_data, mask)
+            self._total_data = np.add(
+                self._total_data, mask) / PLAINTEXT_MULTIPLE
         else:
             raise TypeError('Not support data type %s' %
                             type(self._total_data))
@@ -377,13 +379,13 @@ class SSAServer(SSABaseServer):
         for index, value in enumerate(self._total_data):
             shape = get_shape(value)
             mask = self.__generate_mask(shape)
-            self._total_data[index] = np.add(value, mask)
+            self._total_data[index] = np.add(value, mask) / PLAINTEXT_MULTIPLE
 
     def __decrypt_ordered_dict(self):
         for name, value in self._total_data.items():
             shape = get_shape(value)
             mask = self.__generate_mask(shape)
-            self._total_data[name] = np.add(value, mask)
+            self._total_data[name] = np.add(value, mask) / PLAINTEXT_MULTIPLE
 
     def __generate_mask(self, shape):
         s_total = np.zeros(shape)
