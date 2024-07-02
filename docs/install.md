@@ -1,3 +1,8 @@
+<div align="center">
+   <img src="https://github.com/YanshiShield/YanshiShield-FL/blob/main/docs/images/yanshiSheild.JPG">
+</div>
+
+
 # Installation 
 
 For scenarios where you only need to quickly experience Neursafe FL and federated learning, we recommend installing in standalone mode, which allows you to quickly start a federated training. For production environments, cluster mode installation is recommended. The SDK for federated development needs to be installed in both installation modes.
