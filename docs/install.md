@@ -5,6 +5,7 @@
 
 # Installation 
 
+
 The source code can be downloaded through the green "<>Code" button on.
 
 For scenarios where you only need to quickly experience Neursafe FL and federated learning, we recommend installing in standalone mode, which allows you to quickly start a federated training. For production environments, cluster mode installation is recommended. The SDK for federated development needs to be installed in both installation modes.
@@ -13,7 +14,7 @@ For scenarios where you only need to quickly experience Neursafe FL and federate
 
 ## SDK Installation
 
-### 1. Enter Neursafe FL code
+### 1. Enter YanshiShield FL code
 
 ```shell
 cd federated-learning
