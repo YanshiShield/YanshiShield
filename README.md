@@ -17,6 +17,7 @@
 ## Getting Started
 
 ### Build
+The source code can be downloaded through the green "<>Code" button on.
 
 YanshiSheild FL support two installation modes, the minimal installation mode of standalone and cluster mode based on Kubernetes, as follow:
 
