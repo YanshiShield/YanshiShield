@@ -19,6 +19,8 @@
 ### Build
 The source code can be downloaded through the green "<>Code" button on.
 
+[![Download](https://img.shields.io/badge/%3C%3E%20Code-blue)](https://github.com/YanshiShield/YanshiShield-FL/archive/refs/heads/main.zip)
+
 YanshiSheild FL support two installation modes, the minimal installation mode of standalone and cluster mode based on Kubernetes, as follow:
 
 - standalone mode:  In this mode, only federated training of a single job can be performed. During the training process, only the coordinator and clients of the job are required to participate, which is suitable for scenarios where you can quickly experience YanshiSheild FL or locally verify the correctness of the federated learning code.
