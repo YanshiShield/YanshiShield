@@ -1,6 +1,6 @@
 # YanshiSheild
 
-![logo](./docs/images/yanshiSheild.JPG)
+[![logo](https://avatars.githubusercontent.com/u/104555770?s=200&v=4)
 
 [![license](https://img.shields.io/github/license/ChengMingZhang-ZTE/federated-learning)](https://opensource.org/licenses/Apache-2.0)[![Neursafe_FL_C](https://github.com/neursafe/federated-learning/actions/workflows/ci.yml/badge.svg)](https://github.com/neursafe/federated-learning/actions/workflows/ci.yml)[![Build docker images](https://github.com/neursafe/federated-learning/actions/workflows/build_image.yml/badge.svg)](https://github.com/neursafe/federated-learning/actions/workflows/build_image.yml)[![Build wheel packages](https://github.com/neursafe/federated-learning/actions/workflows/build_whl.yml/badge.svg)](https://github.com/neursafe/federated-learning/actions/workflows/build_whl.yml)
 
