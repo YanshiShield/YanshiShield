@@ -1,5 +1,5 @@
 <div align="center">
-   <img src="https://github.com/YanshiShield/YanshiShield-FL/blob/main/docs/images/yanshiSheild.JPG">
+   <img src="https://avatars.githubusercontent.com/u/104555770?s=200&v=4">
 </div>
 
 
